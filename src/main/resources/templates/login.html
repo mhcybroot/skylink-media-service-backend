@@ -2,11 +2,48 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skylink Media Service</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="theme-color" content="#0284c7">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Project Manager">
+    
+    <title>Login - Project Manager</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* Touch-friendly inputs and buttons */
+        input, button {
+            min-height: 44px;
+            touch-action: manipulation;
+        }
+        
+        #install-btn {
+            display: none;
+        }
+        
+        @media (display-mode: standalone) {
+            body {
+                padding-top: env(safe-area-inset-top);
+            }
+        }
+    </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
+    <!-- Install PWA Button -->
+    <div id="install-btn" class="fixed top-4 right-4 z-50 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg cursor-pointer hover:bg-blue-700">
+        Install App
+    </div>
+    
     <div class="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
         <div class="max-w-md w-full space-y-8">
             <div>
@@ -18,12 +55,12 @@
                 <div class="rounded-md shadow-sm -space-y-px">
                     <div>
                         <input id="username" name="username" type="text" required 
-                               class="appearance-none rounded-none relative block w-full px-3 py-3 sm:py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 text-base sm:text-sm" 
+                               class="appearance-none rounded-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 text-base" 
                                placeholder="Username">
                     </div>
                     <div>
                         <input id="password" name="password" type="password" required 
-                               class="appearance-none rounded-none relative block w-full px-3 py-3 sm:py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 text-base sm:text-sm" 
+                               class="appearance-none rounded-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 text-base" 
                                placeholder="Password">
                     </div>
                 </div>
@@ -38,12 +75,14 @@
 
                 <div>
                     <button type="submit" 
-                            class="group relative w-full flex justify-center py-3 sm:py-2 px-4 border border-transparent text-base sm:text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 min-h-[44px]">
                         Sign in
                     </button>
                 </div>
             </form>
         </div>
     </div>
+    
+    <script src="/js/pwa-register.js"></script>
 </body>
 </html>

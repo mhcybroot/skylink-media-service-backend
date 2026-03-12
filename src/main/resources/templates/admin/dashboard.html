@@ -2,11 +2,51 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="theme-color" content="#0284c7">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Project Manager">
+    
+    <title>Admin Dashboard - Project Manager</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* Touch-friendly controls */
+        button, input, select, a.btn {
+            min-height: 44px;
+            touch-action: manipulation;
+        }
+        
+        input[type="text"], select {
+            padding: 12px;
+        }
+        
+        #install-btn {
+            display: none;
+        }
+        
+        @media (display-mode: standalone) {
+            body {
+                padding-top: env(safe-area-inset-top);
+            }
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
+    <!-- Install PWA Button -->
+    <div id="install-btn" class="fixed top-4 right-4 z-50 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg cursor-pointer hover:bg-blue-700">
+        Install App
+    </div>
     <nav class="bg-white shadow">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
@@ -57,11 +97,11 @@
                     <div class="flex gap-2">
                         <input type="text" name="projectSearch" th:value="${projectSearch}"
                                placeholder="Search projects by work order, location, client code..."
-                               class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm">
+                               class="flex-1 px-4 py-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px]">
+                        <button type="submit" class="px-6 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm min-h-[44px]">
                             Search
                         </button>
-                        <a href="/admin/dashboard" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 text-sm">
+                        <a href="/admin/dashboard" class="px-6 py-3 bg-gray-500 text-white rounded-md hover:bg-gray-600 text-sm min-h-[44px] flex items-center">
                             Clear
                         </a>
                     </div>
@@ -122,11 +162,11 @@
                     <div class="flex gap-2">
                         <input type="text" name="contractorSearch" th:value="${contractorSearch}"
                                placeholder="Search contractors by name or username..."
-                               class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm">
+                               class="flex-1 px-4 py-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px]">
+                        <button type="submit" class="px-6 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm min-h-[44px]">
                             Search
                         </button>
-                        <a href="/admin/dashboard" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 text-sm">
+                        <a href="/admin/dashboard" class="px-6 py-3 bg-gray-500 text-white rounded-md hover:bg-gray-600 text-sm min-h-[44px] flex items-center">
                             Clear
                         </a>
                     </div>
@@ -154,5 +194,7 @@
             </div>
         </div>
     </div>
+    
+    <script src="/js/pwa-register.js"></script>
 </body>
 </html>

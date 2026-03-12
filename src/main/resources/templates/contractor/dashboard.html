@@ -2,11 +2,47 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contractor Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="theme-color" content="#0284c7">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Project Manager">
+    
+    <title>Contractor Dashboard - Project Manager</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* Touch-friendly controls */
+        button, input, a.btn {
+            min-height: 44px;
+            touch-action: manipulation;
+        }
+        
+        #install-btn {
+            display: none;
+        }
+        
+        @media (display-mode: standalone) {
+            body {
+                padding-top: env(safe-area-inset-top);
+            }
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
+    <!-- Install PWA Button -->
+    <div id="install-btn" class="fixed top-4 right-4 z-50 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg cursor-pointer hover:bg-blue-700">
+        Install App
+    </div>
     <nav class="bg-white shadow">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
@@ -89,5 +125,7 @@
             </div>
         </div>
     </div>
+    
+    <script src="/js/pwa-register.js"></script>
 </body>
 </html>

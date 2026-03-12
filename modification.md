@@ -1,3 +1,1 @@
-1. on admin deshboard view project listing add searchbar to find project based on project info
-2. on admin deshboard view contractor listing add searchbar to find contractor based on contractor info
-3. on contractor deshboard view project listing add searchbar to find project based on project info
+1. Now that the backend and UI are stable and PWQ, implement something on contractor deshbroad when contractor click that button PWQ app will install on contractor phone
