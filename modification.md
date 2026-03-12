@@ -1,1 +1,1 @@
-1. Now that the backend and UI are stable and PWQ, implement something on contractor deshbroad when contractor click that button PWQ app will install on contractor phone
+1. Now that the backend and PWQ are stable and  now investigate ui and find out all unresponsive layout and fix those professinally
