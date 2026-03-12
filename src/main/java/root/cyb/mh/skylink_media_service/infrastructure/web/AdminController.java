@@ -59,9 +59,10 @@ public class AdminController {
     public String createProject(@RequestParam String workOrderNumber, 
                                @RequestParam String location, 
                                @RequestParam String clientCode,
+                               @RequestParam String description,
                                RedirectAttributes redirectAttributes) {
         try {
-            projectService.createProject(workOrderNumber, location, clientCode);
+            projectService.createProject(workOrderNumber, location, clientCode, description);
             redirectAttributes.addFlashAttribute("success", "Project created successfully");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -76,9 +77,10 @@ public class AdminController {
     
     @PostMapping("/create-contractor")
     public String createContractor(@RequestParam String username, @RequestParam String password,
+                                  @RequestParam String fullName,
                                   RedirectAttributes redirectAttributes) {
         try {
-            userService.createContractor(username, password);
+            userService.createContractor(username, password, fullName);
             redirectAttributes.addFlashAttribute("success", "Contractor created successfully");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());

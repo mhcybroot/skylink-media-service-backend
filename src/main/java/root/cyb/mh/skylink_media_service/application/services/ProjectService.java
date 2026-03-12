@@ -22,12 +22,12 @@ public class ProjectService {
     @Autowired
     private ProjectAssignmentRepository projectAssignmentRepository;
     
-    public Project createProject(String workOrderNumber, String location, String clientCode) {
+    public Project createProject(String workOrderNumber, String location, String clientCode, String description) {
         if (projectRepository.existsByWorkOrderNumber(workOrderNumber)) {
             throw new RuntimeException("Work order number already exists");
         }
         
-        Project project = new Project(workOrderNumber, location, clientCode);
+        Project project = new Project(workOrderNumber, location, clientCode, description);
         return projectRepository.save(project);
     }
     
@@ -57,5 +57,19 @@ public class ProjectService {
     public List<ProjectAssignment> getProjectAssignments(Long projectId) {
         Project project = getProjectById(projectId);
         return projectAssignmentRepository.findByProject(project);
+    }
+    
+    public List<Contractor> getContractorsForProject(Long projectId) {
+        return getProjectAssignments(projectId).stream()
+            .map(ProjectAssignment::getContractor)
+            .toList();
+    }
+    
+    public List<Project> getProjectsForContractor(Long contractorId) {
+        Contractor contractor = contractorRepository.findById(contractorId)
+            .orElseThrow(() -> new RuntimeException("Contractor not found"));
+        return projectAssignmentRepository.findByContractor(contractor).stream()
+            .map(ProjectAssignment::getProject)
+            .toList();
     }
 }

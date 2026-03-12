@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     user_type VARCHAR(31) NOT NULL,
+    full_name VARCHAR(255), -- New field for contractor full name
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -21,6 +22,7 @@ CREATE TABLE IF NOT EXISTS projects (
     work_order_number VARCHAR(255) UNIQUE NOT NULL,
     location VARCHAR(255) NOT NULL,
     client_code VARCHAR(255) NOT NULL,
+    description TEXT, -- New field for project description
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -58,3 +60,16 @@ CREATE INDEX IF NOT EXISTS idx_photos_contractor ON photos(contractor_id);
 INSERT INTO users (username, password, user_type) 
 VALUES ('admin', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', 'ADMIN')
 ON CONFLICT (username) DO NOTHING;
+
+-- Migration script for existing installations
+-- Add new columns if they don't exist
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='full_name') THEN
+        ALTER TABLE users ADD COLUMN full_name VARCHAR(255);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='projects' AND column_name='description') THEN
+        ALTER TABLE projects ADD COLUMN description TEXT;
+    END IF;
+END $$;

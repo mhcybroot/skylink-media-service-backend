@@ -5,47 +5,264 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Photos</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+        }
+        .image-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            overflow: hidden;
+        }
+        .modal-image {
+            max-width: 100%;
+            max-height: 100%;
+            transition: transform 0.3s ease;
+            cursor: grab;
+        }
+        .modal-image:active {
+            cursor: grabbing;
+        }
+        .zoom-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .zoom-btn {
+            background: rgba(255,255,255,0.8);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .zoom-btn:hover {
+            background: rgba(255,255,255,1);
+        }
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.8);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .close-btn:hover {
+            background: rgba(255,255,255,1);
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
     <nav class="bg-white shadow">
-        <div class="max-w-7xl mx-auto px-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
-                    <a href="/admin/dashboard" class="text-blue-600 hover:text-blue-800 mr-4">← Back</a>
-                    <h1 class="text-xl font-semibold" th:text="'Photos for ' + ${project.workOrderNumber}"></h1>
+                    <a href="/admin/dashboard" class="text-blue-600 hover:text-blue-800 mr-4 text-sm sm:text-base">← Back</a>
+                    <h1 class="text-lg sm:text-xl font-semibold" th:text="'Photos for ' + ${project.workOrderNumber}"></h1>
                 </div>
             </div>
         </div>
     </nav>
 
-    <div class="max-w-7xl mx-auto py-6 px-4">
-        <div class="bg-white shadow rounded-lg p-6 mb-6">
-            <h2 class="text-lg font-semibold mb-2">Project Details</h2>
-            <p><strong>Work Order:</strong> <span th:text="${project.workOrderNumber}"></span></p>
-            <p><strong>Location:</strong> <span th:text="${project.location}"></span></p>
-            <p><strong>Client Code:</strong> <span th:text="${project.clientCode}"></span></p>
+    <div class="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
+        <div class="bg-white shadow rounded-lg p-4 sm:p-6 mb-6">
+            <h2 class="text-base sm:text-lg font-semibold mb-2">Project Details</h2>
+            <p class="text-sm sm:text-base"><strong>Work Order:</strong> <span th:text="${project.workOrderNumber}"></span></p>
+            <p class="text-sm sm:text-base"><strong>Location:</strong> <span th:text="${project.location}"></span></p>
+            <p class="text-sm sm:text-base"><strong>Client Code:</strong> <span th:text="${project.clientCode}"></span></p>
+            <p th:if="${project.description}" class="text-sm sm:text-base"><strong>Description:</strong> <span th:text="${project.description}"></span></p>
         </div>
 
-        <div class="bg-white shadow rounded-lg p-6">
-            <h2 class="text-lg font-semibold mb-4">Uploaded Photos</h2>
+        <div class="bg-white shadow rounded-lg p-4 sm:p-6">
+            <h2 class="text-base sm:text-lg font-semibold mb-4">Uploaded Photos</h2>
             
-            <div th:if="${#lists.isEmpty(photos)}" class="text-gray-500 text-center py-8">
+            <div th:if="${#lists.isEmpty(photos)}" class="text-gray-500 text-center py-8 text-sm sm:text-base">
                 No photos uploaded yet.
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div th:each="photo : ${photos}" class="border rounded-lg p-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
+                <div th:each="photo : ${photos}" class="border rounded-lg p-4 sm:p-5 shadow-sm">
                     <div class="aspect-w-16 aspect-h-9 mb-4">
                         <img th:src="@{'/uploads/' + ${photo.fileName}}" 
                              th:alt="${photo.originalName}"
-                             class="w-full h-48 object-cover rounded">
+                             class="w-full h-32 sm:h-48 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                             onclick="openImageModal(this.src, this.alt)">
                     </div>
-                    <p class="text-sm font-medium" th:text="${photo.originalName}"></p>
-                    <p class="text-xs text-gray-500" th:text="${photo.contractor.username}"></p>
-                    <p class="text-xs text-gray-500" th:text="${#temporals.format(photo.uploadedAt, 'yyyy-MM-dd HH:mm')}"></p>
+                    <p class="text-xs sm:text-sm font-medium mb-2" th:text="${photo.originalName}"></p>
+                    <p class="text-xs text-gray-500 mb-1" th:text="'By: ' + (${photo.contractor.fullName != null ? photo.contractor.fullName : photo.contractor.username})"></p>
+                    <p class="text-xs text-gray-500 mb-1" th:text="${#temporals.format(photo.uploadedAt, 'yyyy-MM-dd HH:mm')}"></p>
+                    <p class="text-xs text-gray-400" th:text="${#numbers.formatDecimal(photo.fileSize / 1024, 0, 0)} + ' KB'"></p>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="image-modal">
+        <button class="close-btn" onclick="closeImageModal()">&times;</button>
+        <div class="zoom-controls">
+            <button class="zoom-btn" onclick="zoomIn()">+</button>
+            <button class="zoom-btn" onclick="zoomOut()">-</button>
+            <button class="zoom-btn" onclick="resetZoom()">⌂</button>
+        </div>
+        <div class="modal-content">
+            <img id="modalImage" class="modal-image" src="" alt="">
+        </div>
+    </div>
+
+    <script>
+        let currentZoom = 1;
+        let isDragging = false;
+        let startX, startY, translateX = 0, translateY = 0;
+
+        function openImageModal(src, alt) {
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            modalImage.src = src;
+            modalImage.alt = alt;
+            modal.classList.add('active');
+            resetZoom();
+        }
+
+        function closeImageModal() {
+            const modal = document.getElementById('imageModal');
+            modal.classList.remove('active');
+            resetZoom();
+        }
+
+        function zoomIn() {
+            currentZoom = Math.min(currentZoom * 1.2, 5);
+            updateImageTransform();
+        }
+
+        function zoomOut() {
+            currentZoom = Math.max(currentZoom / 1.2, 0.5);
+            updateImageTransform();
+        }
+
+        function resetZoom() {
+            currentZoom = 1;
+            translateX = 0;
+            translateY = 0;
+            updateImageTransform();
+        }
+
+        function updateImageTransform() {
+            const modalImage = document.getElementById('modalImage');
+            modalImage.style.transform = `scale(${currentZoom}) translate(${translateX}px, ${translateY}px)`;
+        }
+
+        // Mouse drag functionality
+        document.getElementById('modalImage').addEventListener('mousedown', (e) => {
+            if (currentZoom > 1) {
+                isDragging = true;
+                startX = e.clientX - translateX;
+                startY = e.clientY - translateY;
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging && currentZoom > 1) {
+                translateX = e.clientX - startX;
+                translateY = e.clientY - startY;
+                updateImageTransform();
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        // Touch drag functionality
+        document.getElementById('modalImage').addEventListener('touchstart', (e) => {
+            if (currentZoom > 1 && e.touches.length === 1) {
+                isDragging = true;
+                startX = e.touches[0].clientX - translateX;
+                startY = e.touches[0].clientY - translateY;
+            }
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (isDragging && currentZoom > 1 && e.touches.length === 1) {
+                e.preventDefault();
+                translateX = e.touches[0].clientX - startX;
+                translateY = e.touches[0].clientY - startY;
+                updateImageTransform();
+            }
+        });
+
+        document.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        // Mouse wheel zoom
+        document.getElementById('modalImage').addEventListener('wheel', (e) => {
+            e.preventDefault();
+            if (e.deltaY < 0) {
+                zoomIn();
+            } else {
+                zoomOut();
+            }
+        });
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('imageModal').classList.contains('active')) {
+                switch(e.key) {
+                    case 'Escape':
+                        closeImageModal();
+                        break;
+                    case '+':
+                    case '=':
+                        zoomIn();
+                        break;
+                    case '-':
+                        zoomOut();
+                        break;
+                    case '0':
+                        resetZoom();
+                        break;
+                }
+            }
+        });
+
+        // Close modal when clicking outside image
+        document.getElementById('imageModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                closeImageModal();
+            }
+        });
+
+        // Double-click to reset zoom
+        document.getElementById('modalImage').addEventListener('dblclick', resetZoom);
+    </script>
 </body>
 </html>

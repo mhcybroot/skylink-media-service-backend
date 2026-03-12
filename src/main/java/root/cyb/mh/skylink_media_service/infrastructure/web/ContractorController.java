@@ -10,8 +10,15 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import root.cyb.mh.skylink_media_service.application.services.PhotoService;
 import root.cyb.mh.skylink_media_service.domain.entities.User;
 import root.cyb.mh.skylink_media_service.domain.entities.Contractor;
+import root.cyb.mh.skylink_media_service.domain.entities.ProjectAssignment;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.UserRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectAssignmentRepository;
+import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectRepository;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/contractor")
@@ -24,15 +31,48 @@ public class ContractorController {
     private UserRepository userRepository;
     
     @Autowired
+    private ProjectRepository projectRepository;
+    
+    @Autowired
     private ProjectAssignmentRepository projectAssignmentRepository;
     
     @GetMapping("/dashboard")
     public String dashboard(Model model, Authentication authentication) {
         User user = userRepository.findByUsername(authentication.getName()).orElse(null);
         if (user instanceof Contractor contractor) {
-            model.addAttribute("assignments", projectAssignmentRepository.findByContractor(contractor));
+            List<ProjectAssignment> assignments = projectAssignmentRepository.findByContractor(contractor);
+            
+            // Add photo counts for each assignment
+            Map<Long, Long> photoCounts = new HashMap<>();
+            for (ProjectAssignment assignment : assignments) {
+                long photoCount = photoService.getProjectPhotos(assignment.getProject().getId()).size();
+                photoCounts.put(assignment.getProject().getId(), photoCount);
+            }
+            
+            model.addAttribute("assignments", assignments);
+            model.addAttribute("photoCounts", photoCounts);
         }
         return "contractor/dashboard";
+    }
+    
+    @GetMapping("/project/{projectId}/photos")
+    public String viewProjectPhotos(@PathVariable Long projectId, Model model, Authentication authentication) {
+        User user = userRepository.findByUsername(authentication.getName()).orElse(null);
+        if (user instanceof Contractor contractor) {
+            // Verify contractor is assigned to this project
+            Optional<ProjectAssignment> assignment = projectAssignmentRepository
+                .findByProjectAndContractor(
+                    projectRepository.findById(projectId).orElse(null), 
+                    contractor
+                );
+            
+            if (assignment.isPresent()) {
+                model.addAttribute("project", assignment.get().getProject());
+                model.addAttribute("photos", photoService.getProjectPhotos(projectId));
+                return "contractor/project-photos";
+            }
+        }
+        return "redirect:/contractor/dashboard";
     }
     
     @GetMapping("/upload-photo/{projectId}")

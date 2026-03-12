@@ -6,29 +6,31 @@
     <title>Upload Photos</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100">
-    <div class="max-w-md mx-auto mt-8 bg-white shadow rounded-lg p-6">
-        <h2 class="text-2xl font-bold mb-6">Upload Photos</h2>
-        
-        <form th:action="@{'/contractor/upload-photo/' + ${projectId}}" method="post" enctype="multipart/form-data" class="space-y-4">
-            <div>
-                <label for="files" class="block text-sm font-medium text-gray-700">Select Photos</label>
-                <input type="file" id="files" name="files" multiple accept="image/*" required 
-                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                <p class="text-xs text-gray-500 mt-1">You can select multiple photos at once</p>
-            </div>
+<body class="bg-gray-100 min-h-screen">
+    <div class="max-w-md mx-auto pt-8 px-4 sm:px-6">
+        <div class="bg-white shadow rounded-lg p-4 sm:p-6">
+            <h2 class="text-xl sm:text-2xl font-bold mb-6">Upload Photos</h2>
             
-            <div class="flex space-x-4">
-                <button type="submit" 
-                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    Upload Photos
-                </button>
-                <a href="/contractor/dashboard" 
-                   class="flex-1 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-center">
-                    Cancel
-                </a>
-            </div>
-        </form>
+            <form th:action="@{'/contractor/upload-photo/' + ${projectId}}" method="post" enctype="multipart/form-data" class="space-y-4">
+                <div>
+                    <label for="files" class="block text-sm font-medium text-gray-700">Select Photos</label>
+                    <input type="file" id="files" name="files" multiple accept="image/*" required 
+                           class="mt-1 block w-full px-3 py-2 sm:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
+                    <p class="text-xs text-gray-500 mt-1">You can select multiple photos at once</p>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
+                    <button type="submit" 
+                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 sm:py-2 px-4 rounded text-base sm:text-sm">
+                        Upload Photos
+                    </button>
+                    <a href="/contractor/dashboard" 
+                       class="flex-1 bg-gray-500 hover:bg-gray-700 text-white font-bold py-3 sm:py-2 px-4 rounded text-center text-base sm:text-sm">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 </body>
 </html>

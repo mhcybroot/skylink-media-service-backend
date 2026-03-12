@@ -20,6 +20,8 @@ public class Project {
     @Column(name = "client_code", nullable = false)
     private String clientCode;
     
+    private String description;
+    
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
@@ -37,10 +39,11 @@ public class Project {
     // Constructors
     public Project() {}
     
-    public Project(String workOrderNumber, String location, String clientCode) {
+    public Project(String workOrderNumber, String location, String clientCode, String description) {
         this.workOrderNumber = workOrderNumber;
         this.location = location;
         this.clientCode = clientCode;
+        this.description = description;
     }
     
     // Getters and Setters
@@ -55,6 +58,9 @@ public class Project {
     
     public String getClientCode() { return clientCode; }
     public void setClientCode(String clientCode) { this.clientCode = clientCode; }
+    
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
     
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
