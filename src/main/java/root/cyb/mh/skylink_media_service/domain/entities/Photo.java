@@ -16,6 +16,24 @@ public class Photo {
     @Column(name = "file_path", nullable = false)
     private String filePath;
     
+    @Column(name = "webp_path")
+    private String webpPath;
+    
+    @Column(name = "thumbnail_path")
+    private String thumbnailPath;
+    
+    @Column(name = "original_path")
+    private String originalPath;
+    
+    @Column(name = "is_optimized")
+    private Boolean isOptimized = false;
+    
+    @Column(name = "optimized_at")
+    private LocalDateTime optimizedAt;
+    
+    @Column(name = "optimization_status")
+    private String optimizationStatus = "PENDING";
+    
     @Column(name = "original_name")
     private String originalName;
     
@@ -74,4 +92,22 @@ public class Photo {
     
     public LocalDateTime getUploadedAt() { return uploadedAt; }
     public void setUploadedAt(LocalDateTime uploadedAt) { this.uploadedAt = uploadedAt; }
+    
+    public String getWebpPath() { return webpPath; }
+    public void setWebpPath(String webpPath) { this.webpPath = webpPath; }
+    
+    public String getThumbnailPath() { return thumbnailPath; }
+    public void setThumbnailPath(String thumbnailPath) { this.thumbnailPath = thumbnailPath; }
+    
+    public String getOriginalPath() { return originalPath; }
+    public void setOriginalPath(String originalPath) { this.originalPath = originalPath; }
+    
+    public Boolean getIsOptimized() { return isOptimized; }
+    public void setIsOptimized(Boolean isOptimized) { this.isOptimized = isOptimized; }
+    
+    public LocalDateTime getOptimizedAt() { return optimizedAt; }
+    public void setOptimizedAt(LocalDateTime optimizedAt) { this.optimizedAt = optimizedAt; }
+    
+    public String getOptimizationStatus() { return optimizationStatus; }
+    public void setOptimizationStatus(String optimizationStatus) { this.optimizationStatus = optimizationStatus; }
 }

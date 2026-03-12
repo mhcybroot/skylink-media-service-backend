@@ -27,6 +27,25 @@ public class FileController {
             if (resource.exists() || resource.isReadable()) {
                 return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                    .header(HttpHeaders.CONTENT_TYPE, "image/webp")
+                    .body(resource);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    @GetMapping("/thumbnails/{filename:.+}")
+    public ResponseEntity<Resource> serveThumbnail(@PathVariable String filename) {
+        try {
+            Path file = Paths.get(uploadDir).resolve("thumb_" + filename);
+            Resource resource = new UrlResource(file.toUri());
+            
+            if (resource.exists() || resource.isReadable()) {
+                return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, "image/webp")
                     .body(resource);
             } else {
                 return ResponseEntity.notFound().build();

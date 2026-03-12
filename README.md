@@ -17,6 +17,12 @@ A Spring Boot application for project management with photo attachments, support
 - View assigned projects
 - Upload multiple photos to assigned projects
 
+### Storage Optimization Features
+- **Automatic WebP Conversion**: All uploaded images are converted to WebP format with 75% quality
+- **Thumbnail Generation**: 200x200px thumbnails created for project list views
+- **Storage Cleanup**: Raw images automatically deleted after 24 hours to save space
+- **Optimized File Serving**: WebP images served with proper content types
+
 ## Technology Stack
 
 - **Backend**: Spring Boot 4.0.3, Java 21
@@ -31,6 +37,18 @@ A Spring Boot application for project management with photo attachments, support
 - Java 21
 - PostgreSQL 12+
 - Gradle (or use included wrapper)
+- WebP tools (cwebp binary)
+
+### WebP Tools Installation
+Run the installation script:
+```bash
+./install-webp.sh
+```
+
+Or install manually:
+- **Ubuntu/Debian**: `sudo apt-get install webp`
+- **CentOS/RHEL**: `sudo yum install libwebp-tools`
+- **macOS**: `brew install webp`
 
 ### Database Setup
 1. Create PostgreSQL database:
@@ -43,7 +61,12 @@ A Spring Boot application for project management with photo attachments, support
    psql -U your_username -d skylink_media_service -f database-schema.sql
    ```
 
-3. Update `src/main/resources/application.properties` with your database credentials:
+3. Apply the photo optimization migration:
+   ```bash
+   psql -U your_username -d skylink_media_service -f photo-optimization-migration.sql
+   ```
+
+4. Update `src/main/resources/application.properties` with your database credentials:
    ```properties
    spring.datasource.username=your_username
    spring.datasource.password=your_password
