@@ -72,4 +72,11 @@ public class ProjectService {
             .map(ProjectAssignment::getProject)
             .toList();
     }
+    
+    public List<Project> searchProjects(String searchTerm) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return getAllProjects();
+        }
+        return projectRepository.searchProjects(searchTerm.trim());
+    }
 }

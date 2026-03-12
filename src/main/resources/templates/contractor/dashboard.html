@@ -33,7 +33,24 @@
         </div>
 
         <div class="bg-white shadow rounded-lg p-4 sm:p-6">
-            <h2 class="text-base sm:text-lg font-semibold mb-4">My Assigned Projects</h2>
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
+                <h2 class="text-base sm:text-lg font-semibold mb-2 sm:mb-0">My Assigned Projects</h2>
+            </div>
+            
+            <!-- Project Search Bar -->
+            <form method="get" class="mb-4">
+                <div class="flex gap-2">
+                    <input type="text" name="projectSearch" th:value="${projectSearch}"
+                           placeholder="Search projects by work order, location, client code..."
+                           class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm">
+                        Search
+                    </button>
+                    <a href="/contractor/dashboard" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 text-sm">
+                        Clear
+                    </a>
+                </div>
+            </form>
             
             <div th:if="${#lists.isEmpty(assignments)}" class="text-gray-500 text-center py-8 text-sm sm:text-base">
                 No projects assigned yet.

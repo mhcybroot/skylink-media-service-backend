@@ -37,10 +37,17 @@ public class ContractorController {
     private ProjectAssignmentRepository projectAssignmentRepository;
     
     @GetMapping("/dashboard")
-    public String dashboard(Model model, Authentication authentication) {
+    public String dashboard(Model model, Authentication authentication,
+                           @RequestParam(required = false) String projectSearch) {
         User user = userRepository.findByUsername(authentication.getName()).orElse(null);
         if (user instanceof Contractor contractor) {
-            List<ProjectAssignment> assignments = projectAssignmentRepository.findByContractor(contractor);
+            List<ProjectAssignment> assignments;
+            
+            if (projectSearch != null && !projectSearch.trim().isEmpty()) {
+                assignments = projectAssignmentRepository.searchAssignmentsByContractor(contractor, projectSearch);
+            } else {
+                assignments = projectAssignmentRepository.findByContractor(contractor);
+            }
             
             // Add photo counts for each assignment
             Map<Long, Long> photoCounts = new HashMap<>();
@@ -51,6 +58,7 @@ public class ContractorController {
             
             model.addAttribute("assignments", assignments);
             model.addAttribute("photoCounts", photoCounts);
+            model.addAttribute("projectSearch", projectSearch);
         }
         return "contractor/dashboard";
     }

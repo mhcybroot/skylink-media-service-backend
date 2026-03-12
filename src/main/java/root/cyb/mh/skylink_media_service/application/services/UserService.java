@@ -9,6 +9,8 @@ import root.cyb.mh.skylink_media_service.infrastructure.persistence.AdminReposit
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ContractorRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.UserRepository;
 
+import java.util.List;
+
 @Service
 public class UserService {
     
@@ -40,5 +42,16 @@ public class UserService {
         
         Contractor contractor = new Contractor(username, passwordEncoder.encode(password), fullName);
         return contractorRepository.save(contractor);
+    }
+    
+    public List<Contractor> getAllContractors() {
+        return contractorRepository.findAll();
+    }
+    
+    public List<Contractor> searchContractors(String searchTerm) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return getAllContractors();
+        }
+        return contractorRepository.searchContractors(searchTerm.trim());
     }
 }

@@ -8,7 +8,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import root.cyb.mh.skylink_media_service.application.services.UserService;
 import root.cyb.mh.skylink_media_service.application.services.ProjectService;
 import root.cyb.mh.skylink_media_service.application.services.PhotoService;
+import root.cyb.mh.skylink_media_service.domain.entities.Project;
+import root.cyb.mh.skylink_media_service.domain.entities.Contractor;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ContractorRepository;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/admin")
@@ -27,9 +31,23 @@ public class AdminController {
     private ContractorRepository contractorRepository;
     
     @GetMapping("/dashboard")
-    public String dashboard(Model model) {
-        model.addAttribute("projects", projectService.getAllProjects());
-        model.addAttribute("contractors", contractorRepository.findAll());
+    public String dashboard(Model model, 
+                           @RequestParam(required = false) String projectSearch,
+                           @RequestParam(required = false) String contractorSearch) {
+        
+        List<Project> projects = (projectSearch != null && !projectSearch.trim().isEmpty()) 
+            ? projectService.searchProjects(projectSearch)
+            : projectService.getAllProjects();
+            
+        List<Contractor> contractors = (contractorSearch != null && !contractorSearch.trim().isEmpty())
+            ? userService.searchContractors(contractorSearch)
+            : userService.getAllContractors();
+        
+        model.addAttribute("projects", projects);
+        model.addAttribute("contractors", contractors);
+        model.addAttribute("projectSearch", projectSearch);
+        model.addAttribute("contractorSearch", contractorSearch);
+        
         return "admin/dashboard";
     }
     
