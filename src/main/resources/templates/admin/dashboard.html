@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-semibold">Admin Dashboard</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span sec:authentication="name" class="text-gray-700"></span>
+                    <form th:action="@{/logout}" method="post" class="inline">
+                        <button type="submit" class="text-red-600 hover:text-red-800">Logout</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto py-6 px-4">
+        <div th:if="${success}" class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+            <span th:text="${success}"></span>
+        </div>
+        
+        <div th:if="${error}" class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            <span th:text="${error}"></span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <a href="/admin/register-admin" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded text-center">
+                Register Admin
+            </a>
+            <a href="/admin/create-project" class="bg-green-500 hover:bg-green-700 text-white font-bold py-4 px-6 rounded text-center">
+                Create Project
+            </a>
+            <a href="/admin/create-contractor" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded text-center">
+                Create Contractor
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Projects -->
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-lg font-semibold mb-4">Projects</h2>
+                <div class="space-y-4">
+                    <div th:each="project : ${projects}" class="border rounded p-4">
+                        <h3 class="font-medium" th:text="${project.workOrderNumber}"></h3>
+                        <p class="text-sm text-gray-600" th:text="${project.location}"></p>
+                        <p class="text-sm text-gray-600" th:text="${project.clientCode}"></p>
+                        <div class="mt-2 flex space-x-2">
+                            <a th:href="@{'/admin/project/' + ${project.id} + '/photos'}" 
+                               class="text-blue-600 hover:text-blue-800 text-sm">View Photos</a>
+                        </div>
+                        
+                        <!-- Assign Contractor Form -->
+                        <form th:action="@{/admin/assign-contractor}" method="post" class="mt-2">
+                            <input type="hidden" name="projectId" th:value="${project.id}">
+                            <div class="flex space-x-2">
+                                <select name="contractorId" class="text-sm border rounded px-2 py-1">
+                                    <option value="">Select Contractor</option>
+                                    <option th:each="contractor : ${contractors}" 
+                                            th:value="${contractor.id}" 
+                                            th:text="${contractor.username}"></option>
+                                </select>
+                                <button type="submit" class="text-sm bg-gray-500 hover:bg-gray-700 text-white px-3 py-1 rounded">
+                                    Assign
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contractors -->
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-lg font-semibold mb-4">Contractors</h2>
+                <div class="space-y-2">
+                    <div th:each="contractor : ${contractors}" class="border rounded p-3">
+                        <p class="font-medium" th:text="${contractor.username}"></p>
+                        <p class="text-sm text-gray-600" th:text="${contractor.createdAt}"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

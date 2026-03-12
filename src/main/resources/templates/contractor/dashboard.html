@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contractor Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-semibold">Contractor Dashboard</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span sec:authentication="name" class="text-gray-700"></span>
+                    <form th:action="@{/logout}" method="post" class="inline">
+                        <button type="submit" class="text-red-600 hover:text-red-800">Logout</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto py-6 px-4">
+        <div th:if="${success}" class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+            <span th:text="${success}"></span>
+        </div>
+        
+        <div th:if="${error}" class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            <span th:text="${error}"></span>
+        </div>
+
+        <div class="bg-white shadow rounded-lg p-6">
+            <h2 class="text-lg font-semibold mb-4">My Assigned Projects</h2>
+            
+            <div th:if="${#lists.isEmpty(assignments)}" class="text-gray-500 text-center py-8">
+                No projects assigned yet.
+            </div>
+            
+            <div class="space-y-4">
+                <div th:each="assignment : ${assignments}" class="border rounded-lg p-4">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-medium" th:text="${assignment.project.workOrderNumber}"></h3>
+                            <p class="text-sm text-gray-600" th:text="${assignment.project.location}"></p>
+                            <p class="text-sm text-gray-600" th:text="${assignment.project.clientCode}"></p>
+                            <p class="text-xs text-gray-500" th:text="'Assigned: ' + ${#temporals.format(assignment.assignedAt, 'yyyy-MM-dd')}"></p>
+                        </div>
+                        <div>
+                            <a th:href="@{'/contractor/upload-photo/' + ${assignment.project.id}}" 
+                               class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">
+                                Upload Photos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
