@@ -1,1 +1,3 @@
-1. Now that the backend and PWQ are stable and  now investigate ui and find out all unresponsive layout and fix those professinally
+1. read admin deshboad ui 
+2. on desktop view i see ui ![alt text](image.png) project list is not responsive fix that
+3. use single column but full width
