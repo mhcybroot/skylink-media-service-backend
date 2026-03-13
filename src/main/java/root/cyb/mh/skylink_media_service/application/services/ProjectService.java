@@ -85,6 +85,39 @@ public class ProjectService {
             .toList();
     }
     
+    public Project updateProject(Long projectId, String workOrderNumber, String location, String clientCode, String description,
+                               String ppwNumber, String workType, String workDetails, String clientCompany,
+                               String customer, String loanNumber, String loanType, String address,
+                               LocalDate receivedDate, LocalDate dueDate, String assignedTo, String woAdmin) {
+        Project existingProject = getProjectById(projectId);
+        
+        // Check work order number uniqueness (excluding current project)
+        if (!existingProject.getWorkOrderNumber().equals(workOrderNumber) && 
+            projectRepository.existsByWorkOrderNumber(workOrderNumber)) {
+            throw new RuntimeException("Work order number already exists");
+        }
+        
+        // Update all fields
+        existingProject.setWorkOrderNumber(workOrderNumber);
+        existingProject.setLocation(location);
+        existingProject.setClientCode(clientCode);
+        existingProject.setDescription(description);
+        existingProject.setPpwNumber(ppwNumber);
+        existingProject.setWorkType(workType);
+        existingProject.setWorkDetails(workDetails);
+        existingProject.setClientCompany(clientCompany);
+        existingProject.setCustomer(customer);
+        existingProject.setLoanNumber(loanNumber);
+        existingProject.setLoanType(loanType);
+        existingProject.setAddress(address);
+        existingProject.setReceivedDate(receivedDate);
+        existingProject.setDueDate(dueDate);
+        existingProject.setAssignedTo(assignedTo);
+        existingProject.setWoAdmin(woAdmin);
+        
+        return projectRepository.save(existingProject);
+    }
+    
     public List<Project> searchProjects(String searchTerm) {
         if (searchTerm == null || searchTerm.trim().isEmpty()) {
             return getAllProjects();
