@@ -78,9 +78,34 @@ public class AdminController {
                                @RequestParam String location, 
                                @RequestParam String clientCode,
                                @RequestParam String description,
+                               @RequestParam(required = false) String ppwNumber,
+                               @RequestParam(required = false) String workType,
+                               @RequestParam(required = false) String workDetails,
+                               @RequestParam(required = false) String clientCompany,
+                               @RequestParam(required = false) String customer,
+                               @RequestParam(required = false) String loanNumber,
+                               @RequestParam(required = false) String loanType,
+                               @RequestParam(required = false) String address,
+                               @RequestParam(required = false) String receivedDate,
+                               @RequestParam(required = false) String dueDate,
+                               @RequestParam(required = false) String assignedTo,
+                               @RequestParam(required = false) String woAdmin,
                                RedirectAttributes redirectAttributes) {
         try {
-            projectService.createProject(workOrderNumber, location, clientCode, description);
+            java.time.LocalDate parsedReceivedDate = null;
+            java.time.LocalDate parsedDueDate = null;
+            
+            if (receivedDate != null && !receivedDate.trim().isEmpty()) {
+                parsedReceivedDate = java.time.LocalDate.parse(receivedDate);
+            }
+            if (dueDate != null && !dueDate.trim().isEmpty()) {
+                parsedDueDate = java.time.LocalDate.parse(dueDate);
+            }
+            
+            projectService.createProject(workOrderNumber, location, clientCode, description,
+                                       ppwNumber, workType, workDetails, clientCompany,
+                                       customer, loanNumber, loanType, address,
+                                       parsedReceivedDate, parsedDueDate, assignedTo, woAdmin);
             redirectAttributes.addFlashAttribute("success", "Project created successfully");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());

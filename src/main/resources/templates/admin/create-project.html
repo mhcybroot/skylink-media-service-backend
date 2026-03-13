@@ -17,11 +17,17 @@
         @media (display-mode: standalone) {
             body { padding-top: env(safe-area-inset-top); }
         }
+        
+        .section-header {
+            border-left: 4px solid #0284c7;
+            padding-left: 12px;
+            margin-bottom: 16px;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <div class="min-h-screen flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-md w-full">
+    <div class="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto">
             <div class="bg-white shadow-lg rounded-lg border border-gray-200">
                 <div class="px-6 py-4 border-b border-gray-200">
                     <h2 class="text-xl font-semibold text-gray-900 flex items-center">
@@ -31,44 +37,172 @@
                         Create New Project
                     </h2>
                 </div>
-            
-            <form th:action="@{/admin/create-project}" method="post" class="space-y-4">
-                <div>
-                    <label for="workOrderNumber" class="block text-sm font-medium text-gray-700">Work Order Number</label>
-                    <input type="text" id="workOrderNumber" name="workOrderNumber" required 
-                           class="mt-1 block w-full px-3 py-2 sm:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
-                </div>
                 
-                <div>
-                    <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
-                    <input type="text" id="location" name="location" required 
-                           class="mt-1 block w-full px-3 py-2 sm:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
-                </div>
-                
-                <div>
-                    <label for="clientCode" class="block text-sm font-medium text-gray-700">Client Code</label>
-                    <input type="text" id="clientCode" name="clientCode" required 
-                           class="mt-1 block w-full px-3 py-2 sm:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
-                </div>
-                
-                <div>
-                    <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
-                    <textarea id="description" name="description" rows="3"
-                              class="mt-1 block w-full px-3 py-2 sm:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm"
-                              placeholder="Optional project description"></textarea>
-                </div>
-                
-                <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
-                    <button type="submit" 
-                            class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 sm:py-2 px-4 rounded text-base sm:text-sm">
-                        Create Project
-                    </button>
-                    <a href="/admin/dashboard" 
-                       class="flex-1 bg-gray-500 hover:bg-gray-700 text-white font-bold py-3 sm:py-2 px-4 rounded text-center text-base sm:text-sm">
-                        Cancel
-                    </a>
-                </div>
-            </form>
+                <form th:action="@{/admin/create-project}" method="post" class="p-6 space-y-8">
+                    
+                    <!-- Work Order Information Section -->
+                    <div>
+                        <h3 class="section-header text-lg font-medium text-gray-900">Work Order Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="workOrderNumber" class="block text-sm font-medium text-gray-700">
+                                    WO # <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="workOrderNumber" name="workOrderNumber" required 
+                                       placeholder="e.g., 360163-202"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
+                            </div>
+                            
+                            <div>
+                                <label for="ppwNumber" class="block text-sm font-medium text-gray-700">PPW #</label>
+                                <input type="text" id="ppwNumber" name="ppwNumber" 
+                                       placeholder="e.g., 3345"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
+                            </div>
+                            
+                            <div>
+                                <label for="workType" class="block text-sm font-medium text-gray-700">Work Type</label>
+                                <input type="text" id="workType" name="workType" 
+                                       placeholder="e.g., Grass Re-cut"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <label for="workDetails" class="block text-sm font-medium text-gray-700">Work Details</label>
+                            <textarea id="workDetails" name="workDetails" rows="3"
+                                      placeholder="Work Order Information details..."
+                                      class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Client Information Section -->
+                    <div>
+                        <h3 class="section-header text-lg font-medium text-gray-900">Client Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="clientCompany" class="block text-sm font-medium text-gray-700">Client Company</label>
+                                <input type="text" id="clientCompany" name="clientCompany" 
+                                       placeholder="e.g., 120"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
+                            </div>
+                            
+                            <div>
+                                <label for="customer" class="block text-sm font-medium text-gray-700">Customer</label>
+                                <input type="text" id="customer" name="customer" 
+                                       placeholder="e.g., RMS REO"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
+                            </div>
+                            
+                            <div>
+                                <label for="clientCode" class="block text-sm font-medium text-gray-700">
+                                    Client Code <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="clientCode" name="clientCode" required 
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loan Information Section -->
+                    <div>
+                        <h3 class="section-header text-lg font-medium text-gray-900">Loan Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="loanNumber" class="block text-sm font-medium text-gray-700">Loan #</label>
+                                <input type="text" id="loanNumber" name="loanNumber" 
+                                       placeholder="e.g., 7526-306-113"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
+                            </div>
+                            
+                            <div>
+                                <label for="loanType" class="block text-sm font-medium text-gray-700">Loan Type</label>
+                                <input type="text" id="loanType" name="loanType" 
+                                       placeholder="e.g., HECM RMSREO-AZ"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location Information Section -->
+                    <div>
+                        <h3 class="section-header text-lg font-medium text-gray-900">Location Information</h3>
+                        <div class="grid grid-cols-1 gap-4">
+                            <div>
+                                <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
+                                <textarea id="address" name="address" rows="2"
+                                          placeholder="e.g., 12499 N. PIANO PLACE&#10;KINGMAN, AZ 86401"
+                                          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm"></textarea>
+                            </div>
+                            
+                            <div>
+                                <label for="location" class="block text-sm font-medium text-gray-700">
+                                    Location <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="location" name="location" required 
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timeline Information Section -->
+                    <div>
+                        <h3 class="section-header text-lg font-medium text-gray-900">Timeline Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="receivedDate" class="block text-sm font-medium text-gray-700">Received Date</label>
+                                <input type="date" id="receivedDate" name="receivedDate" 
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
+                            </div>
+                            
+                            <div>
+                                <label for="dueDate" class="block text-sm font-medium text-gray-700">Due Date</label>
+                                <input type="date" id="dueDate" name="dueDate" 
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Administrative Information Section -->
+                    <div>
+                        <h3 class="section-header text-lg font-medium text-gray-900">Administrative Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="assignedTo" class="block text-sm font-medium text-gray-700">Assigned To</label>
+                                <input type="text" id="assignedTo" name="assignedTo" 
+                                       placeholder="e.g., Finara Vendor"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
+                            </div>
+                            
+                            <div>
+                                <label for="woAdmin" class="block text-sm font-medium text-gray-700">WO Admin</label>
+                                <input type="text" id="woAdmin" name="woAdmin" 
+                                       placeholder="e.g., Grace Hyland"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                            <textarea id="description" name="description" rows="3"
+                                      placeholder="Optional project description..."
+                                      class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Form Actions -->
+                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-6 border-t border-gray-200">
+                        <button type="submit" 
+                                class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 sm:py-2 px-4 rounded text-base sm:text-sm transition-colors">
+                            Create Project
+                        </button>
+                        <a href="/admin/dashboard" 
+                           class="flex-1 bg-gray-500 hover:bg-gray-700 text-white font-bold py-3 sm:py-2 px-4 rounded text-center text-base sm:text-sm transition-colors">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </body>

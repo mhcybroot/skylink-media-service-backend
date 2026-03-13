@@ -8,6 +8,7 @@ import root.cyb.mh.skylink_media_service.domain.entities.ProjectAssignment;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ContractorRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectAssignmentRepository;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -23,11 +24,22 @@ public class ProjectService {
     private ProjectAssignmentRepository projectAssignmentRepository;
     
     public Project createProject(String workOrderNumber, String location, String clientCode, String description) {
+        return createProject(workOrderNumber, location, clientCode, description, 
+                           null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+    
+    public Project createProject(String workOrderNumber, String location, String clientCode, String description,
+                               String ppwNumber, String workType, String workDetails, String clientCompany,
+                               String customer, String loanNumber, String loanType, String address,
+                               LocalDate receivedDate, LocalDate dueDate, String assignedTo, String woAdmin) {
         if (projectRepository.existsByWorkOrderNumber(workOrderNumber)) {
             throw new RuntimeException("Work order number already exists");
         }
         
-        Project project = new Project(workOrderNumber, location, clientCode, description);
+        Project project = new Project(workOrderNumber, location, clientCode, description,
+                                    ppwNumber, workType, workDetails, clientCompany,
+                                    customer, loanNumber, loanType, address,
+                                    receivedDate, dueDate, assignedTo, woAdmin);
         return projectRepository.save(project);
     }
     

@@ -1,10 +1,21 @@
-Update the FileStorageService workflow:
+1. read whole project and prepare your self for further development
+2. on create project i need some more field . 
+    a.WO #: 360163-202 
+    b.PPW #: 3345
+    c.Work Type: Grass Re-cut
+    d. Work Details
+        Work Order Information
+    e.Client Company: 120
+    f.Customer: RMS REO
+    g.Loan #: 7526-306-113
+    h. Loan Type: HECM RMSREO-AZ
+    i.Address: 12499 N. PIANO PLACE
+        KINGMAN, AZ 86401
+    j.Received Date: January 22, 2026
+    k.Due Date: February 14, 2026
+    h.Assigned To: Finara Vendor
+    M.WO Admin: Grace Hyland
 
-    When a file is uploaded, use the metadata-extractor library to get the GPS, Make/Model, and Timestamp other all info dynamically store everything.
+3. all field are optional 
 
-    Save these details into our project_photos table in PostgreSQL.
-
-    After saving to the DB, run the cwebp optimization with -metadata none to strip the info from the file for security.
-
-    Return the database record ID to the frontend.
-    on frontend admin deshboard project image card add a metadata for each image
+4. make a full plan to implment this feature
