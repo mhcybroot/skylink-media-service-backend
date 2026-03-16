@@ -61,6 +61,9 @@ public class Project {
     @Column(name = "wo_admin")
     private String woAdmin;
     
+    @Column(name = "invoice_price", precision = 10, scale = 2)
+    private java.math.BigDecimal invoicePrice;
+    
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     private List<ProjectAssignment> assignments;
     
@@ -86,7 +89,8 @@ public class Project {
     public Project(String workOrderNumber, String location, String clientCode, String description,
                    String ppwNumber, String workType, String workDetails, String clientCompany,
                    String customer, String loanNumber, String loanType, String address,
-                   LocalDate receivedDate, LocalDate dueDate, String assignedTo, String woAdmin) {
+                   LocalDate receivedDate, LocalDate dueDate, String assignedTo, String woAdmin,
+                   java.math.BigDecimal invoicePrice) {
         this.workOrderNumber = workOrderNumber;
         this.location = location;
         this.clientCode = clientCode;
@@ -103,6 +107,7 @@ public class Project {
         this.dueDate = dueDate;
         this.assignedTo = assignedTo;
         this.woAdmin = woAdmin;
+        this.invoicePrice = invoicePrice;
     }
     
     // Getters and Setters
@@ -166,6 +171,9 @@ public class Project {
     
     public String getWoAdmin() { return woAdmin; }
     public void setWoAdmin(String woAdmin) { this.woAdmin = woAdmin; }
+    
+    public java.math.BigDecimal getInvoicePrice() { return invoicePrice; }
+    public void setInvoicePrice(java.math.BigDecimal invoicePrice) { this.invoicePrice = invoicePrice; }
     
     // Status fields
     @Enumerated(EnumType.STRING)

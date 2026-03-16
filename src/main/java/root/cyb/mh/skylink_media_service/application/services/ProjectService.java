@@ -25,13 +25,14 @@ public class ProjectService {
     
     public Project createProject(String workOrderNumber, String location, String clientCode, String description) {
         return createProject(workOrderNumber, location, clientCode, description, 
-                           null, null, null, null, null, null, null, null, null, null, null, null);
+                           null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
     
     public Project createProject(String workOrderNumber, String location, String clientCode, String description,
                                String ppwNumber, String workType, String workDetails, String clientCompany,
                                String customer, String loanNumber, String loanType, String address,
-                               LocalDate receivedDate, LocalDate dueDate, String assignedTo, String woAdmin) {
+                               LocalDate receivedDate, LocalDate dueDate, String assignedTo, String woAdmin,
+                               java.math.BigDecimal invoicePrice) {
         if (projectRepository.existsByWorkOrderNumber(workOrderNumber)) {
             throw new RuntimeException("Work order number already exists");
         }
@@ -39,7 +40,7 @@ public class ProjectService {
         Project project = new Project(workOrderNumber, location, clientCode, description,
                                     ppwNumber, workType, workDetails, clientCompany,
                                     customer, loanNumber, loanType, address,
-                                    receivedDate, dueDate, assignedTo, woAdmin);
+                                    receivedDate, dueDate, assignedTo, woAdmin, invoicePrice);
         return projectRepository.save(project);
     }
     
@@ -88,7 +89,8 @@ public class ProjectService {
     public Project updateProject(Long projectId, String workOrderNumber, String location, String clientCode, String description,
                                String ppwNumber, String workType, String workDetails, String clientCompany,
                                String customer, String loanNumber, String loanType, String address,
-                               LocalDate receivedDate, LocalDate dueDate, String assignedTo, String woAdmin) {
+                               LocalDate receivedDate, LocalDate dueDate, String assignedTo, String woAdmin,
+                               java.math.BigDecimal invoicePrice) {
         Project existingProject = getProjectById(projectId);
         
         // Check work order number uniqueness (excluding current project)
@@ -114,6 +116,7 @@ public class ProjectService {
         existingProject.setDueDate(dueDate);
         existingProject.setAssignedTo(assignedTo);
         existingProject.setWoAdmin(woAdmin);
+        existingProject.setInvoicePrice(invoicePrice);
         
         return projectRepository.save(existingProject);
     }

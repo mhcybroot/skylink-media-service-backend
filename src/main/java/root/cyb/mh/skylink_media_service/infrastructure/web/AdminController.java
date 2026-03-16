@@ -102,10 +102,12 @@ public class AdminController {
                                @RequestParam(required = false) String dueDate,
                                @RequestParam(required = false) String assignedTo,
                                @RequestParam(required = false) String woAdmin,
+                               @RequestParam(required = false) String invoicePrice,
                                RedirectAttributes redirectAttributes) {
         try {
             java.time.LocalDate parsedReceivedDate = null;
             java.time.LocalDate parsedDueDate = null;
+            java.math.BigDecimal parsedInvoicePrice = null;
             
             if (receivedDate != null && !receivedDate.trim().isEmpty()) {
                 parsedReceivedDate = java.time.LocalDate.parse(receivedDate);
@@ -113,11 +115,17 @@ public class AdminController {
             if (dueDate != null && !dueDate.trim().isEmpty()) {
                 parsedDueDate = java.time.LocalDate.parse(dueDate);
             }
+            if (invoicePrice != null && !invoicePrice.trim().isEmpty()) {
+                parsedInvoicePrice = new java.math.BigDecimal(invoicePrice);
+                if (parsedInvoicePrice.compareTo(java.math.BigDecimal.ZERO) < 0) {
+                    throw new IllegalArgumentException("Invoice price cannot be negative");
+                }
+            }
             
             projectService.createProject(workOrderNumber, location, clientCode, description,
                                        ppwNumber, workType, workDetails, clientCompany,
                                        customer, loanNumber, loanType, address,
-                                       parsedReceivedDate, parsedDueDate, assignedTo, woAdmin);
+                                       parsedReceivedDate, parsedDueDate, assignedTo, woAdmin, parsedInvoicePrice);
             redirectAttributes.addFlashAttribute("success", "Project created successfully");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -186,10 +194,12 @@ public class AdminController {
                              @RequestParam(required = false) String dueDate,
                              @RequestParam(required = false) String assignedTo,
                              @RequestParam(required = false) String woAdmin,
+                             @RequestParam(required = false) String invoicePrice,
                              RedirectAttributes redirectAttributes) {
         try {
             java.time.LocalDate parsedReceivedDate = null;
             java.time.LocalDate parsedDueDate = null;
+            java.math.BigDecimal parsedInvoicePrice = null;
             
             if (receivedDate != null && !receivedDate.trim().isEmpty()) {
                 parsedReceivedDate = java.time.LocalDate.parse(receivedDate);
@@ -197,11 +207,17 @@ public class AdminController {
             if (dueDate != null && !dueDate.trim().isEmpty()) {
                 parsedDueDate = java.time.LocalDate.parse(dueDate);
             }
+            if (invoicePrice != null && !invoicePrice.trim().isEmpty()) {
+                parsedInvoicePrice = new java.math.BigDecimal(invoicePrice);
+                if (parsedInvoicePrice.compareTo(java.math.BigDecimal.ZERO) < 0) {
+                    throw new IllegalArgumentException("Invoice price cannot be negative");
+                }
+            }
             
             projectService.updateProject(id, workOrderNumber, location, clientCode, description,
                                        ppwNumber, workType, workDetails, clientCompany,
                                        customer, loanNumber, loanType, address,
-                                       parsedReceivedDate, parsedDueDate, assignedTo, woAdmin);
+                                       parsedReceivedDate, parsedDueDate, assignedTo, woAdmin, parsedInvoicePrice);
             redirectAttributes.addFlashAttribute("success", "Project updated successfully");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());

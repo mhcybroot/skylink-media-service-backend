@@ -257,6 +257,10 @@
                                                     <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Received</p>
                                                     <p class="text-slate-800 font-medium mt-0.5" th:text="${project.receivedDate}"></p>
                                                 </div>
+                                                <div th:if="${project.invoicePrice}">
+                                                    <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Invoice Price</p>
+                                                    <p class="text-slate-800 font-medium mt-0.5" th:text="'$' + ${#numbers.formatDecimal(project.invoicePrice, 1, 2)}"></p>
+                                                </div>
                                                 <div class="col-span-2" th:if="${project.description}">
                                                     <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Description</p>
                                                     <p class="text-slate-600 mt-0.5 text-sm line-clamp-2" th:text="${project.description}"></p>
