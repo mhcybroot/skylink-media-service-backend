@@ -166,4 +166,71 @@ public class Project {
     
     public String getWoAdmin() { return woAdmin; }
     public void setWoAdmin(String woAdmin) { this.woAdmin = woAdmin; }
+    
+    // Status fields
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus status = root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus.UNASSIGNED;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status")
+    private root.cyb.mh.skylink_media_service.domain.valueobjects.PaymentStatus paymentStatus = root.cyb.mh.skylink_media_service.domain.valueobjects.PaymentStatus.UNPAID;
+    
+    @Column(name = "status_updated_at")
+    private LocalDateTime statusUpdatedAt;
+    
+    @ManyToOne
+    @JoinColumn(name = "status_updated_by")
+    private User statusUpdatedBy;
+    
+    @Column(name = "first_opened_at")
+    private LocalDateTime firstOpenedAt;
+    
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+    
+    @ManyToOne
+    @JoinColumn(name = "completed_by")
+    private User completedBy;
+    
+    public root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus getStatus() { return status; }
+    public void setStatus(root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus status) { 
+        this.status = status;
+        this.statusUpdatedAt = LocalDateTime.now();
+    }
+    
+    public root.cyb.mh.skylink_media_service.domain.valueobjects.PaymentStatus getPaymentStatus() { return paymentStatus; }
+    public void setPaymentStatus(root.cyb.mh.skylink_media_service.domain.valueobjects.PaymentStatus paymentStatus) { 
+        this.paymentStatus = paymentStatus;
+        this.statusUpdatedAt = LocalDateTime.now();
+    }
+    
+    public LocalDateTime getStatusUpdatedAt() { return statusUpdatedAt; }
+    public void setStatusUpdatedAt(LocalDateTime statusUpdatedAt) { this.statusUpdatedAt = statusUpdatedAt; }
+    
+    public User getStatusUpdatedBy() { return statusUpdatedBy; }
+    public void setStatusUpdatedBy(User statusUpdatedBy) { this.statusUpdatedBy = statusUpdatedBy; }
+    
+    public void changeStatus(root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus newStatus, User changedBy) {
+        if (!this.status.canTransitionTo(newStatus)) {
+            throw new root.cyb.mh.skylink_media_service.domain.exceptions.InvalidStatusTransitionException(this.status.name(), newStatus.name());
+        }
+        this.status = newStatus;
+        this.statusUpdatedAt = LocalDateTime.now();
+        this.statusUpdatedBy = changedBy;
+    }
+    
+    public LocalDateTime getFirstOpenedAt() { return firstOpenedAt; }
+    public void setFirstOpenedAt(LocalDateTime firstOpenedAt) { this.firstOpenedAt = firstOpenedAt; }
+    
+    public LocalDateTime getCompletedAt() { return completedAt; }
+    public void setCompletedAt(LocalDateTime completedAt) { this.completedAt = completedAt; }
+    
+    public User getCompletedBy() { return completedBy; }
+    public void setCompletedBy(User completedBy) { this.completedBy = completedBy; }
+    
+    public boolean isAssignedToContractor(Contractor contractor) {
+        return assignments != null && assignments.stream()
+            .anyMatch(assignment -> assignment.getContractor().equals(contractor));
+    }
 }

@@ -163,10 +163,22 @@
             </div>
             
             <div class="space-y-4">
-                <div th:each="assignment : ${assignments}" class="border rounded-lg p-4">
+                <div th:each="assignment : ${assignments}" class="border rounded-lg p-4 bg-white shadow-sm">
                     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                         <div class="flex-1">
-                            <h3 class="font-medium text-sm sm:text-base" th:text="${assignment.project.workOrderNumber}"></h3>
+                            <div class="flex items-center gap-2 mb-2">
+                                <h3 class="font-medium text-sm sm:text-base" th:text="${assignment.project.workOrderNumber}"></h3>
+                                <!-- Status Badge -->
+                                <span th:class="${assignment.project.status.name() == 'UNASSIGNED' ? 'bg-gray-100 text-gray-800' : 
+                                                assignment.project.status.name() == 'ASSIGNED' ? 'bg-blue-100 text-blue-800' :
+                                                assignment.project.status.name() == 'UNREAD' ? 'bg-yellow-100 text-yellow-800' :
+                                                assignment.project.status.name() == 'INFIELD' ? 'bg-orange-100 text-orange-800' :
+                                                assignment.project.status.name() == 'READY_TO_OFFICE' ? 'bg-purple-100 text-purple-800' :
+                                                assignment.project.status.name() == 'CLOSED' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}"
+                                      class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium">
+                                    <span th:text="${assignment.project.status.displayName}"></span>
+                                </span>
+                            </div>
                             <p class="text-xs sm:text-sm text-gray-600" th:text="${assignment.project.location}"></p>
                             <p class="text-xs sm:text-sm text-gray-600" th:text="${assignment.project.clientCode}"></p>
                             <p th:if="${assignment.project.description}" class="text-xs sm:text-sm text-gray-500 mt-1" th:text="${assignment.project.description}"></p>
@@ -181,12 +193,37 @@
                         </div>
                         
                         <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                            <!-- Status Action Button -->
+                            <div th:switch="${availableActions[assignment.project.id]}">
+                                <form th:case="'START'" th:action="@{'/contractor/project/' + ${assignment.project.id} + '/open'}" method="post" class="inline">
+                                    <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-center text-sm w-full sm:w-auto">
+                                        Start Work
+                                    </button>
+                                </form>
+                                <form th:case="'CONTINUE'" th:action="@{'/contractor/project/' + ${assignment.project.id} + '/open'}" method="post" class="inline">
+                                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-center text-sm w-full sm:w-auto">
+                                        Continue
+                                    </button>
+                                </form>
+                                <form th:case="'COMPLETE'" th:action="@{'/contractor/project/' + ${assignment.project.id} + '/complete'}" method="post" class="inline">
+                                    <button type="submit" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded text-center text-sm w-full sm:w-auto">
+                                        Mark Complete
+                                    </button>
+                                </form>
+                                <span th:case="'COMPLETED'" class="bg-gray-400 text-white font-bold py-2 px-4 rounded text-center text-sm inline-block">
+                                    Completed
+                                </span>
+                                <span th:case="'CLOSED'" class="bg-green-600 text-white font-bold py-2 px-4 rounded text-center text-sm inline-block">
+                                    Closed
+                                </span>
+                            </div>
+                            
                             <a th:href="@{'/contractor/upload-photo/' + ${assignment.project.id}}" 
                                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-center text-sm">
                                 Upload Photos
                             </a>
                             <a th:href="@{'/contractor/project/' + ${assignment.project.id} + '/photos'}" 
-                               class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-center text-sm">
+                               class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-center text-sm">
                                 View Photos
                             </a>
                         </div>

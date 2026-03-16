@@ -14,6 +14,9 @@ import root.cyb.mh.skylink_media_service.domain.entities.ProjectAssignment;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.UserRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectAssignmentRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectRepository;
+import root.cyb.mh.skylink_media_service.application.usecases.OpenProjectUseCase;
+import root.cyb.mh.skylink_media_service.application.usecases.CompleteProjectUseCase;
+import root.cyb.mh.skylink_media_service.application.usecases.GetContractorProjectsUseCase;
 
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +39,15 @@ public class ContractorController {
     @Autowired
     private ProjectAssignmentRepository projectAssignmentRepository;
     
+    @Autowired
+    private OpenProjectUseCase openProjectUseCase;
+    
+    @Autowired
+    private CompleteProjectUseCase completeProjectUseCase;
+    
+    @Autowired
+    private GetContractorProjectsUseCase getContractorProjectsUseCase;
+    
     @GetMapping("/dashboard")
     public String dashboard(Model model, Authentication authentication,
                            @RequestParam(required = false) String projectSearch) {
@@ -51,6 +63,8 @@ public class ContractorController {
             
             // Add photo counts for each assignment
             Map<Long, Long> photoCounts = new HashMap<>();
+            Map<Long, String> availableActions = getContractorProjectsUseCase.getAvailableActions(contractor);
+            
             for (ProjectAssignment assignment : assignments) {
                 long photoCount = photoService.getProjectPhotos(assignment.getProject().getId()).size();
                 photoCounts.put(assignment.getProject().getId(), photoCount);
@@ -58,6 +72,7 @@ public class ContractorController {
             
             model.addAttribute("assignments", assignments);
             model.addAttribute("photoCounts", photoCounts);
+            model.addAttribute("availableActions", availableActions);
             model.addAttribute("projectSearch", projectSearch);
         }
         return "contractor/dashboard";
@@ -103,6 +118,38 @@ public class ContractorController {
                     }
                 }
                 redirectAttributes.addFlashAttribute("success", "Photos uploaded successfully");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/contractor/dashboard";
+    }
+    
+    @PostMapping("/project/{projectId}/open")
+    public String openProject(@PathVariable Long projectId, 
+                             Authentication authentication,
+                             RedirectAttributes redirectAttributes) {
+        try {
+            User user = userRepository.findByUsername(authentication.getName()).orElse(null);
+            if (user instanceof Contractor contractor) {
+                openProjectUseCase.openProject(projectId, contractor);
+                redirectAttributes.addFlashAttribute("success", "Project opened successfully");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/contractor/dashboard";
+    }
+    
+    @PostMapping("/project/{projectId}/complete")
+    public String completeProject(@PathVariable Long projectId, 
+                                 Authentication authentication,
+                                 RedirectAttributes redirectAttributes) {
+        try {
+            User user = userRepository.findByUsername(authentication.getName()).orElse(null);
+            if (user instanceof Contractor contractor) {
+                completeProjectUseCase.completeProject(projectId, contractor);
+                redirectAttributes.addFlashAttribute("success", "Project marked as complete");
             }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());

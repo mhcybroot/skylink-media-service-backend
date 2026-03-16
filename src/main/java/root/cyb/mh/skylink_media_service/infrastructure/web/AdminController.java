@@ -8,9 +8,15 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import root.cyb.mh.skylink_media_service.application.services.UserService;
 import root.cyb.mh.skylink_media_service.application.services.ProjectService;
 import root.cyb.mh.skylink_media_service.application.services.PhotoService;
+import root.cyb.mh.skylink_media_service.application.usecases.ChangeProjectStatusUseCase;
 import root.cyb.mh.skylink_media_service.domain.entities.Project;
 import root.cyb.mh.skylink_media_service.domain.entities.Contractor;
+import root.cyb.mh.skylink_media_service.domain.entities.User;
+import root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus;
+import root.cyb.mh.skylink_media_service.domain.valueobjects.PaymentStatus;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ContractorRepository;
+import root.cyb.mh.skylink_media_service.infrastructure.persistence.UserRepository;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
@@ -29,6 +35,12 @@ public class AdminController {
     
     @Autowired
     private ContractorRepository contractorRepository;
+    
+    @Autowired
+    private ChangeProjectStatusUseCase changeProjectStatusUseCase;
+    
+    @Autowired
+    private UserRepository userRepository;
     
     @GetMapping("/dashboard")
     public String dashboard(Model model, 
@@ -191,6 +203,40 @@ public class AdminController {
                                        customer, loanNumber, loanType, address,
                                        parsedReceivedDate, parsedDueDate, assignedTo, woAdmin);
             redirectAttributes.addFlashAttribute("success", "Project updated successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin/dashboard";
+    }
+    
+    @PostMapping("/change-status/{projectId}")
+    public String changeProjectStatus(@PathVariable Long projectId,
+                                    @RequestParam ProjectStatus status,
+                                    Authentication authentication,
+                                    RedirectAttributes redirectAttributes) {
+        try {
+            User admin = userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+            
+            changeProjectStatusUseCase.changeProjectStatus(projectId, status, admin);
+            redirectAttributes.addFlashAttribute("success", "Project status updated successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin/dashboard";
+    }
+    
+    @PostMapping("/change-payment-status/{projectId}")
+    public String changePaymentStatus(@PathVariable Long projectId,
+                                    @RequestParam PaymentStatus paymentStatus,
+                                    Authentication authentication,
+                                    RedirectAttributes redirectAttributes) {
+        try {
+            User admin = userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+            
+            changeProjectStatusUseCase.changePaymentStatus(projectId, paymentStatus, admin);
+            redirectAttributes.addFlashAttribute("success", "Payment status updated successfully");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
