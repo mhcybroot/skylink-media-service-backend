@@ -98,70 +98,119 @@
         <div class="bg-white shadow rounded-lg p-4 sm:p-6 mb-6">
             <h2 class="text-base sm:text-lg font-semibold mb-4">Project Details</h2>
             
-            <div class="space-y-4">
+            <div class="space-y-6">
+                <!-- Work Order Information -->
                 <div>
-                    <span class="text-sm font-medium text-gray-700">Work Order: </span>
-                    <span th:text="${project.workOrderNumber}"></span>
+                    <h3 class="text-sm font-medium text-gray-900 mb-3 border-l-4 border-blue-500 pl-3">Work Order Information</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div>
+                            <span class="text-xs text-gray-500 block">WO #</span>
+                            <span class="text-sm font-medium" th:text="${project.workOrderNumber}"></span>
+                        </div>
+                        <div th:if="${project.ppwNumber}">
+                            <span class="text-xs text-gray-500 block">PPW #</span>
+                            <span class="text-sm" th:text="${project.ppwNumber}"></span>
+                        </div>
+                        <div th:if="${project.workType}">
+                            <span class="text-xs text-gray-500 block">Work Type</span>
+                            <span class="text-sm" th:text="${project.workType}"></span>
+                        </div>
+                    </div>
+                    <div th:if="${project.workDetails}" class="mt-3">
+                        <span class="text-xs text-gray-500 block">Work Details</span>
+                        <span class="text-sm" th:text="${project.workDetails}"></span>
+                    </div>
                 </div>
+
+                <!-- Client Information -->
                 <div>
-                    <span class="text-sm font-medium text-gray-700">Location: </span>
-                    <span th:text="${project.location}"></span>
+                    <h3 class="text-sm font-medium text-gray-900 mb-3 border-l-4 border-green-500 pl-3">Client Information</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div>
+                            <span class="text-xs text-gray-500 block">Client Code</span>
+                            <span class="text-sm font-medium" th:text="${project.clientCode}"></span>
+                        </div>
+                        <div th:if="${project.clientCompany}">
+                            <span class="text-xs text-gray-500 block">Client Company</span>
+                            <span class="text-sm" th:text="${project.clientCompany}"></span>
+                        </div>
+                        <div th:if="${project.customer}">
+                            <span class="text-xs text-gray-500 block">Customer</span>
+                            <span class="text-sm" th:text="${project.customer}"></span>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Loan Information -->
                 <div>
-                    <span class="text-sm font-medium text-gray-700">Client Code: </span>
-                    <span th:text="${project.clientCode}"></span>
+                    <h3 class="text-sm font-medium text-gray-900 mb-3 border-l-4 border-purple-500 pl-3">Loan Information</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div th:if="${project.loanNumber}">
+                            <span class="text-xs text-gray-500 block">Loan #</span>
+                            <span class="text-sm" th:text="${project.loanNumber}"></span>
+                        </div>
+                        <div th:if="${project.loanType}">
+                            <span class="text-xs text-gray-500 block">Loan Type</span>
+                            <span class="text-sm" th:text="${project.loanType}"></span>
+                        </div>
+                    </div>
                 </div>
-                <div th:if="${project.description}">
-                    <span class="text-sm font-medium text-gray-700">Description: </span>
-                    <span th:text="${project.description}"></span>
-                </div>
-                <div th:if="${project.ppwNumber}">
-                    <span class="text-sm font-medium text-gray-700">PPW Number: </span>
-                    <span th:text="${project.ppwNumber}"></span>
-                </div>
-                <div th:if="${project.workType}">
-                    <span class="text-sm font-medium text-gray-700">Work Type: </span>
-                    <span th:text="${project.workType}"></span>
-                </div>
-                <div th:if="${project.clientCompany}">
-                    <span class="text-sm font-medium text-gray-700">Client Company: </span>
-                    <span th:text="${project.clientCompany}"></span>
-                </div>
-                <div th:if="${project.customer}">
-                    <span class="text-sm font-medium text-gray-700">Customer: </span>
-                    <span th:text="${project.customer}"></span>
-                </div>
-                <div th:if="${project.loanNumber}">
-                    <span class="text-sm font-medium text-gray-700">Loan Number: </span>
-                    <span th:text="${project.loanNumber}"></span>
-                </div>
-                <div th:if="${project.address}">
-                    <span class="text-sm font-medium text-gray-700">Address: </span>
-                    <span th:text="${project.address}"></span>
-                </div>
-                <div th:if="${project.receivedDate}">
-                    <span class="text-sm font-medium text-gray-700">Received Date: </span>
-                    <span th:text="${project.receivedDate}"></span>
-                </div>
-                <div th:if="${project.dueDate}">
-                    <span class="text-sm font-medium text-gray-700">Due Date: </span>
-                    <span th:text="${project.dueDate}"></span>
-                </div>
-                <div th:if="${project.assignedTo}">
-                    <span class="text-sm font-medium text-gray-700">Assigned To: </span>
-                    <span th:text="${project.assignedTo}"></span>
-                </div>
-                <div th:if="${project.woAdmin}">
-                    <span class="text-sm font-medium text-gray-700">WO Admin: </span>
-                    <span th:text="${project.woAdmin}"></span>
-                </div>
-                <div th:if="${project.invoicePrice}">
-                    <span class="text-sm font-medium text-gray-700">Invoice Price: $</span>
-                    <span th:text="${project.invoicePrice}"></span>
-                </div>
+
+                <!-- Location Information -->
                 <div>
-                    <span class="text-sm font-medium text-gray-700">Status: </span>
-                    <span th:text="${project.status}"></span>
+                    <h3 class="text-sm font-medium text-gray-900 mb-3 border-l-4 border-orange-500 pl-3">Location Information</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <span class="text-xs text-gray-500 block">Location</span>
+                            <span class="text-sm font-medium" th:text="${project.location}"></span>
+                        </div>
+                        <div th:if="${project.address}">
+                            <span class="text-xs text-gray-500 block">Address</span>
+                            <span class="text-sm" th:text="${project.address}"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Information -->
+                <div>
+                    <h3 class="text-sm font-medium text-gray-900 mb-3 border-l-4 border-red-500 pl-3">Timeline Information</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div th:if="${project.receivedDate}">
+                            <span class="text-xs text-gray-500 block">Received Date</span>
+                            <span class="text-sm" th:text="${project.receivedDate}"></span>
+                        </div>
+                        <div th:if="${project.dueDate}">
+                            <span class="text-xs text-gray-500 block">Due Date</span>
+                            <span class="text-sm" th:text="${project.dueDate}"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Administrative Information -->
+                <div>
+                    <h3 class="text-sm font-medium text-gray-900 mb-3 border-l-4 border-indigo-500 pl-3">Administrative Information</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div th:if="${project.assignedTo}">
+                            <span class="text-xs text-gray-500 block">Assigned To</span>
+                            <span class="text-sm" th:text="${project.assignedTo}"></span>
+                        </div>
+                        <div th:if="${project.woAdmin}">
+                            <span class="text-xs text-gray-500 block">WO Admin</span>
+                            <span class="text-sm" th:text="${project.woAdmin}"></span>
+                        </div>
+                        <div th:if="${project.invoicePrice}">
+                            <span class="text-xs text-gray-500 block">Invoice Price ($)</span>
+                            <span class="text-sm font-medium text-green-600" th:text="${project.invoicePrice}"></span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-gray-500 block">Status</span>
+                            <span class="text-sm" th:text="${project.status}"></span>
+                        </div>
+                    </div>
+                    <div th:if="${project.description}" class="mt-3">
+                        <span class="text-xs text-gray-500 block">Description</span>
+                        <span class="text-sm" th:text="${project.description}"></span>
+                    </div>
                 </div>
             </div>
         </div>

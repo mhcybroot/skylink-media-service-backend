@@ -6,11 +6,10 @@ Location: enei
 
 Client Code: 75
 
-Description: oiei)  i see there is missing others fields  ](http://76.13.221.43:8085/admin/project/8/photos)
+Description: oiei)  i see there is missing others fields  ](http://76.13.221.43:8085/contractor/project/1/photos)
 
 
-2. investigate and findout all feild that missing
+2. pleaes add those field also 
+     PROJECT INVOICE PRICE, DUE DATE, LOCATION , Loan Number, loan type, work description, others description 
+3. make a plan to implment that all above field on here
 
-3. make a plan to implment that all field on here
-
-4. comlment this implmentation plan and implment that properly

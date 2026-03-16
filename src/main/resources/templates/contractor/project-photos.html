@@ -12,7 +12,9 @@
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
                     <a href="/contractor/dashboard" class="text-blue-600 hover:text-blue-800 mr-4 text-sm sm:text-base">← Back</a>
-                    <h1 class="text-lg sm:text-xl font-semibold" th:text="'Photos for ' + ${project.workOrderNumber}"></h1>
+                    <h1 class="text-lg sm:text-xl font-semibold">
+                        Photos for <span th:text="${project.workOrderNumber}"></span>
+                    </h1>
                 </div>
             </div>
         </div>
@@ -20,11 +22,50 @@
 
     <div class="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
         <div class="bg-white shadow rounded-lg p-4 sm:p-6 mb-6">
-            <h2 class="text-base sm:text-lg font-semibold mb-2">Project Details</h2>
-            <p class="text-sm sm:text-base"><strong>Work Order:</strong> <span th:text="${project.workOrderNumber}"></span></p>
-            <p class="text-sm sm:text-base"><strong>Location:</strong> <span th:text="${project.location}"></span></p>
-            <p class="text-sm sm:text-base"><strong>Client Code:</strong> <span th:text="${project.clientCode}"></span></p>
-            <p th:if="${project.description}" class="text-sm sm:text-base"><strong>Description:</strong> <span th:text="${project.description}"></span></p>
+            <h2 class="text-base sm:text-lg font-semibold mb-4">Project Details</h2>
+            
+            <div class="space-y-3">
+                <div>
+                    <span class="text-sm font-medium text-gray-700">Work Order: </span>
+                    <span th:text="${project.workOrderNumber}"></span>
+                </div>
+                <div>
+                    <span class="text-sm font-medium text-gray-700">Location: </span>
+                    <span th:text="${project.location}"></span>
+                </div>
+                <div>
+                    <span class="text-sm font-medium text-gray-700">Client Code: </span>
+                    <span th:text="${project.clientCode}"></span>
+                </div>
+                <div th:if="${project.description}">
+                    <span class="text-sm font-medium text-gray-700">Description: </span>
+                    <span th:text="${project.description}"></span>
+                </div>
+                <div th:if="${project.workType}">
+                    <span class="text-sm font-medium text-gray-700">Work Type: </span>
+                    <span th:text="${project.workType}"></span>
+                </div>
+                <div th:if="${project.workDetails}">
+                    <span class="text-sm font-medium text-gray-700">Work Details: </span>
+                    <span th:text="${project.workDetails}"></span>
+                </div>
+                <div th:if="${project.address}">
+                    <span class="text-sm font-medium text-gray-700">Address: </span>
+                    <span th:text="${project.address}"></span>
+                </div>
+                <div th:if="${project.dueDate}">
+                    <span class="text-sm font-medium text-gray-700">Due Date: </span>
+                    <span th:text="${project.dueDate}"></span>
+                </div>
+                <div th:if="${project.loanNumber}">
+                    <span class="text-sm font-medium text-gray-700">Loan Number: </span>
+                    <span th:text="${project.loanNumber}"></span>
+                </div>
+                <div th:if="${project.loanType}">
+                    <span class="text-sm font-medium text-gray-700">Loan Type: </span>
+                    <span th:text="${project.loanType}"></span>
+                </div>
+            </div>
         </div>
 
         <div class="bg-white shadow rounded-lg p-4 sm:p-6">
