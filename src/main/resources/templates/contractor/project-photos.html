@@ -1,99 +1,379 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Photos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="theme-color" content="#ffffff">
+    <title>Project Photos - Skylink Hub</title>
+
+    <!-- PWA Manifest & Icons -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+
+    <!-- Fonts: Inter (Data) and Outfit (Headers) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Outfit', 'sans-serif']
+                    },
+                    colors: {
+                        neutral: { 850: '#1f2937' },
+                    },
+                    boxShadow: {
+                        'premium': '0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 0 3px rgba(0,0,0,0.02)',
+                        'float': '0 10px 40px -10px rgba(0,0,0,0.08)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
+        body {
+            background-color: #FAFAFA;
+        }
+
+        /* Modern Scrollbar */
+        .premium-scroll::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+
+        .premium-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .premium-scroll::-webkit-scrollbar-thumb {
+            background: #E5E7EB;
+            border-radius: 10px;
+        }
+
+        .premium-scroll::-webkit-scrollbar-thumb:hover {
+            background: #D1D5DB;
+        }
+
+        /* SaaS Card Structure */
+        .saas-card {
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+            transition: all 0.2s ease;
+        }
+
+        /* PWA Hide Logic */
+        #install-btn {
+            display: none;
+        }
+
+        .pwa-install-hidden {
+            display: none !important;
+        }
+
+        @media (display-mode: standalone) {
+            body {
+                padding-top: env(safe-area-inset-top);
+            }
+        }
+    </style>
 </head>
-<body class="bg-gray-100">
-    <nav class="bg-white shadow">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <a href="/contractor/dashboard" class="text-blue-600 hover:text-blue-800 mr-4 text-sm sm:text-base">← Back</a>
-                    <h1 class="text-lg sm:text-xl font-semibold">
-                        Photos for <span th:text="${project.workOrderNumber}"></span>
-                    </h1>
-                </div>
-            </div>
-        </div>
-    </nav>
 
-    <div class="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
-        <div class="bg-white shadow rounded-lg p-4 sm:p-6 mb-6">
-            <h2 class="text-base sm:text-lg font-semibold mb-4">Project Details</h2>
-            
-            <div class="space-y-3">
-                <div>
-                    <span class="text-sm font-medium text-gray-700">Work Order: </span>
-                    <span th:text="${project.workOrderNumber}"></span>
-                </div>
-                <div>
-                    <span class="text-sm font-medium text-gray-700">Location: </span>
-                    <span th:text="${project.location}"></span>
-                </div>
-                <div>
-                    <span class="text-sm font-medium text-gray-700">Client Code: </span>
-                    <span th:text="${project.clientCode}"></span>
-                </div>
-                <div th:if="${project.description}">
-                    <span class="text-sm font-medium text-gray-700">Description: </span>
-                    <span th:text="${project.description}"></span>
-                </div>
-                <div th:if="${project.workType}">
-                    <span class="text-sm font-medium text-gray-700">Work Type: </span>
-                    <span th:text="${project.workType}"></span>
-                </div>
-                <div th:if="${project.workDetails}">
-                    <span class="text-sm font-medium text-gray-700">Work Details: </span>
-                    <span th:text="${project.workDetails}"></span>
-                </div>
-                <div th:if="${project.address}">
-                    <span class="text-sm font-medium text-gray-700">Address: </span>
-                    <span th:text="${project.address}"></span>
-                </div>
-                <div th:if="${project.dueDate}">
-                    <span class="text-sm font-medium text-gray-700">Due Date: </span>
-                    <span th:text="${project.dueDate}"></span>
-                </div>
-                <div th:if="${project.loanNumber}">
-                    <span class="text-sm font-medium text-gray-700">Loan Number: </span>
-                    <span th:text="${project.loanNumber}"></span>
-                </div>
-                <div th:if="${project.loanType}">
-                    <span class="text-sm font-medium text-gray-700">Loan Type: </span>
-                    <span th:text="${project.loanType}"></span>
-                </div>
-            </div>
-        </div>
+<body class="text-neutral-800 font-sans antialiased overflow-hidden flex h-screen" x-data="{ sidebarOpen: false }">
 
-        <div class="bg-white shadow rounded-lg p-4 sm:p-6">
-            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
-                <h2 class="text-base sm:text-lg font-semibold mb-2 sm:mb-0">My Uploaded Photos</h2>
-                <a th:href="@{'/contractor/upload-photo/' + ${project.id}}" 
-                   class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-center text-sm">
-                    Upload More Photos
-                </a>
-            </div>
-            
-            <div th:if="${#lists.isEmpty(photos)}" class="text-gray-500 text-center py-8 text-sm sm:text-base">
-                No photos uploaded yet.
-            </div>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
-                <div th:each="photo : ${photos}" class="border rounded-lg p-4 sm:p-5 shadow-sm">
-                    <div class="aspect-w-16 aspect-h-9 mb-4">
-                        <img th:src="@{'/uploads/' + ${photo.fileName}}" 
-                             th:alt="${photo.originalName}"
-                             class="w-full h-32 sm:h-48 object-cover rounded">
-                    </div>
-                    <p class="text-xs sm:text-sm font-medium mb-2" th:text="${photo.originalName}"></p>
-                    <p class="text-xs text-gray-500 mb-1" th:text="${#temporals.format(photo.uploadedAt, 'yyyy-MM-dd HH:mm')}"></p>
-                    <p class="text-xs text-gray-400" th:text="${#numbers.formatDecimal(photo.fileSize / 1024, 0, 0)} + ' KB'"></p>
-                </div>
-            </div>
-        </div>
+    <!-- Mobile Backdrop -->
+    <div x-show="sidebarOpen" x-transition.opacity
+        class="fixed inset-0 z-40 bg-neutral-900/40 backdrop-blur-sm lg:hidden" @click="sidebarOpen = false" x-cloak>
     </div>
+
+    <!-- Sidebar (Ultra-Minimal Dark) -->
+    <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+        class="fixed inset-y-0 left-0 z-50 w-64 bg-[#111827] text-neutral-400 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static flex flex-col border-r border-[#1F2937]">
+        <!-- Brand Header -->
+        <div class="h-16 flex items-center px-6 border-b border-[#1F2937]">
+            <div class="flex items-center gap-3 text-white font-bold text-xl tracking-tight font-heading">
+                <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-inner">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+                Skylink
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 px-3 py-6 space-y-1 premium-scroll overflow-y-auto">
+            <a href="/contractor/dashboard"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#1F2937]/50 hover:text-neutral-200 font-medium text-sm transition-colors">
+                <svg class="w-5 h-5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                    </path>
+                </svg>
+                My Projects
+            </a>
+            <div
+                class="px-3 py-2.5 rounded-lg bg-[#1F2937] text-white font-medium text-sm transition-colors mt-2 flex items-center gap-3">
+                <svg class="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                    </path>
+                </svg>
+                Gallery View
+            </div>
+            <button id="pwa-install-btn-nav"
+                class="pwa-install-hidden w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#1F2937]/50 hover:text-neutral-200 font-medium text-sm transition-colors text-left mt-4 border border-[#1F2937] border-dashed">
+                <svg class="w-5 h-5 opacity-60 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                Install Native App
+            </button>
+        </nav>
+
+        <!-- User Footer -->
+        <div class="p-4 border-t border-[#1F2937] bg-[#0B0F19]">
+            <div class="flex items-center gap-3 w-full">
+                <div
+                    class="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm border border-indigo-500/30 shrink-0">
+                    <span sec:authentication="name"
+                        th:text="${#authentication.name.substring(0,1).toUpperCase()}">C</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-semibold text-neutral-200 truncate" sec:authentication="name"></p>
+                    <p class="text-[10px] text-neutral-500 uppercase tracking-widest font-bold font-heading">Contractor
+                    </p>
+                </div>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit"
+                        class="p-1.5 text-neutral-500 hover:text-red-400 rounded-md hover:bg-[#1F2937] transition-colors"
+                        title="Sign Out">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                            </path>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 flex flex-col h-full bg-[#FAFAFA] relative z-0 min-w-0 overflow-hidden">
+
+        <!-- Topbar -->
+        <header
+            class="h-16 bg-white border-b border-neutral-200 px-4 sm:px-8 flex items-center justify-between shrink-0 sticky top-0 z-20 shadow-sm">
+            <div class="flex items-center gap-4">
+                <button @click="sidebarOpen = true"
+                    class="p-1.5 -ml-2 rounded-md text-neutral-500 hover:bg-neutral-100 lg:hidden focus:outline-none">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+                <div class="flex items-center gap-2 text-sm text-neutral-500">
+                    <a href="/contractor/dashboard"
+                        class="flex items-center gap-1.5 hover:text-indigo-600 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <div id="install-btn"
+                class="bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full cursor-pointer hover:bg-indigo-100 transition-colors flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                Install App
+            </div>
+        </header>
+
+        <!-- Scrollable Body -->
+        <div class="flex-1 overflow-y-auto premium-scroll p-4 sm:p-8">
+            <div class="max-w-6xl mx-auto space-y-6 pb-12">
+
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
+                    <div>
+                        <h2 class="text-2xl font-bold font-heading text-neutral-900 flex items-center gap-2">
+                            Media Gallery
+                            <span
+                                class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-widest bg-indigo-50 text-indigo-700 border border-indigo-200"
+                                th:text="${project.workOrderNumber}"></span>
+                        </h2>
+                        <p class="text-sm text-neutral-500 mt-1">Review your uploaded field photos for this project.</p>
+                    </div>
+
+                    <a th:href="@{'/contractor/upload-photo/' + ${project.id}}"
+                        class="inline-flex items-center justify-center px-6 py-2.5 bg-indigo-600 text-white font-bold rounded-lg text-sm hover:bg-indigo-700 transition-all shadow-[0_2px_10px_rgba(79,70,229,0.2)] border border-indigo-700 active:scale-[0.98]">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z">
+                            </path>
+                        </svg>
+                        Upload Photos
+                    </a>
+                </div>
+
+                <!-- Project Details Summary Card -->
+                <div class="saas-card overflow-hidden">
+                    <div
+                        class="px-5 py-4 border-b border-neutral-100 bg-[#FAFAFA]/50 flex items-center justify-between">
+                        <h3 class="text-sm font-bold font-heading text-neutral-900 flex items-center gap-2">
+                            <div class="w-6 h-6 rounded bg-orange-50 text-orange-600 flex items-center justify-center">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                                    </path>
+                                </svg>
+                            </div>
+                            Work Order Specifications
+                        </h3>
+                    </div>
+
+                    <div class="p-5 grid grid-cols-2 lg:grid-cols-4 gap-6 bg-white">
+                        <div>
+                            <p
+                                class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1 select-none">
+                                Location</p>
+                            <p class="text-xs font-medium text-neutral-800 break-words leading-tight"
+                                th:text="${project.location}"></p>
+                        </div>
+                        <div>
+                            <p
+                                class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1 select-none">
+                                Client Code</p>
+                            <p class="text-sm font-medium text-neutral-800" th:text="${project.clientCode}"></p>
+                        </div>
+                        <div th:if="${project.dueDate}">
+                            <p
+                                class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1 select-none">
+                                Due Date</p>
+                            <p class="text-sm font-medium text-neutral-800" th:text="${project.dueDate}"></p>
+                        </div>
+                        <div th:if="${project.workType}">
+                            <p
+                                class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1 select-none">
+                                Work Type</p>
+                            <p class="text-sm font-medium text-neutral-800" th:text="${project.workType}"></p>
+                        </div>
+
+                        <div class="col-span-2 lg:col-span-4 border-t border-neutral-100 pt-4"
+                            th:if="${project.description}">
+                            <p
+                                class="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1 select-none flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Details
+                            </p>
+                            <p class="text-sm text-neutral-700 leading-relaxed" th:text="${project.description}"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photos Grid Container -->
+                <div class="saas-card p-5 bg-white">
+                    <div th:if="${#lists.isEmpty(photos)}"
+                        class="text-center py-12 px-4 rounded-xl bg-[#FAFAFA] border border-neutral-200 border-dashed">
+                        <div
+                            class="w-16 h-16 mx-auto bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-neutral-100">
+                            <svg class="w-8 h-8 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                        </div>
+                        <h3 class="text-sm font-bold text-neutral-900 font-heading">No Media Found</h3>
+                        <p class="text-xs text-neutral-500 mt-1 max-w-sm mx-auto">You haven't uploaded any photos for
+                            this work order yet. Click the upload button above to add field documentation.</p>
+                    </div>
+
+                    <div th:unless="${#lists.isEmpty(photos)}"
+                        class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                        <div th:each="photo : ${photos}"
+                            class="group relative rounded-xl overflow-hidden border border-neutral-200 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 bg-[#FAFAFA]">
+                            <!-- Image Container (Always square crop) -->
+                            <div class="aspect-w-1 aspect-h-1 w-full overflow-hidden bg-neutral-100">
+                                <img th:src="@{'/uploads/' + ${photo.fileName}}" th:alt="${photo.originalName}"
+                                    class="w-full h-full object-cover rounded-t-xl group-hover:scale-105 transition-transform duration-500">
+                            </div>
+
+                            <!-- Metadata Footer -->
+                            <div class="p-3 border-t border-neutral-200 bg-white">
+                                <p class="text-xs font-semibold text-neutral-800 truncate mb-0.5"
+                                    th:text="${photo.originalName}"></p>
+                                <div class="flex items-center justify-between text-[10px] text-neutral-500 font-medium">
+                                    <p th:text="${#temporals.format(photo.uploadedAt, 'MM/dd HH:mm')}"></p>
+                                    <p class="tracking-widest"
+                                        th:text="${#numbers.formatDecimal(photo.fileSize / 1024, 0, 0)} + 'KB'"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- PWA Install Trigger Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let deferredPrompt;
+            const navBtn = document.getElementById('pwa-install-btn-nav');
+            const headerBtn = document.getElementById('install-btn');
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                if (navBtn) navBtn.classList.remove('pwa-install-hidden');
+                if (headerBtn) headerBtn.style.display = 'flex';
+            });
+
+            const handleInstallClick = async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        if (navBtn) navBtn.classList.add('pwa-install-hidden');
+                        if (headerBtn) headerBtn.style.display = 'none';
+                    }
+                    deferredPrompt = null;
+                }
+            };
+
+            if (navBtn) navBtn.addEventListener('click', handleInstallClick);
+            if (headerBtn) headerBtn.addEventListener('click', handleInstallClick);
+        });
+    </script>
 </body>
+
 </html>
