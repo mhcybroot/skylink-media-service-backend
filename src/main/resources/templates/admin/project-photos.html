@@ -229,7 +229,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
 
                 <!-- Info Badges (Mini Cards) -->
                 <div class="stat-card bg-blue-50/50 rounded-xl p-4 border border-blue-100">
@@ -269,6 +269,22 @@
                     <div class="text-xs text-slate-500 flex justify-between mt-1" th:if="${project.customer}">
                         <span>Customer:</span> <span class="font-medium text-slate-700 truncate ml-2"
                             th:title="${project.customer}" th:text="${project.customer}"></span>
+                    </div>
+                </div>
+
+                <div class="stat-card bg-purple-50/50 rounded-xl p-4 border border-purple-100">
+                    <div class="flex items-center gap-2 mb-2 text-purple-600">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
+                            </path>
+                        </svg>
+                        <span class="text-xs font-bold uppercase tracking-wider">Loan Info</span>
+                    </div>
+                    <div class="text-sm font-bold text-slate-800 mb-1" th:text="${project.loanNumber}"></div>
+                    <div class="text-xs text-slate-500 flex justify-between mt-1" th:if="${project.loanType}">
+                        <span>Type:</span> <span class="font-medium text-slate-700 truncate ml-2"
+                            th:title="${project.loanType}" th:text="${project.loanType}"></span>
                     </div>
                 </div>
 
