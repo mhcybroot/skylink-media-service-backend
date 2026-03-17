@@ -258,13 +258,41 @@
                     </div>
 
                     <div class="p-5 grid grid-cols-2 lg:grid-cols-4 gap-6 bg-white">
+
+                        <!-- Core Identification Row -->
+                        <div th:if="${project.ppwNumber}">
+                            <p
+                                class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1 select-none">
+                                PPW #</p>
+                            <p class="text-sm font-medium text-neutral-800" th:text="${project.ppwNumber}"></p>
+                        </div>
                         <div>
+                            <p
+                                class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1 select-none">
+                                Client Code</p>
+                            <p class="text-sm font-medium text-neutral-800" th:text="${project.clientCode}"></p>
+                        </div>
+                        <div th:if="${project.receivedDate}">
+                            <p
+                                class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1 select-none">
+                                Received Date</p>
+                            <p class="text-sm font-medium text-neutral-800" th:text="${project.receivedDate}"></p>
+                        </div>
+                        <div th:if="${project.dueDate}">
+                            <p
+                                class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1 select-none">
+                                Due Date</p>
+                            <p class="text-sm font-medium text-neutral-800" th:text="${project.dueDate}"></p>
+                        </div>
+
+                        <!-- Logistics & Location Row -->
+                        <div class="col-span-2">
                             <p
                                 class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1 select-none">
                                 Location</p>
                             <div th:if="${project.location != null and project.location.startsWith('http')}">
                                 <a th:href="${project.location}" target="_blank"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-bold transition-all shadow-sm border border-indigo-100/50 hover:shadow-md hover:-translate-y-0.5 w-max">
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-bold transition-all shadow-sm border border-indigo-100/50 hover:shadow-md hover:-translate-y-0.5 w-max mb-1">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                             d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
@@ -276,27 +304,47 @@
                                 </a>
                             </div>
                             <div th:unless="${project.location != null and project.location.startsWith('http')}">
-                                <p class="text-xs font-medium text-neutral-800 break-words leading-tight"
+                                <p class="text-sm font-medium text-neutral-800 break-words leading-tight"
                                     th:text="${project.location}"></p>
                             </div>
                         </div>
-                        <div>
+                        <div class="col-span-2" th:if="${project.address}">
                             <p
                                 class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1 select-none">
-                                Client Code</p>
-                            <p class="text-sm font-medium text-neutral-800" th:text="${project.clientCode}"></p>
+                                Full Address</p>
+                            <p class="text-sm font-medium text-neutral-800 whitespace-pre-line leading-tight"
+                                th:text="${project.address}"></p>
                         </div>
-                        <div th:if="${project.dueDate}">
+
+                        <!-- Financials & Work Type -->
+                        <div th:if="${project.invoicePrice}">
                             <p
                                 class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1 select-none">
-                                Due Date</p>
-                            <p class="text-sm font-medium text-neutral-800" th:text="${project.dueDate}"></p>
+                                Invoice Price ($)</p>
+                            <p class="text-sm font-bold text-emerald-600"
+                                th:text="'$' + ${#numbers.formatDecimal(project.invoicePrice, 1, 'COMMA', 2, 'POINT')}">
+                            </p>
                         </div>
-                        <div th:if="${project.workType}">
+                        <div th:if="${project.workType}" class="col-span-2 lg:col-span-3">
                             <p
                                 class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1 select-none">
                                 Work Type</p>
                             <p class="text-sm font-medium text-neutral-800" th:text="${project.workType}"></p>
+                        </div>
+
+                        <!-- Verbose Details / Internal Notes -->
+                        <div class="col-span-2 lg:col-span-4 border-t border-neutral-100 pt-4"
+                            th:if="${project.workDetails}">
+                            <p
+                                class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-1 select-none flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 6h16M4 12h16M4 18h7"></path>
+                                </svg>
+                                Verbose Work Details
+                            </p>
+                            <p class="text-sm text-neutral-700 leading-relaxed whitespace-pre-line"
+                                th:text="${project.workDetails}"></p>
                         </div>
 
                         <div class="col-span-2 lg:col-span-4 border-t border-neutral-100 pt-4"
@@ -307,9 +355,10 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
-                                Details
+                                Internal Description / Notes
                             </p>
-                            <p class="text-sm text-neutral-700 leading-relaxed" th:text="${project.description}"></p>
+                            <p class="text-sm text-neutral-700 leading-relaxed whitespace-pre-line"
+                                th:text="${project.description}"></p>
                         </div>
                     </div>
                 </div>
