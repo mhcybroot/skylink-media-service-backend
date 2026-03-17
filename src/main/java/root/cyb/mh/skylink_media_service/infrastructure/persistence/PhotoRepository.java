@@ -10,6 +10,10 @@ import java.util.List;
 @Repository
 public interface PhotoRepository extends JpaRepository<Photo, Long> {
     List<Photo> findByProject(Project project);
+
     List<Photo> findByContractor(Contractor contractor);
+
     List<Photo> findByProjectAndContractor(Project project, Contractor contractor);
+
+    List<Photo> findByIdInAndProjectId(List<Long> ids, Long projectId);
 }
