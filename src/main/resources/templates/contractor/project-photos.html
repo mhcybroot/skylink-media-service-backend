@@ -325,11 +325,23 @@
                                 th:text="'$' + ${#numbers.formatDecimal(project.invoicePrice, 1, 'COMMA', 2, 'POINT')}">
                             </p>
                         </div>
-                        <div th:if="${project.workType}" class="col-span-2 lg:col-span-3">
+                        <div th:if="${project.workType}">
                             <p
                                 class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1 select-none">
                                 Work Type</p>
                             <p class="text-sm font-medium text-neutral-800" th:text="${project.workType}"></p>
+                        </div>
+                        <div th:if="${project.loanNumber}">
+                            <p
+                                class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1 select-none">
+                                Loan Number</p>
+                            <p class="text-sm font-medium text-neutral-800" th:text="${project.loanNumber}"></p>
+                        </div>
+                        <div th:if="${project.loanType}">
+                            <p
+                                class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1 select-none">
+                                Loan Type</p>
+                            <p class="text-sm font-medium text-neutral-800" th:text="${project.loanType}"></p>
                         </div>
 
                         <!-- Verbose Details / Internal Notes -->
