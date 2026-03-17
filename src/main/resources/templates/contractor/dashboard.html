@@ -463,6 +463,42 @@
                                     th:text="${assignment.project.clientCode}"></p>
                             </div>
 
+                            <!-- Due Date -->
+                            <div>
+                                <p
+                                    class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                        </path>
+                                    </svg>
+                                    Due Date
+                                </p>
+                                <p class="text-sm font-medium text-neutral-700"
+                                    th:if="${assignment.project.dueDate != null}"
+                                    th:text="${#temporals.format(assignment.project.dueDate, 'MMM dd, yyyy')}"></p>
+                                <p class="text-sm text-neutral-400 italic" th:if="${assignment.project.dueDate == null}">
+                                    Not set</p>
+                            </div>
+
+                            <!-- Invoice Price -->
+                            <div>
+                                <p
+                                    class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                                        </path>
+                                    </svg>
+                                    Invoice Price
+                                </p>
+                                <p class="text-sm font-semibold text-neutral-700"
+                                    th:if="${assignment.project.invoicePrice != null}"
+                                    th:text="${'$' + #numbers.formatDecimal(assignment.project.invoicePrice, 1, 2)}"></p>
+                                <p class="text-sm text-neutral-400 italic"
+                                    th:if="${assignment.project.invoicePrice == null}">Not set</p>
+                            </div>
+
                             <!-- Client Notes -->
                             <div th:if="${assignment.project.description}"
                                 class="bg-amber-50 rounded-lg p-3 border border-amber-100/50">
