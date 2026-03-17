@@ -334,7 +334,8 @@
                                 <div class="saas-card flex flex-col h-full relative group hover:z-30">
 
                                     <!-- Header -->
-                                    <div class="p-5 border-b border-neutral-100 bg-[#FFFFFF] flex justify-between items-start rounded-t-2xl">
+                                    <div
+                                        class="p-5 border-b border-neutral-100 bg-[#FFFFFF] flex justify-between items-start rounded-t-2xl">
                                         <div>
                                             <div class="flex items-center gap-2 mb-2">
                                                 <span
@@ -471,13 +472,14 @@
                                     </div>
 
                                     <!-- Footer Unified Action Bar -->
-                                    <div class="p-4 border-t border-neutral-100 bg-[#FFFFFF] flex flex-col gap-3 rounded-b-2xl">
+                                    <div
+                                        class="p-4 border-t border-neutral-100 bg-[#FFFFFF] flex flex-col gap-3 rounded-b-2xl">
                                         <!-- Action Grids -->
                                         <div class="flex gap-2 w-full">
 
                                             <!-- Assignment Menu Dropdown (Alpine) -->
-                                            <div x-data="{ open: false, filter: '' }" class="relative flex-1 group" :class="open ? 'z-50' : 'z-20'"
-                                                @click.away="open = false">
+                                            <div x-data="{ open: false, filter: '' }" class="relative flex-1 group"
+                                                :class="open ? 'z-50' : 'z-20'" @click.away="open = false">
                                                 <button @click="open = !open" type="button"
                                                     class="w-full flex items-center justify-between px-3 py-2 bg-white border border-neutral-300 hover:border-indigo-400 rounded-lg text-xs font-bold text-neutral-700 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                                                     <span class="truncate">Assign Contractor...</span>
@@ -520,12 +522,24 @@
                                                 class="px-3 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-60 rounded-lg text-xs font-bold transition-colors shadow-sm flex items-center justify-center shrink-0">
                                                 Edit
                                             </a>
+                                            <a th:href="@{'/admin/project/' + ${project.id} + '/chat'}"
+                                                title="Chat with Contractor"
+                                                class="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1.5 shrink-0 font-bold text-xs border border-indigo-100">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
+                                                    </path>
+                                                </svg>
+                                                Chat
+                                            </a>
                                         </div>
 
                                         <div class="flex gap-2">
                                             <!-- Status Dropdown (Alpine) -->
-                                            <div x-data="{ open: false }" class="relative flex-1" :class="open ? 'z-50' : 'z-10'"
-                                                @click.away="open = false">
+                                            <div x-data="{ open: false }" class="relative flex-1"
+                                                :class="open ? 'z-50' : 'z-10'" @click.away="open = false">
                                                 <button @click="open = !open" type="button"
                                                     class="w-full flex items-center justify-between px-3 py-2 bg-white border border-neutral-300 hover:border-neutral-400 rounded-lg text-[10px] font-bold uppercase tracking-widest text-neutral-600 shadow-sm transition-colors focus:outline-none">
                                                     <span class="truncate">SET STATUS</span>
@@ -558,8 +572,8 @@
                                             </div>
 
                                             <!-- Payment Dropdown (Alpine) -->
-                                            <div x-data="{ open: false }" class="relative flex-1" :class="open ? 'z-50' : 'z-10'"
-                                                @click.away="open = false">
+                                            <div x-data="{ open: false }" class="relative flex-1"
+                                                :class="open ? 'z-50' : 'z-10'" @click.away="open = false">
                                                 <button @click="open = !open" type="button"
                                                     class="w-full flex items-center justify-between px-3 py-2 bg-white border border-neutral-300 hover:border-neutral-400 rounded-lg text-[10px] font-bold uppercase tracking-widest text-neutral-600 shadow-sm transition-colors focus:outline-none">
                                                     <span class="truncate">SET PAYMENT</span>

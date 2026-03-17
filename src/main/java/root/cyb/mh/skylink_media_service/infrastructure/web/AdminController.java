@@ -8,14 +8,17 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import root.cyb.mh.skylink_media_service.application.services.UserService;
 import root.cyb.mh.skylink_media_service.application.services.ProjectService;
 import root.cyb.mh.skylink_media_service.application.services.PhotoService;
+import root.cyb.mh.skylink_media_service.application.services.ChatService;
 import root.cyb.mh.skylink_media_service.application.usecases.ChangeProjectStatusUseCase;
 import root.cyb.mh.skylink_media_service.domain.entities.Project;
 import root.cyb.mh.skylink_media_service.domain.entities.Contractor;
+import root.cyb.mh.skylink_media_service.domain.entities.ProjectMessage;
 import root.cyb.mh.skylink_media_service.domain.entities.User;
 import root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus;
 import root.cyb.mh.skylink_media_service.domain.valueobjects.PaymentStatus;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ContractorRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.UserRepository;
+import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectRepository;
 import org.springframework.security.core.Authentication;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -23,8 +26,12 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import java.util.List;
 
@@ -49,6 +56,12 @@ public class AdminController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
+    private ChatService chatService;
 
     @GetMapping("/dashboard")
     public String dashboard(Model model,
@@ -322,5 +335,56 @@ public class AdminController {
                 }
             }
         }
+    }
+
+    // ── Chat ─────────────────────────────────────────────────────────────────
+
+    @GetMapping("/project/{projectId}/chat")
+    public String chatPage(@PathVariable Long projectId, Model model, Authentication authentication) {
+        Project project = projectRepository.findById(projectId).orElse(null);
+        if (project == null)
+            return "redirect:/admin/dashboard";
+        List<ProjectMessage> messages = chatService.getMessages(projectId);
+        model.addAttribute("project", project);
+        model.addAttribute("messages", messages);
+        model.addAttribute("currentUsername", authentication.getName());
+        return "admin/project-chat";
+    }
+
+    @PostMapping("/project/{projectId}/chat/send")
+    @ResponseBody
+    public Map<String, Object> sendMessage(@PathVariable Long projectId,
+            @RequestParam String content,
+            Authentication authentication) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            User sender = userRepository.findByUsername(authentication.getName()).orElseThrow();
+            ProjectMessage msg = chatService.sendMessage(projectId, sender, content.trim());
+            response.put("id", msg.getId());
+            response.put("content", msg.getContent());
+            response.put("sender", msg.getSender().getUsername());
+            response.put("sentAt", msg.getSentAt().toString());
+            response.put("success", true);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", e.getMessage());
+        }
+        return response;
+    }
+
+    @GetMapping("/project/{projectId}/chat/poll")
+    @ResponseBody
+    public List<Map<String, Object>> pollMessages(@PathVariable Long projectId,
+            @RequestParam String since) {
+        LocalDateTime sinceTime = LocalDateTime.parse(since, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        List<ProjectMessage> messages = chatService.getMessagesSince(projectId, sinceTime);
+        return messages.stream().map(msg -> {
+            Map<String, Object> m = new HashMap<>();
+            m.put("id", msg.getId());
+            m.put("content", msg.getContent());
+            m.put("sender", msg.getSender().getUsername());
+            m.put("sentAt", msg.getSentAt().toString());
+            return m;
+        }).toList();
     }
 }
