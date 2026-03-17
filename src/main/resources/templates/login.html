@@ -1,96 +1,246 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <meta name="theme-color" content="#0284c7">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Project Manager">
-    
-    <title>Login - Project Manager</title>
-    
-    <!-- PWA Manifest -->
+    <meta name="apple-mobile-web-app-title" content="Skylink Hub">
+
+    <title>Login - Skylink Hub</title>
+
+    <!-- PWA Manifest & Icons -->
     <link rel="manifest" href="/manifest.json">
-    
-    <!-- Icons -->
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png">
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
-    
+
+    <!-- Fonts: Inter (Data) and Outfit (Headers) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <style>
-        /* Touch-friendly inputs and buttons */
-        input, button {
-            min-height: 44px;
-            touch-action: manipulation;
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Outfit', 'sans-serif']
+                    },
+                    colors: {
+                        neutral: { 850: '#1f2937' },
+                    },
+                    boxShadow: {
+                        'premium': '0 10px 40px -10px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.02)',
+                        'float': '0 20px 40px -10px rgba(0,0,0,0.1)'
+                    }
+                }
+            }
         }
-        
+    </script>
+
+    <style>
+        body {
+            background-color: #FAFAFA;
+            /* Subtle decorative background */
+            background-image:
+                radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 0.03) 0, transparent 50%),
+                radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 0.03) 0, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 0.03) 0, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* SaaS Card Structure */
+        .saas-card {
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 0 3px rgba(0, 0, 0, 0.02);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Thin highlight on top of the card */
+        .saas-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #818CF8, #6366F1, #4F46E5);
+            z-index: 10;
+        }
+
+        /* SaaS Input Style */
+        .saas-input {
+            width: 100%;
+            background-color: #FAFAFA;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            color: #111827;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            transition: all 0.2s ease;
+            height: 48px;
+        }
+
+        .saas-input:focus {
+            background-color: #FFFFFF;
+            border-color: #818CF8;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .saas-input::placeholder {
+            color: #9CA3AF;
+        }
+
+        /* Input Group with Icon padding */
+        .saas-input-with-icon {
+            padding-left: 2.75rem;
+        }
+
+        /* Prevent zooming on iOS input focus */
+        @media screen and (max-width: 768px) {
+            input {
+                font-size: 16px !important;
+            }
+        }
+
+        /* PWA Install Button */
         #install-btn {
             display: none;
         }
-        
-        @media (display-mode: standalone) {
-            body {
-                padding-top: env(safe-area-inset-top);
-            }
-        }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <!-- Install PWA Button -->
-    <div id="install-btn" class="fixed top-4 right-4 z-50 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg cursor-pointer hover:bg-blue-700">
+
+<body
+    class="text-neutral-800 font-sans antialiased min-h-screen flex items-center justify-center p-4 selection:bg-indigo-100 selection:text-indigo-900">
+
+    <!-- Install PWA Button (floating top right if available) -->
+    <div id="install-btn"
+        class="fixed top-4 right-4 z-50 bg-white border border-neutral-200 text-neutral-700 font-bold px-4 py-2 rounded-lg shadow-sm cursor-pointer hover:bg-neutral-50 transition-colors text-sm flex items-center gap-2">
+        <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+        </svg>
         Install App
     </div>
-    
-    <div class="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div class="max-w-md w-full space-y-6 sm:space-y-8">
-            <div class="text-center">
-                <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2">
-                    Project Manager
-                </h2>
-                <p class="text-sm text-gray-600 mb-6">Sign in to your account</p>
+
+    <div class="w-full max-w-[420px] relative z-10 w-full">
+
+        <!-- Logo Header -->
+        <div class="flex flex-col items-center justify-center mb-8">
+            <div
+                class="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-inner mb-5 transform hover:scale-105 transition-transform duration-300">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                        d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
             </div>
-            <form class="space-y-6" th:action="@{/login}" method="post">
+            <h1 class="text-3xl font-bold font-heading text-neutral-900 tracking-tight text-center">Skylink Hub</h1>
+            <p class="text-neutral-500 font-medium text-sm mt-1.5 text-center">Media Management Portal</p>
+        </div>
+
+        <!-- Main Authentication Card -->
+        <div class="saas-card bg-white p-7 sm:p-10 w-full mb-8">
+            <h2 class="text-lg font-bold font-heading text-neutral-900 mb-6">Sign In</h2>
+
+            <form th:action="@{/login}" method="post" class="space-y-5">
+
+                <!-- Feedback Alerts -->
+                <div th:if="${param.error}"
+                    class="p-3.5 rounded-xl bg-red-50 text-red-800 border border-red-100 flex items-start text-sm font-medium animate-[pulse_0.2s_ease-in-out]">
+                    <svg class="w-5 h-5 text-red-500 mr-2.5 shrink-0" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>Invalid credentials. Please verify your username and password.</span>
+                </div>
+
+                <div th:if="${param.logout}"
+                    class="p-3.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-100 flex items-start text-sm font-medium">
+                    <svg class="w-5 h-5 text-emerald-500 mr-2.5 shrink-0" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>Securely signed out of the current session.</span>
+                </div>
+
+                <!-- Inputs -->
                 <div class="space-y-4">
                     <div>
-                        <label for="username" class="sr-only">Username</label>
-                        <input id="username" name="username" type="text" required 
-                               class="relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-sm" 
-                               placeholder="Username">
+                        <label for="username"
+                            class="block text-[11px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5">Username</label>
+                        <div class="relative group">
+                            <div
+                                class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-indigo-500 text-neutral-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                            </div>
+                            <input id="username" name="username" type="text" required
+                                class="saas-input saas-input-with-icon font-mono text-sm" placeholder="system.login">
+                        </div>
                     </div>
+
                     <div>
-                        <label for="password" class="sr-only">Password</label>
-                        <input id="password" name="password" type="password" required 
-                               class="relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-sm" 
-                               placeholder="Password">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label for="password"
+                                class="block text-[11px] font-bold text-neutral-500 uppercase tracking-widest">Password</label>
+                        </div>
+                        <div class="relative group">
+                            <div
+                                class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-indigo-500 text-neutral-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                                    </path>
+                                </svg>
+                            </div>
+                            <input id="password" name="password" type="password" required
+                                class="saas-input saas-input-with-icon font-mono tracking-[0.2em] text-lg pt-2.5 pb-2"
+                                placeholder="••••••••">
+                        </div>
                     </div>
                 </div>
 
-                <div th:if="${param.error}" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm text-center">
-                    Invalid username or password.
-                </div>
-                
-                <div th:if="${param.logout}" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm text-center">
-                    You have been logged out.
-                </div>
-
-                <div>
-                    <button type="submit" 
-                            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 min-h-[44px]">
-                        <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                            <svg class="h-5 w-5 text-blue-500 group-hover:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
-                            </svg>
-                        </span>
-                        Sign in
+                <!-- Submit Button -->
+                <div class="pt-2">
+                    <button type="submit"
+                        class="w-full relative flex items-center justify-center h-12 bg-indigo-600 text-white font-bold rounded-xl text-sm hover:bg-indigo-700 transition-all shadow-[0_4px_12px_rgba(79,70,229,0.25)] border border-indigo-700 transform active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-indigo-500/20 group">
+                        Sign Into Workspace
+                        <svg class="w-4 h-4 ml-2 mt-0.5 opacity-70 group-hover:translate-x-1 transition-transform"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
                     </button>
                 </div>
+
             </form>
         </div>
+
+        <!-- Footer Links -->
+        <div class="text-center space-y-2">
+            <p class="text-[11px] text-neutral-400 font-medium">Secured by strict enterprise-grade authentication.</p>
+        </div>
+
     </div>
-    
+
     <script src="/js/pwa-register.js"></script>
 </body>
+
 </html>
