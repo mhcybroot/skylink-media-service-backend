@@ -1,216 +1,520 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <meta name="theme-color" content="#0284c7">
-    <title>Create Project - Project Manager</title>
+    <meta name="theme-color" content="#ffffff">
+    <title>Create Project - Skylink Hub</title>
+
+    <!-- PWA Manifest & Icons -->
     <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+
+    <!-- Fonts: Inter (Data) and Outfit (Headers) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Outfit', 'sans-serif']
+                    },
+                    colors: {
+                        neutral: { 850: '#1f2937' },
+                    },
+                    boxShadow: {
+                        'premium': '0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 0 3px rgba(0,0,0,0.02)',
+                        'float': '0 10px 40px -10px rgba(0,0,0,0.08)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     <style>
-        input, textarea, button {
-            min-height: 44px;
-            touch-action: manipulation;
+        [x-cloak] {
+            display: none !important;
         }
-        
-        @media (display-mode: standalone) {
-            body { padding-top: env(safe-area-inset-top); }
+
+        body {
+            background-color: #FAFAFA;
         }
-        
-        .section-header {
-            border-left: 4px solid #0284c7;
-            padding-left: 12px;
-            margin-bottom: 16px;
+
+        /* Modern Scrollbar */
+        .premium-scroll::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+
+        .premium-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .premium-scroll::-webkit-scrollbar-thumb {
+            background: #E5E7EB;
+            border-radius: 10px;
+        }
+
+        .premium-scroll::-webkit-scrollbar-thumb:hover {
+            background: #D1D5DB;
+        }
+
+        /* SaaS Card Structure */
+        .saas-card {
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+
+        /* SaaS Input Style */
+        .saas-input {
+            width: 100%;
+            background-color: #FAFAFA;
+            border: 1px solid #E5E7EB;
+            border-radius: 10px;
+            padding: 0.625rem 1rem;
+            color: #111827;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .saas-input:focus {
+            background-color: #FFFFFF;
+            border-color: #818CF8;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .saas-input::placeholder {
+            color: #9CA3AF;
+        }
+
+        /* Input Group with Icon padding */
+        .saas-input-with-icon {
+            padding-left: 2.5rem;
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <div class="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-4xl mx-auto">
-            <div class="bg-white shadow-lg rounded-lg border border-gray-200">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h2 class="text-xl font-semibold text-gray-900 flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
-                        </svg>
-                        Create New Project
-                    </h2>
+
+<body class="text-neutral-800 font-sans antialiased overflow-hidden flex h-screen" x-data="{ sidebarOpen: false }">
+
+    <!-- Mobile Backdrop -->
+    <div x-show="sidebarOpen" x-transition.opacity
+        class="fixed inset-0 z-40 bg-neutral-900/40 backdrop-blur-sm lg:hidden" @click="sidebarOpen = false" x-cloak>
+    </div>
+
+    <!-- Sidebar (Ultra-Minimal Dark) -->
+    <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+        class="fixed inset-y-0 left-0 z-50 w-64 bg-[#111827] text-neutral-400 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static flex flex-col border-r border-[#1F2937]">
+        <!-- Brand Header -->
+        <div class="h-16 flex items-center px-6 border-b border-[#1F2937]">
+            <div class="flex items-center gap-3 text-white font-bold text-xl tracking-tight font-heading">
+                <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-inner">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
                 </div>
-                
-                <form th:action="@{/admin/create-project}" method="post" class="p-6 space-y-8">
-                    
-                    <!-- Work Order Information Section -->
-                    <div>
-                        <h3 class="section-header text-lg font-medium text-gray-900">Work Order Information</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="workOrderNumber" class="block text-sm font-medium text-gray-700">
-                                    WO # <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" id="workOrderNumber" name="workOrderNumber" required 
-                                       placeholder="e.g., 360163-202"
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
-                            </div>
-                            
-                            <div>
-                                <label for="ppwNumber" class="block text-sm font-medium text-gray-700">PPW #</label>
-                                <input type="text" id="ppwNumber" name="ppwNumber" 
-                                       placeholder="e.g., 3345"
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
-                            </div>
-                            
-                            <div>
-                                <label for="workType" class="block text-sm font-medium text-gray-700">Work Type</label>
-                                <input type="text" id="workType" name="workType" 
-                                       placeholder="e.g., Grass Re-cut"
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
-                            </div>
-                        </div>
-                        
-                        <div class="mt-4">
-                            <label for="workDetails" class="block text-sm font-medium text-gray-700">Work Details</label>
-                            <textarea id="workDetails" name="workDetails" rows="3"
-                                      placeholder="Work Order Information details..."
-                                      class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm"></textarea>
-                        </div>
-                    </div>
+                Skylink
+            </div>
+        </div>
 
-                    <!-- Client Information Section -->
-                    <div>
-                        <h3 class="section-header text-lg font-medium text-gray-900">Client Information</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="clientCompany" class="block text-sm font-medium text-gray-700">Client Company</label>
-                                <input type="text" id="clientCompany" name="clientCompany" 
-                                       placeholder="e.g., 120"
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
-                            </div>
-                            
-                            <div>
-                                <label for="customer" class="block text-sm font-medium text-gray-700">Customer</label>
-                                <input type="text" id="customer" name="customer" 
-                                       placeholder="e.g., RMS REO"
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
-                            </div>
-                            
-                            <div>
-                                <label for="clientCode" class="block text-sm font-medium text-gray-700">
-                                    Client Code <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" id="clientCode" name="clientCode" required 
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
-                            </div>
-                        </div>
-                    </div>
+        <!-- Navigation -->
+        <nav class="flex-1 px-3 py-6 space-y-1 premium-scroll overflow-y-auto">
+            <a href="/admin/dashboard"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#1F2937]/50 hover:text-neutral-200 font-medium text-sm transition-colors">
+                <svg class="w-5 h-5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                    </path>
+                </svg>
+                Dashboard
+            </a>
+            <a href="/admin/create-project"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[#1F2937] text-white font-medium text-sm transition-colors">
+                <svg class="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                    </path>
+                </svg>
+                New Project
+            </a>
+            <a href="/admin/create-contractor"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#1F2937]/50 hover:text-neutral-200 font-medium text-sm transition-colors">
+                <svg class="w-5 h-5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                </svg>
+                New Contractor
+            </a>
+            <a href="/admin/register-admin"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#1F2937]/50 hover:text-neutral-200 font-medium text-sm transition-colors mt-6">
+                <svg class="w-5 h-5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                    </path>
+                </svg>
+                System Config
+            </a>
+        </nav>
 
-                    <!-- Loan Information Section -->
-                    <div>
-                        <h3 class="section-header text-lg font-medium text-gray-900">Loan Information</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="loanNumber" class="block text-sm font-medium text-gray-700">Loan #</label>
-                                <input type="text" id="loanNumber" name="loanNumber" 
-                                       placeholder="e.g., 7526-306-113"
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
-                            </div>
-                            
-                            <div>
-                                <label for="loanType" class="block text-sm font-medium text-gray-700">Loan Type</label>
-                                <input type="text" id="loanType" name="loanType" 
-                                       placeholder="e.g., HECM RMSREO-AZ"
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Location Information Section -->
-                    <div>
-                        <h3 class="section-header text-lg font-medium text-gray-900">Location Information</h3>
-                        <div class="grid grid-cols-1 gap-4">
-                            <div>
-                                <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
-                                <textarea id="address" name="address" rows="2"
-                                          placeholder="e.g., 12499 N. PIANO PLACE&#10;KINGMAN, AZ 86401"
-                                          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm"></textarea>
-                            </div>
-                            
-                            <div>
-                                <label for="location" class="block text-sm font-medium text-gray-700">
-                                    Location <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" id="location" name="location" required 
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Timeline Information Section -->
-                    <div>
-                        <h3 class="section-header text-lg font-medium text-gray-900">Timeline Information</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="receivedDate" class="block text-sm font-medium text-gray-700">Received Date</label>
-                                <input type="date" id="receivedDate" name="receivedDate" 
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
-                            </div>
-                            
-                            <div>
-                                <label for="dueDate" class="block text-sm font-medium text-gray-700">Due Date</label>
-                                <input type="date" id="dueDate" name="dueDate" 
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Administrative Information Section -->
-                    <div>
-                        <h3 class="section-header text-lg font-medium text-gray-900">Administrative Information</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="assignedTo" class="block text-sm font-medium text-gray-700">Assigned To</label>
-                                <input type="text" id="assignedTo" name="assignedTo" 
-                                       placeholder="e.g., Finara Vendor"
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
-                            </div>
-                            
-                            <div>
-                                <label for="woAdmin" class="block text-sm font-medium text-gray-700">WO Admin</label>
-                                <input type="text" id="woAdmin" name="woAdmin" 
-                                       placeholder="e.g., Grace Hyland"
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
-                            </div>
-                            
-                            <div>
-                                <label for="invoicePrice" class="block text-sm font-medium text-gray-700">Invoice Price ($)</label>
-                                <input type="number" id="invoicePrice" name="invoicePrice" 
-                                       step="0.01" min="0" placeholder="0.00"
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
-                            </div>
-                        </div>
-                        
-                        <div class="mt-4">
-                            <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
-                            <textarea id="description" name="description" rows="3"
-                                      placeholder="Optional project description..."
-                                      class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm"></textarea>
-                        </div>
-                    </div>
-                    
-                    <!-- Form Actions -->
-                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-6 border-t border-gray-200">
-                        <button type="submit" 
-                                class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 sm:py-2 px-4 rounded text-base sm:text-sm transition-colors">
-                            Create Project
-                        </button>
-                        <a href="/admin/dashboard" 
-                           class="flex-1 bg-gray-500 hover:bg-gray-700 text-white font-bold py-3 sm:py-2 px-4 rounded text-center text-base sm:text-sm transition-colors">
-                            Cancel
-                        </a>
-                    </div>
+        <!-- User Footer -->
+        <div class="p-4 border-t border-[#1F2937] bg-[#0B0F19]">
+            <div class="flex items-center gap-3 w-full">
+                <div
+                    class="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm border border-indigo-500/30">
+                    <span sec:authentication="name"
+                        th:text="${#authentication.name.substring(0,1).toUpperCase()}">A</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-semibold text-neutral-200 truncate" sec:authentication="name"></p>
+                    <p class="text-[10px] text-neutral-500 uppercase tracking-widest font-bold font-heading">Admin</p>
+                </div>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit"
+                        class="p-1.5 text-neutral-500 hover:text-red-400 rounded-md hover:bg-[#1F2937] transition-colors"
+                        title="Sign Out">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                            </path>
+                        </svg>
+                    </button>
                 </form>
             </div>
         </div>
-    </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 flex flex-col h-full bg-[#FAFAFA] relative z-0 min-w-0">
+
+        <!-- Topbar -->
+        <header
+            class="h-16 bg-white border-b border-neutral-200 px-4 sm:px-8 flex items-center justify-between shrink-0 sticky top-0 z-20">
+            <div class="flex items-center gap-4">
+                <button @click="sidebarOpen = true"
+                    class="p-1.5 -ml-2 rounded-md text-neutral-500 hover:bg-neutral-100 lg:hidden focus:outline-none">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+                <div class="flex items-center gap-2 text-sm text-neutral-500">
+                    <a href="/admin/dashboard" class="hover:text-indigo-600 transition-colors">Projects</a>
+                    <svg class="w-4 h-4 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                    <h1 class="text-sm font-bold font-heading text-neutral-900 tracking-tight">Create New Project</h1>
+                </div>
+            </div>
+
+            <a href="/admin/dashboard"
+                class="text-xs font-bold text-neutral-500 hover:text-neutral-900 transition-colors flex items-center gap-1">
+                Cancel Creation
+            </a>
+        </header>
+
+        <!-- Scrollable Body -->
+        <div class="flex-1 overflow-y-auto premium-scroll p-4 sm:p-8">
+            <div class="max-w-3xl mx-auto space-y-6">
+
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold font-heading text-neutral-900">Project Details</h2>
+                    <p class="text-sm text-neutral-500 mt-1">Enter the work order information to instantiate a new
+                        project in the system.</p>
+                </div>
+
+                <form th:action="@{/admin/create-project}" method="post" class="space-y-6 pb-20">
+
+                    <!-- Core Information Card -->
+                    <div class="saas-card overflow-hidden">
+                        <div class="p-4 bg-white border-b border-neutral-100">
+                            <h3 class="text-sm font-bold font-heading text-neutral-900 flex items-center gap-2">
+                                <div
+                                    class="w-6 h-6 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                                        </path>
+                                    </svg>
+                                </div>
+                                Core Identification
+                            </h3>
+                        </div>
+                        <div class="p-5 bg-[#FAFAFA]/50 grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label for="workOrderNumber"
+                                    class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                    Work Order # <span class="text-rose-500 text-lg leading-none">*</span>
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
+                                        </svg>
+                                    </div>
+                                    <input type="text" id="workOrderNumber" name="workOrderNumber" required
+                                        placeholder="e.g., 360163-202" class="saas-input saas-input-with-icon">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="ppwNumber"
+                                    class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                    PPW #
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                            </path>
+                                        </svg>
+                                    </div>
+                                    <input type="text" id="ppwNumber" name="ppwNumber" placeholder="Optional identifier"
+                                        class="saas-input saas-input-with-icon">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Client Profile Card -->
+                    <div class="saas-card overflow-hidden">
+                        <div class="p-4 bg-white border-b border-neutral-100 flex items-center justify-between">
+                            <h3 class="text-sm font-bold font-heading text-neutral-900 flex items-center gap-2">
+                                <div
+                                    class="w-6 h-6 rounded bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                            d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                                        </path>
+                                    </svg>
+                                </div>
+                                Client Profile
+                            </h3>
+                        </div>
+                        <div class="p-5 bg-[#FAFAFA]/50 grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label for="clientCode"
+                                    class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                    Client Code <span class="text-rose-500 text-lg leading-none">*</span>
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                                        </svg>
+                                    </div>
+                                    <input type="text" id="clientCode" name="clientCode" required
+                                        placeholder="Required code" class="saas-input saas-input-with-icon">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="clientCompany"
+                                    class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                    Client Company
+                                </label>
+                                <input type="text" id="clientCompany" name="clientCompany" placeholder="e.g., 120"
+                                    class="saas-input">
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label for="customer"
+                                    class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                    Customer / Sub-Client
+                                </label>
+                                <input type="text" id="customer" name="customer" placeholder="e.g., RMS REO"
+                                    class="saas-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Work Logistics Card -->
+                    <div class="saas-card overflow-hidden">
+                        <div class="p-4 bg-white border-b border-neutral-100 flex items-center justify-between">
+                            <h3 class="text-sm font-bold font-heading text-neutral-900 flex items-center gap-2">
+                                <div
+                                    class="w-6 h-6 rounded bg-orange-50 text-orange-600 flex items-center justify-center">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                        </path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                </div>
+                                Logistics & Location
+                            </h3>
+                        </div>
+                        <div class="p-5 bg-[#FAFAFA]/50 grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div class="md:col-span-2">
+                                <label for="location"
+                                    class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                    Location URL / String <span class="text-rose-500 text-lg leading-none">*</span>
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1">
+                                            </path>
+                                        </svg>
+                                    </div>
+                                    <input type="text" id="location" name="location" required
+                                        placeholder="https://maps.google.com/... or raw location string"
+                                        class="saas-input saas-input-with-icon text-indigo-600 font-medium">
+                                </div>
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label for="address"
+                                    class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                    Full Address
+                                </label>
+                                <textarea id="address" name="address" rows="2"
+                                    placeholder="12499 N. PIANO PLACE&#10;KINGMAN, AZ 86401"
+                                    class="saas-input resize-none"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scheduling & Financial Settings Card -->
+                    <div class="saas-card overflow-hidden">
+                        <div class="p-4 bg-white border-b border-neutral-100 flex items-center justify-between">
+                            <h3 class="text-sm font-bold font-heading text-neutral-900 flex items-center gap-2">
+                                <div
+                                    class="w-6 h-6 rounded bg-purple-50 text-purple-600 flex items-center justify-center">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                        </path>
+                                    </svg>
+                                </div>
+                                Schedule & Financials
+                            </h3>
+                        </div>
+                        <div class="p-5 bg-[#FAFAFA]/50 grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label for="receivedDate"
+                                    class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                    Received Date
+                                </label>
+                                <input type="date" id="receivedDate" name="receivedDate" class="saas-input">
+                            </div>
+
+                            <div>
+                                <label for="dueDate"
+                                    class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                    Due Date
+                                </label>
+                                <input type="date" id="dueDate" name="dueDate" class="saas-input">
+                            </div>
+
+                            <div>
+                                <label for="invoicePrice"
+                                    class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                    Invoice Price ($)
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-neutral-500 font-bold">$</span>
+                                    </div>
+                                    <input type="number" id="invoicePrice" name="invoicePrice" step="0.01" min="0"
+                                        placeholder="0.00" class="saas-input saas-input-with-icon font-mono">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Details Card -->
+                    <div class="saas-card overflow-hidden">
+                        <div class="p-4 bg-white border-b border-neutral-100 flex items-center justify-between">
+                            <h3 class="text-sm font-bold font-heading text-neutral-900 flex items-center gap-2">
+                                <div
+                                    class="w-6 h-6 rounded bg-neutral-100 text-neutral-600 flex items-center justify-center">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                                        </path>
+                                    </svg>
+                                </div>
+                                Additional Details
+                            </h3>
+                        </div>
+                        <div class="p-5 bg-[#FAFAFA]/50 grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label for="workType"
+                                    class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                    Work Type Indicator
+                                </label>
+                                <input type="text" id="workType" name="workType" placeholder="e.g., Grass Re-cut"
+                                    class="saas-input">
+                            </div>
+
+                            <div class="col-span-1 md:col-span-2">
+                                <label for="workDetails"
+                                    class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                    Verbose Work Details
+                                </label>
+                                <textarea id="workDetails" name="workDetails" rows="3"
+                                    placeholder="Extensive details regarding the work required..."
+                                    class="saas-input resize-none"></textarea>
+                            </div>
+
+                            <div class="col-span-1 md:col-span-2">
+                                <label for="description"
+                                    class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                    Internal Description / Notes
+                                </label>
+                                <textarea id="description" name="description" rows="2"
+                                    placeholder="Private internal notes visible only to admins..."
+                                    class="saas-input text-neutral-500 resize-none"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fixed Submit Bar -->
+                    <div
+                        class="fixed bottom-0 left-0 lg:left-64 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-neutral-200 z-30 flex justify-end gap-3 px-8 shadow-[0_-4px_20px_rgba(0,0,0,0.02)]">
+                        <a href="/admin/dashboard"
+                            class="px-6 py-2.5 bg-white border border-neutral-300 text-neutral-700 font-bold rounded-lg text-sm hover:bg-neutral-50 transition-colors shadow-sm">
+                            Cancel
+                        </a>
+                        <button type="submit"
+                            class="px-8 py-2.5 bg-indigo-600 text-white font-bold rounded-lg text-sm hover:bg-indigo-700 transition-all shadow-inner border border-indigo-700 transform active:scale-[0.98]">
+                            Create Project
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="/js/pwa-register.js"></script>
 </body>
+
 </html>
