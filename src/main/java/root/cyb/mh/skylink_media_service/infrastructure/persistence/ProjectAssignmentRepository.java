@@ -1,7 +1,5 @@
 package root.cyb.mh.skylink_media_service.infrastructure.persistence;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,7 +13,6 @@ import java.util.Optional;
 @Repository
 public interface ProjectAssignmentRepository extends JpaRepository<ProjectAssignment, Long> {
     List<ProjectAssignment> findByContractor(Contractor contractor);
-    Page<ProjectAssignment> findByContractor(Contractor contractor, Pageable pageable);
     List<ProjectAssignment> findByProject(Project project);
     Optional<ProjectAssignment> findByProjectAndContractor(Project project, Contractor contractor);
     
