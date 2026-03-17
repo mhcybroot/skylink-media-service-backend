@@ -331,11 +331,10 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <th:block th:each="project : ${projects}">
                                 <!-- High-Density Project Card -->
-                                <div class="saas-card flex flex-col h-full overflow-hidden relative group">
+                                <div class="saas-card flex flex-col h-full relative group hover:z-30">
 
                                     <!-- Header -->
-                                    <div
-                                        class="p-5 border-b border-neutral-100 bg-[#FFFFFF] flex justify-between items-start">
+                                    <div class="p-5 border-b border-neutral-100 bg-[#FFFFFF] flex justify-between items-start rounded-t-2xl">
                                         <div>
                                             <div class="flex items-center gap-2 mb-2">
                                                 <span
@@ -472,12 +471,12 @@
                                     </div>
 
                                     <!-- Footer Unified Action Bar -->
-                                    <div class="p-4 border-t border-neutral-100 bg-[#FFFFFF] flex flex-col gap-3">
+                                    <div class="p-4 border-t border-neutral-100 bg-[#FFFFFF] flex flex-col gap-3 rounded-b-2xl">
                                         <!-- Action Grids -->
                                         <div class="flex gap-2 w-full">
 
                                             <!-- Assignment Menu Dropdown (Alpine) -->
-                                            <div x-data="{ open: false, filter: '' }" class="relative z-20 flex-1"
+                                            <div x-data="{ open: false, filter: '' }" class="relative flex-1 group" :class="open ? 'z-50' : 'z-20'"
                                                 @click.away="open = false">
                                                 <button @click="open = !open" type="button"
                                                     class="w-full flex items-center justify-between px-3 py-2 bg-white border border-neutral-300 hover:border-indigo-400 rounded-lg text-xs font-bold text-neutral-700 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
@@ -525,7 +524,7 @@
 
                                         <div class="flex gap-2">
                                             <!-- Status Dropdown (Alpine) -->
-                                            <div x-data="{ open: false }" class="relative z-10 flex-1"
+                                            <div x-data="{ open: false }" class="relative flex-1" :class="open ? 'z-50' : 'z-10'"
                                                 @click.away="open = false">
                                                 <button @click="open = !open" type="button"
                                                     class="w-full flex items-center justify-between px-3 py-2 bg-white border border-neutral-300 hover:border-neutral-400 rounded-lg text-[10px] font-bold uppercase tracking-widest text-neutral-600 shadow-sm transition-colors focus:outline-none">
@@ -537,7 +536,7 @@
                                                     </svg>
                                                 </button>
                                                 <div x-show="open" x-transition.opacity.duration.150ms
-                                                    class="absolute bottom-full mb-1 left-0 w-full min-w-[140px] bg-white border border-neutral-200 rounded-xl shadow-float overflow-hidden z-20 py-1.5"
+                                                    class="absolute bottom-full mb-1 left-0 w-full min-w-[140px] bg-white border border-neutral-200 rounded-xl shadow-float overflow-hidden z-50 py-1.5"
                                                     style="display: none;">
                                                     <form th:action="@{'/admin/change-status/' + ${project.id}}"
                                                         method="post">
@@ -559,7 +558,7 @@
                                             </div>
 
                                             <!-- Payment Dropdown (Alpine) -->
-                                            <div x-data="{ open: false }" class="relative z-10 flex-1"
+                                            <div x-data="{ open: false }" class="relative flex-1" :class="open ? 'z-50' : 'z-10'"
                                                 @click.away="open = false">
                                                 <button @click="open = !open" type="button"
                                                     class="w-full flex items-center justify-between px-3 py-2 bg-white border border-neutral-300 hover:border-neutral-400 rounded-lg text-[10px] font-bold uppercase tracking-widest text-neutral-600 shadow-sm transition-colors focus:outline-none">
@@ -571,7 +570,7 @@
                                                     </svg>
                                                 </button>
                                                 <div x-show="open" x-transition.opacity.duration.150ms
-                                                    class="absolute bottom-full mb-1 left-0 w-full min-w-[120px] bg-white border border-neutral-200 rounded-xl shadow-float overflow-hidden z-20 py-1.5"
+                                                    class="absolute bottom-full mb-1 left-0 w-full min-w-[120px] bg-white border border-neutral-200 rounded-xl shadow-float overflow-hidden z-50 py-1.5"
                                                     style="display: none;">
                                                     <form th:action="@{'/admin/change-payment-status/' + ${project.id}}"
                                                         method="post">
