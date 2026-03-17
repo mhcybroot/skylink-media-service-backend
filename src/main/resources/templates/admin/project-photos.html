@@ -469,15 +469,14 @@
                             </div>
                         </div>
 
-                        <div
-                            class="aspect-w-4 aspect-h-3 w-full bg-slate-100 relative overflow-hidden group-hover:after:absolute group-hover:after:inset-0 group-hover:after:bg-black/10 group-hover:after:transition-colors">
+                        <div class="aspect-w-4 aspect-h-3 w-full bg-slate-100 relative overflow-hidden group">
                             <img th:src="@{'/uploads/' + ${photo.fileName}}" th:alt="${photo.originalName}"
                                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                 onclick="openImageModal(this.src, this.alt)" />
 
                             <!-- Overlay zoom icon for modal hint -->
                             <div
-                                class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-0">
+                                class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-0 bg-black/10">
                                 <div class="bg-white/20 backdrop-blur-md rounded-full p-2 text-white shadow-lg">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
