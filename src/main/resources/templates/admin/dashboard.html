@@ -102,7 +102,7 @@
 </head>
 
 <body class="text-neutral-800 font-sans antialiased overflow-hidden flex h-screen"
-    x-data="{ sidebarOpen: false, activeTab: 'projects' }">
+    x-data="{ sidebarOpen: false, activeTab: new URLSearchParams(window.location.search).get('tab') || 'projects' }">
 
     <!-- Mobile Backdrop -->
     <div x-show="sidebarOpen" x-transition.opacity
@@ -308,6 +308,7 @@
 
                         <!-- Filter Bar -->
                         <form method="get" class="mb-6 flex flex-col sm:flex-row gap-3">
+                            <input type="hidden" name="tab" value="projects">
                             <input type="hidden" name="contractorSearch" th:value="${contractorSearch}">
                             <div class="relative flex-1">
                                 <svg class="absolute left-3.5 top-2.5 h-4 w-4 text-neutral-400" fill="none"
@@ -619,6 +620,7 @@
 
                         <!-- Filter Bar -->
                         <form method="get" class="mb-6 flex flex-col sm:flex-row gap-3">
+                            <input type="hidden" name="tab" value="contractors">
                             <input type="hidden" name="projectSearch" th:value="${projectSearch}">
                             <div class="relative flex-1">
                                 <svg class="absolute left-3.5 top-2.5 h-4 w-4 text-neutral-400" fill="none"
