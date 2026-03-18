@@ -11,6 +11,7 @@ import root.cyb.mh.skylink_media_service.application.services.UserService;
 import root.cyb.mh.skylink_media_service.application.services.ProjectService;
 import root.cyb.mh.skylink_media_service.application.services.PhotoService;
 import root.cyb.mh.skylink_media_service.application.services.ChatService;
+import root.cyb.mh.skylink_media_service.application.services.ProjectExportService;
 import root.cyb.mh.skylink_media_service.application.usecases.ChangeProjectStatusUseCase;
 import root.cyb.mh.skylink_media_service.domain.entities.Project;
 import root.cyb.mh.skylink_media_service.domain.entities.Contractor;
@@ -69,6 +70,9 @@ public class AdminController {
 
     @Autowired
     private ChatService chatService;
+
+    @Autowired
+    private ProjectExportService projectExportService;
 
     @GetMapping("/dashboard")
     public String dashboard(Model model,
@@ -133,6 +137,69 @@ public class AdminController {
         model.addAttribute("contractorSearch", contractorSearch);
 
         return "admin/dashboard";
+    }
+
+    @GetMapping("/projects/export")
+    public void exportProjects(
+            @RequestParam(required = false) String projectSearch,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String paymentStatus,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDateTo,
+            @RequestParam(required = false) BigDecimal priceFrom,
+            @RequestParam(required = false) BigDecimal priceTo,
+            @RequestParam(required = false) Long contractorId,
+            HttpServletResponse response) throws IOException {
+        
+        logger.info("Exporting projects with filters - projectSearch: {}, status: {}, paymentStatus: {}", 
+                    projectSearch, status, paymentStatus);
+        
+        // Build search criteria (same logic as dashboard)
+        ProjectSearchCriteria criteria = new ProjectSearchCriteria();
+        criteria.setTextSearch(projectSearch);
+        
+        if (status != null && !status.isEmpty()) {
+            try {
+                criteria.setStatus(ProjectStatus.valueOf(status));
+            } catch (IllegalArgumentException e) {
+                logger.warn("Invalid project status value: {}", status);
+            }
+        }
+        
+        if (paymentStatus != null && !paymentStatus.isEmpty()) {
+            try {
+                criteria.setPaymentStatus(PaymentStatus.valueOf(paymentStatus));
+            } catch (IllegalArgumentException e) {
+                logger.warn("Invalid payment status value: {}", paymentStatus);
+            }
+        }
+        
+        criteria.setDueDateFrom(dueDateFrom);
+        criteria.setDueDateTo(dueDateTo);
+        criteria.setPriceFrom(priceFrom);
+        criteria.setPriceTo(priceTo);
+        criteria.setAssignedContractorId(contractorId);
+        
+        // Get filtered projects
+        List<Project> projects = criteria.isEmpty() 
+            ? projectService.getAllProjects()
+            : projectService.advancedSearch(criteria);
+        
+        logger.info("Exporting {} projects", projects.size());
+        
+        // Generate CSV
+        String csv = projectExportService.generateCsv(projects);
+        
+        // Set response headers
+        String filename = "projects_export_" + 
+                         java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) + 
+                         ".csv";
+        response.setContentType("text/csv; charset=UTF-8");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+        
+        // Write CSV to response
+        response.getWriter().write(csv);
+        response.getWriter().flush();
     }
 
     @GetMapping("/register-admin")
