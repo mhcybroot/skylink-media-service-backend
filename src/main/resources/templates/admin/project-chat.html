@@ -374,21 +374,43 @@
             return {
                 sidebarOpen: false,
                 newMessage: '',
-                lastMessageTime: new Date().toISOString().replace('Z', '').split('.')[0],
+                lastMessageTime: '2020-01-01T00:00:00',
                 seenIds: new Set(),
 
                 init() {
-                    // Seed seenIds from server-rendered messages so the poller skips them
-                    document.querySelectorAll('[data-msg-id]').forEach(el => {
-                        this.seenIds.add(String(el.dataset.msgId));
-                    });
                     this.scrollToBottom(false);
-                    // Dismiss skeleton loader
-                    setTimeout(() => {
-                        const loader = document.getElementById('chat-loader');
-                        if (loader) loader.classList.add('hidden-loader');
-                    }, 350);
+                    // Load all messages first
+                    this.loadAllMessages();
+                    // Then start polling for new messages
                     this.startPolling();
+                },
+
+                async loadAllMessages() {
+                    try {
+                        const resp = await fetch(`${data.pollUrl}?since=2020-01-01T00:00:00`);
+                        const messages = await resp.json();
+                        messages.forEach(msg => {
+                            this.seenIds.add(String(msg.id));
+                            const isOwn = msg.sender === data.currentUser;
+                            this.appendBubble(msg, isOwn);
+                            if (msg.sentAt > this.lastMessageTime) {
+                                this.lastMessageTime = msg.sentAt;
+                            }
+                        });
+                        this.scrollToBottom();
+                        // Dismiss skeleton loader after messages loaded
+                        setTimeout(() => {
+                            const loader = document.getElementById('chat-loader');
+                            if (loader) loader.classList.add('hidden-loader');
+                        }, 350);
+                    } catch (e) {
+                        console.error('Failed to load messages', e);
+                        // Dismiss loader even on error
+                        setTimeout(() => {
+                            const loader = document.getElementById('chat-loader');
+                            if (loader) loader.classList.add('hidden-loader');
+                        }, 350);
+                    }
                 },
 
                 scrollToBottom(smooth = true) {
