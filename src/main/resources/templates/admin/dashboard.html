@@ -306,27 +306,178 @@
                     <!-- Projects View -->
                     <div x-show="activeTab === 'projects'" x-transition.opacity.duration.200ms>
 
-                        <!-- Filter Bar -->
-                        <form method="get" class="mb-6 flex flex-col sm:flex-row gap-3">
-                            <input type="hidden" name="tab" value="projects">
-                            <input type="hidden" name="contractorSearch" th:value="${contractorSearch}">
-                            <div class="relative flex-1">
-                                <svg class="absolute left-3.5 top-2.5 h-4 w-4 text-neutral-400" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                                <input type="text" name="projectSearch" th:value="${projectSearch}"
-                                    placeholder="Search WO#, client, location..."
-                                    class="w-full pl-10 pr-4 py-2 bg-white border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-shadow">
-                            </div>
-                            <div class="flex gap-2">
+                        <!-- Advanced Filter Bar -->
+                        <div x-data="{ filtersOpen: false }" class="mb-6">
+                            
+                            <form method="get">
+                                <input type="hidden" name="tab" value="projects">
+                                <input type="hidden" name="contractorSearch" th:value="${contractorSearch}">
+                            
+                            <!-- Quick Search Bar -->
+                            <div class="flex gap-3">
+                                
+                                <!-- Text Search -->
+                                <div class="relative flex-1">
+                                    <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    <input type="text" name="projectSearch" th:value="${searchCriteria?.textSearch}"
+                                        placeholder="Search WO#, client, location..."
+                                        class="w-full h-10 pl-10 pr-4 py-2 bg-white border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-shadow">
+                                </div>
+                                
+                                <!-- Advanced Filters Toggle -->
+                                <button type="button" @click="filtersOpen = !filtersOpen"
+                                        class="h-10 px-4 py-2 bg-white border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 text-sm font-semibold flex items-center gap-2 transition-colors shadow-sm">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                                    </svg>
+                                    Filters
+                                    <span th:if="${searchCriteria != null and !searchCriteria.isEmpty()}"
+                                          class="ml-1 px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold">
+                                        Active
+                                    </span>
+                                </button>
+                                
+                                <!-- Search Button -->
                                 <button type="submit"
-                                    class="px-4 py-2 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 text-sm font-semibold transition-colors shadow-sm">Search</button>
-                                <a href="/admin/dashboard"
-                                    class="px-4 py-2 bg-white border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 text-sm font-semibold shadow-sm transition-colors flex items-center">Reset</a>
+                                        class="h-10 px-5 py-2 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 text-sm font-semibold shadow-sm transition-colors">
+                                    Search
+                                </button>
+                                
+                                <!-- Reset Button -->
+                                <a href="/admin/dashboard?tab=projects"
+                                   class="h-10 px-4 py-2 bg-white border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 text-sm font-semibold shadow-sm transition-colors flex items-center">
+                                    Reset
+                                </a>
                             </div>
-                        </form>
+                            
+                            <!-- Advanced Filters Panel -->
+                            <div x-show="filtersOpen" 
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 -translate-y-2"
+                                 x-transition:enter-end="opacity-100 translate-y-0"
+                                 x-cloak
+                                 class="mt-4 saas-card p-5">
+                                
+                                <h3 class="text-sm font-bold text-neutral-900 mb-4 flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                                    </svg>
+                                    Advanced Filters
+                                </h3>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    
+                                    <!-- Status Filter -->
+                                    <div>
+                                        <label class="block text-xs font-semibold text-neutral-700 mb-1.5">Project Status</label>
+                                        <select name="status" class="w-full h-10 px-3 py-2 bg-white border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-shadow">
+                                            <option value="">All Statuses</option>
+                                            <option value="UNASSIGNED" th:selected="${searchCriteria?.status?.name() == 'UNASSIGNED'}">Unassigned</option>
+                                            <option value="ASSIGNED" th:selected="${searchCriteria?.status?.name() == 'ASSIGNED'}">Assigned</option>
+                                            <option value="UNREAD" th:selected="${searchCriteria?.status?.name() == 'UNREAD'}">Unread</option>
+                                            <option value="INFIELD" th:selected="${searchCriteria?.status?.name() == 'INFIELD'}">In Field</option>
+                                            <option value="READY_TO_OFFICE" th:selected="${searchCriteria?.status?.name() == 'READY_TO_OFFICE'}">Ready to Office</option>
+                                            <option value="CLOSED" th:selected="${searchCriteria?.status?.name() == 'CLOSED'}">Closed</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- Payment Status Filter -->
+                                    <div>
+                                        <label class="block text-xs font-semibold text-neutral-700 mb-1.5">Payment Status</label>
+                                        <select name="paymentStatus" class="w-full h-10 px-3 py-2 bg-white border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-shadow">
+                                            <option value="">All Payment Statuses</option>
+                                            <option value="UNPAID" th:selected="${searchCriteria?.paymentStatus?.name() == 'UNPAID'}">Unpaid</option>
+                                            <option value="PARTIAL" th:selected="${searchCriteria?.paymentStatus?.name() == 'PARTIAL'}">Partial</option>
+                                            <option value="PAID" th:selected="${searchCriteria?.paymentStatus?.name() == 'PAID'}">Paid</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- Due Date From -->
+                                    <div>
+                                        <label class="block text-xs font-semibold text-neutral-700 mb-1.5">Due Date From</label>
+                                        <input type="date" name="dueDateFrom" th:value="${searchCriteria?.dueDateFrom}"
+                                               class="w-full h-10 px-3 py-2 bg-white border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-shadow">
+                                    </div>
+                                    
+                                    <!-- Due Date To -->
+                                    <div>
+                                        <label class="block text-xs font-semibold text-neutral-700 mb-1.5">Due Date To</label>
+                                        <input type="date" name="dueDateTo" th:value="${searchCriteria?.dueDateTo}"
+                                               class="w-full h-10 px-3 py-2 bg-white border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-shadow">
+                                    </div>
+                                    
+                                    <!-- Price From -->
+                                    <div>
+                                        <label class="block text-xs font-semibold text-neutral-700 mb-1.5">Invoice Price From</label>
+                                        <input type="number" step="0.01" name="priceFrom" th:value="${searchCriteria?.priceFrom}"
+                                               placeholder="$0.00"
+                                               class="w-full h-10 px-3 py-2 bg-white border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-shadow">
+                                    </div>
+                                    
+                                    <!-- Price To -->
+                                    <div>
+                                        <label class="block text-xs font-semibold text-neutral-700 mb-1.5">Invoice Price To</label>
+                                        <input type="number" step="0.01" name="priceTo" th:value="${searchCriteria?.priceTo}"
+                                               placeholder="$999,999.99"
+                                               class="w-full h-10 px-3 py-2 bg-white border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-shadow">
+                                    </div>
+                                    
+                                    <!-- Assigned Contractor -->
+                                    <div>
+                                        <label class="block text-xs font-semibold text-neutral-700 mb-1.5">Assigned Contractor</label>
+                                        <select name="contractorId" class="w-full h-10 px-3 py-2 bg-white border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-shadow">
+                                            <option value="">All Contractors</option>
+                                            <option th:each="contractor : ${allContractors}" 
+                                                    th:value="${contractor.id}" 
+                                                    th:text="${contractor.username}"
+                                                    th:selected="${searchCriteria?.assignedContractorId == contractor.id}"></option>
+                                        </select>
+                                    </div>
+                                    
+                                </div>
+                                
+                                <!-- Active Filters Summary -->
+                                <div th:if="${searchCriteria != null and !searchCriteria.isEmpty()}"
+                                     class="mt-4 pt-4 border-t border-neutral-200">
+                                    <p class="text-xs font-semibold text-neutral-500 mb-2">Active Filters:</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span th:if="${searchCriteria.status != null}"
+                                              class="px-2 py-1 bg-indigo-50 text-indigo-700 rounded text-xs font-medium">
+                                            Status: <span th:text="${searchCriteria.status.displayName}"></span>
+                                        </span>
+                                        <span th:if="${searchCriteria.paymentStatus != null}"
+                                              th:class="${searchCriteria.paymentStatus.name() == 'UNPAID' ? 'bg-red-50 text-red-700' : 
+                                                         searchCriteria.paymentStatus.name() == 'PARTIAL' ? 'bg-amber-50 text-amber-700' : 
+                                                         'bg-green-50 text-green-700'}"
+                                              class="px-2 py-1 rounded text-xs font-medium">
+                                            Payment: <span th:text="${searchCriteria.paymentStatus.displayName}"></span>
+                                        </span>
+                                        <span th:if="${searchCriteria.dueDateFrom != null}"
+                                              class="px-2 py-1 bg-amber-50 text-amber-700 rounded text-xs font-medium">
+                                            Due From: <span th:text="${#temporals.format(searchCriteria.dueDateFrom, 'MMM dd, yyyy')}"></span>
+                                        </span>
+                                        <span th:if="${searchCriteria.dueDateTo != null}"
+                                              class="px-2 py-1 bg-amber-50 text-amber-700 rounded text-xs font-medium">
+                                            Due To: <span th:text="${#temporals.format(searchCriteria.dueDateTo, 'MMM dd, yyyy')}"></span>
+                                        </span>
+                                        <span th:if="${searchCriteria.priceFrom != null}"
+                                              class="px-2 py-1 bg-purple-50 text-purple-700 rounded text-xs font-medium">
+                                            Price From: $<span th:text="${#numbers.formatDecimal(searchCriteria.priceFrom, 1, 2)}"></span>
+                                        </span>
+                                        <span th:if="${searchCriteria.priceTo != null}"
+                                              class="px-2 py-1 bg-purple-50 text-purple-700 rounded text-xs font-medium">
+                                            Price To: $<span th:text="${#numbers.formatDecimal(searchCriteria.priceTo, 1, 2)}"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                            </form>
+                        </div>
 
                         <!-- Projects Grid -->
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -446,7 +597,9 @@
                                             </span>
                                             <!-- Payment Badge -->
                                             <span
-                                                th:class="${project.paymentStatus.name() == 'UNPAID' ? 'text-rose-600' : 'text-emerald-600'}"
+                                                th:class="${project.paymentStatus.name() == 'UNPAID' ? 'text-rose-600' : 
+                                                            project.paymentStatus.name() == 'PARTIAL' ? 'text-amber-600' : 
+                                                            'text-emerald-600'}"
                                                 class="px-2 py-0.5 text-[11px] font-bold uppercase tracking-widest leading-tight border-b-2 border-current">
                                                 <span th:text="${project.paymentStatus.name()}"></span>
                                             </span>
@@ -591,6 +744,8 @@
                                                         method="post">
                                                         <button type="submit" name="paymentStatus" value="UNPAID"
                                                             class="w-full text-left px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-rose-600 hover:bg-rose-50 transition-colors">UNPAID</button>
+                                                        <button type="submit" name="paymentStatus" value="PARTIAL"
+                                                            class="w-full text-left px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-amber-600 hover:bg-amber-50 transition-colors">PARTIAL</button>
                                                         <button type="submit" name="paymentStatus" value="PAID"
                                                             class="w-full text-left px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-emerald-600 hover:bg-emerald-50 transition-colors">PAID</button>
                                                     </form>

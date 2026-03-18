@@ -1,10 +1,12 @@
 package root.cyb.mh.skylink_media_service.infrastructure.web;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import root.cyb.mh.skylink_media_service.application.dto.ProjectSearchCriteria;
 import root.cyb.mh.skylink_media_service.application.services.UserService;
 import root.cyb.mh.skylink_media_service.application.services.ProjectService;
 import root.cyb.mh.skylink_media_service.application.services.PhotoService;
@@ -20,24 +22,29 @@ import root.cyb.mh.skylink_media_service.infrastructure.persistence.ContractorRe
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.UserRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectRepository;
 import org.springframework.security.core.Authentication;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import java.util.HashMap;
 import java.util.Map;
-
 import java.util.List;
 
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
 
     @Autowired
     private UserService userService;
@@ -66,11 +73,54 @@ public class AdminController {
     @GetMapping("/dashboard")
     public String dashboard(Model model,
             @RequestParam(required = false) String projectSearch,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String paymentStatus,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDateTo,
+            @RequestParam(required = false) BigDecimal priceFrom,
+            @RequestParam(required = false) BigDecimal priceTo,
+            @RequestParam(required = false) Long contractorId,
             @RequestParam(required = false) String contractorSearch) {
 
-        List<Project> projects = (projectSearch != null && !projectSearch.trim().isEmpty())
-                ? projectService.searchProjects(projectSearch)
-                : projectService.getAllProjects();
+        logger.debug("Dashboard filter params - projectSearch: {}, status: {}, paymentStatus: {}, dueDateFrom: {}, dueDateTo: {}, priceFrom: {}, priceTo: {}, contractorId: {}",
+                projectSearch, status, paymentStatus, dueDateFrom, dueDateTo, priceFrom, priceTo, contractorId);
+
+        ProjectSearchCriteria criteria = new ProjectSearchCriteria();
+        criteria.setTextSearch(projectSearch);
+        
+        if (status != null && !status.isEmpty()) {
+            try {
+                ProjectStatus parsedStatus = ProjectStatus.valueOf(status);
+                criteria.setStatus(parsedStatus);
+                logger.debug("Parsed project status: {}", parsedStatus);
+            } catch (IllegalArgumentException e) {
+                logger.warn("Invalid project status value: {}", status);
+            }
+        }
+        
+        if (paymentStatus != null && !paymentStatus.isEmpty()) {
+            try {
+                PaymentStatus parsedPaymentStatus = PaymentStatus.valueOf(paymentStatus);
+                criteria.setPaymentStatus(parsedPaymentStatus);
+                logger.debug("Parsed payment status: {}", parsedPaymentStatus);
+            } catch (IllegalArgumentException e) {
+                logger.error("Invalid payment status value: {} - This should not happen if UI is correct", paymentStatus);
+            }
+        }
+        
+        criteria.setDueDateFrom(dueDateFrom);
+        criteria.setDueDateTo(dueDateTo);
+        criteria.setPriceFrom(priceFrom);
+        criteria.setPriceTo(priceTo);
+        criteria.setAssignedContractorId(contractorId);
+
+        logger.debug("Final search criteria - isEmpty: {}, criteria: {}", criteria.isEmpty(), criteria);
+
+        List<Project> projects = criteria.isEmpty() 
+            ? projectService.getAllProjects()
+            : projectService.advancedSearch(criteria);
+
+        logger.info("Search returned {} projects", projects.size());
 
         List<Contractor> contractors = (contractorSearch != null && !contractorSearch.trim().isEmpty())
                 ? userService.searchContractors(contractorSearch)
@@ -78,7 +128,8 @@ public class AdminController {
 
         model.addAttribute("projects", projects);
         model.addAttribute("contractors", contractors);
-        model.addAttribute("projectSearch", projectSearch);
+        model.addAttribute("searchCriteria", criteria);
+        model.addAttribute("allContractors", contractors);
         model.addAttribute("contractorSearch", contractorSearch);
 
         return "admin/dashboard";

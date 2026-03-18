@@ -1,7 +1,9 @@
 package root.cyb.mh.skylink_media_service.application.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import root.cyb.mh.skylink_media_service.application.dto.ProjectSearchCriteria;
 import root.cyb.mh.skylink_media_service.domain.entities.Project;
 import root.cyb.mh.skylink_media_service.domain.entities.Contractor;
 import root.cyb.mh.skylink_media_service.domain.entities.ProjectAssignment;
@@ -58,7 +60,6 @@ public class ProjectService {
         Contractor contractor = contractorRepository.findById(contractorId)
             .orElseThrow(() -> new RuntimeException("Contractor not found"));
         
-        // Check if already assigned
         if (projectAssignmentRepository.findByProjectAndContractor(project, contractor).isPresent()) {
             throw new RuntimeException("Contractor already assigned to this project");
         }
@@ -93,13 +94,11 @@ public class ProjectService {
                                java.math.BigDecimal invoicePrice) {
         Project existingProject = getProjectById(projectId);
         
-        // Check work order number uniqueness (excluding current project)
         if (!existingProject.getWorkOrderNumber().equals(workOrderNumber) && 
             projectRepository.existsByWorkOrderNumber(workOrderNumber)) {
             throw new RuntimeException("Work order number already exists");
         }
         
-        // Update all fields
         existingProject.setWorkOrderNumber(workOrderNumber);
         existingProject.setLocation(location);
         existingProject.setClientCode(clientCode);
@@ -126,5 +125,14 @@ public class ProjectService {
             return getAllProjects();
         }
         return projectRepository.searchProjects(searchTerm.trim());
+    }
+    
+    public List<Project> advancedSearch(ProjectSearchCriteria criteria) {
+        if (criteria.isEmpty()) {
+            return getAllProjects();
+        }
+        
+        Specification<Project> spec = ProjectSpecifications.buildSpecification(criteria);
+        return projectRepository.findAll(spec);
     }
 }
