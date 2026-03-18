@@ -1,3 +1,3 @@
-1. read contractor login functionality .
-2. make a plan to implment restapi without effecting current functinality 
-3. 
+1. read api functionality
+2. pleaes check swagger implmentation (currently working fine)
+3. plan to fix swagger implmentation for jwt token
