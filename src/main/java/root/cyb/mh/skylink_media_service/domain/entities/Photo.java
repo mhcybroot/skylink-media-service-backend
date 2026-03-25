@@ -40,6 +40,9 @@ public class Photo {
     @Column(name = "file_size")
     private Long fileSize;
     
+    @Column(columnDefinition = "TEXT", name = "metadata_json")
+    private String metadataJson;
+    
     @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
@@ -83,6 +86,9 @@ public class Photo {
     
     public Long getFileSize() { return fileSize; }
     public void setFileSize(Long fileSize) { this.fileSize = fileSize; }
+    
+    public String getMetadataJson() { return metadataJson; }
+    public void setMetadataJson(String metadataJson) { this.metadataJson = metadataJson; }
     
     public Project getProject() { return project; }
     public void setProject(Project project) { this.project = project; }

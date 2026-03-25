@@ -13,8 +13,17 @@ import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectRepos
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ContractorRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.storage.FileStorageService;
 
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.Directory;
+import com.drew.metadata.Tag;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class PhotoService {
@@ -48,6 +57,28 @@ public class PhotoService {
 
         FileStorageService.StorageResult result = fileStorageService.storeFile(file);
 
+        String metadataJson = null;
+        try (InputStream is = file.getInputStream()) {
+            Metadata metadata = ImageMetadataReader.readMetadata(is);
+            Map<String, String> metaMap = new HashMap<>();
+            for (Directory directory : metadata.getDirectories()) {
+                for (Tag tag : directory.getTags()) {
+                    String tagName = tag.getTagName();
+                    String tagDesc = tag.getDescription();
+                    // Filter out unreadable or overly long tags if needed
+                    if (tagDesc != null && !tagDesc.contains("Unknown") && tagDesc.length() < 500) {
+                        metaMap.put(directory.getName() + " - " + tagName, tagDesc);
+                    }
+                }
+            }
+            if (!metaMap.isEmpty()) {
+                ObjectMapper mapBuilder = new ObjectMapper();
+                metadataJson = mapBuilder.writeValueAsString(metaMap);
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to extract metadata for file: {}", file.getOriginalFilename(), e);
+        }
+
         Photo photo = new Photo(result.getFileName(), result.getFilePath(),
                 file.getOriginalFilename(), file.getSize(), project, contractor);
         photo.setThumbnailPath(result.getThumbnailPath());
@@ -55,6 +86,7 @@ public class PhotoService {
         photo.setIsOptimized(true);
         photo.setOptimizedAt(java.time.LocalDateTime.now());
         photo.setOptimizationStatus("COMPLETED");
+        photo.setMetadataJson(metadataJson);
 
         Photo savedPhoto = photoRepository.save(photo);
         logger.info("Photo saved with ID: {} (optimized)", savedPhoto.getId());

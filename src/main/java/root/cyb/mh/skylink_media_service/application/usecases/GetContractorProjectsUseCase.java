@@ -46,6 +46,11 @@ public class GetContractorProjectsUseCase {
     
     private String determineAvailableAction(ProjectAssignment assignment, Contractor contractor) {
         ProjectStatus status = assignment.getProject().getStatus();
+        
+        if (status == null) {
+            return "NONE";
+        }
+        
         boolean hasViewed = projectViewLogRepository
             .hasContractorViewedProject(assignment.getProject(), contractor);
         

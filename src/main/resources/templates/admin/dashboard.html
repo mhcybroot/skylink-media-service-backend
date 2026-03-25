@@ -605,22 +605,22 @@
                                         <div class="flex gap-2 mb-5 mt-auto">
                                             <!-- Project Status Badge -->
                                             <span
-                                                th:class="${project.status.name() == 'UNASSIGNED' ? 'text-neutral-600' : 
-                                                            project.status.name() == 'ASSIGNED' ? 'text-blue-600' :
-                                                            project.status.name() == 'UNREAD' ? 'text-amber-600' :
-                                                            project.status.name() == 'INFIELD' ? 'text-orange-600' :
-                                                            project.status.name() == 'READY_TO_OFFICE' ? 'text-purple-600' :
-                                                            project.status.name() == 'CLOSED' ? 'text-emerald-600' : 'text-neutral-600'}"
+                                                th:class="${project.status?.name() == 'UNASSIGNED' ? 'text-neutral-600' : 
+                                                            project.status?.name() == 'ASSIGNED' ? 'text-blue-600' :
+                                                            project.status?.name() == 'UNREAD' ? 'text-amber-600' :
+                                                            project.status?.name() == 'INFIELD' ? 'text-orange-600' :
+                                                            project.status?.name() == 'READY_TO_OFFICE' ? 'text-purple-600' :
+                                                            project.status?.name() == 'CLOSED' ? 'text-emerald-600' : 'text-neutral-600'}"
                                                 class="px-2 py-0.5 text-[11px] font-bold uppercase tracking-widest leading-tight border-b-2 border-current">
-                                                <span th:text="${project.status.name()}"></span>
+                                                <span th:text="${project.status?.name() != null ? project.status.name() : 'UNKNOWN'}"></span>
                                             </span>
                                             <!-- Payment Badge -->
                                             <span
-                                                th:class="${project.paymentStatus.name() == 'UNPAID' ? 'text-rose-600' : 
-                                                            project.paymentStatus.name() == 'PARTIAL' ? 'text-amber-600' : 
+                                                th:class="${project.paymentStatus?.name() == 'UNPAID' ? 'text-rose-600' : 
+                                                            project.paymentStatus?.name() == 'PARTIAL' ? 'text-amber-600' : 
                                                             'text-emerald-600'}"
                                                 class="px-2 py-0.5 text-[11px] font-bold uppercase tracking-widest leading-tight border-b-2 border-current">
-                                                <span th:text="${project.paymentStatus.name()}"></span>
+                                                <span th:text="${project.paymentStatus?.name() != null ? project.paymentStatus.name() : 'UNKNOWN'}"></span>
                                             </span>
                                         </div>
 
