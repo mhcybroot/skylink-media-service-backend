@@ -73,6 +73,9 @@ public class AdminController {
 
     @Autowired
     private ProjectExportService projectExportService;
+    
+    @Autowired
+    private root.cyb.mh.skylink_media_service.infrastructure.config.DevModeConfig devModeConfig;
 
     @GetMapping("/dashboard")
     public String dashboard(Model model,
@@ -153,6 +156,7 @@ public class AdminController {
         model.addAttribute("contractorActiveCounts", contractorActiveCounts);
         model.addAttribute("contractorAvailability", contractorAvailability);
         model.addAttribute("projectAvailability", projectAvailability);
+        model.addAttribute("isDevMode", devModeConfig.isDev());
 
         return "admin/dashboard";
     }
@@ -328,6 +332,28 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("success", "Contractor unassigned successfully");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin/dashboard";
+    }
+
+    /**
+     * Delete a project - only available in development mode.
+     * This endpoint is disabled in production environments.
+     */
+    @PostMapping("/delete-project/{id}")
+    public String deleteProject(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        // Security check: only allow in development mode
+        if (!devModeConfig.isDev()) {
+            redirectAttributes.addFlashAttribute("error", "Project deletion is only available in development mode");
+            return "redirect:/admin/dashboard";
+        }
+        
+        try {
+            projectService.deleteProject(id);
+            redirectAttributes.addFlashAttribute("success", "Project deleted successfully");
+        } catch (Exception e) {
+            logger.error("Failed to delete project {}: {}", id, e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Failed to delete project: " + e.getMessage());
         }
         return "redirect:/admin/dashboard";
     }

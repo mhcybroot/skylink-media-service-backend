@@ -17,4 +17,9 @@ public interface ProjectViewLogRepository extends JpaRepository<ProjectViewLog, 
     
     @Query("SELECT COUNT(pvl) > 0 FROM ProjectViewLog pvl WHERE pvl.project = :project AND pvl.contractor = :contractor")
     boolean hasContractorViewedProject(@Param("project") Project project, @Param("contractor") Contractor contractor);
+    
+    /**
+     * Delete all view logs for a project
+     */
+    void deleteByProject(Project project);
 }

@@ -16,4 +16,6 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
     List<Photo> findByProjectAndContractor(Project project, Contractor contractor);
 
     List<Photo> findByIdInAndProjectId(List<Long> ids, Long projectId);
+    
+    void deleteByProject(Project project);
 }

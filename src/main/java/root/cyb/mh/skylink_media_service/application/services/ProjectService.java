@@ -1,20 +1,34 @@
 package root.cyb.mh.skylink_media_service.application.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import root.cyb.mh.skylink_media_service.application.dto.ProjectSearchCriteria;
 import root.cyb.mh.skylink_media_service.domain.entities.Project;
 import root.cyb.mh.skylink_media_service.domain.entities.Contractor;
 import root.cyb.mh.skylink_media_service.domain.entities.ProjectAssignment;
+import root.cyb.mh.skylink_media_service.domain.entities.Photo;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ContractorRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectAssignmentRepository;
+import root.cyb.mh.skylink_media_service.infrastructure.persistence.PhotoRepository;
+import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectViewLogRepository;
+import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectMessageRepository;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
 
 @Service
 public class ProjectService {
+    
+    private static final Logger logger = LoggerFactory.getLogger(ProjectService.class);
     
     @Autowired
     private ProjectRepository projectRepository;
@@ -24,6 +38,15 @@ public class ProjectService {
     
     @Autowired
     private ProjectAssignmentRepository projectAssignmentRepository;
+    
+    @Autowired
+    private PhotoRepository photoRepository;
+    
+    @Autowired
+    private ProjectViewLogRepository projectViewLogRepository;
+    
+    @Autowired
+    private ProjectMessageRepository projectMessageRepository;
     
     public Project createProject(String workOrderNumber, String location, String clientCode, String description) {
         return createProject(workOrderNumber, location, clientCode, description, 
@@ -218,5 +241,58 @@ public class ProjectService {
             return true;
         }
         return !projectAssignmentRepository.hasActiveAssignment(project);
+    }
+    
+    /**
+     * Delete a project and all its associated data.
+     * This includes photos, assignments, view logs, messages, and physical files.
+     * This method should only be called in development mode.
+     */
+    @Transactional
+    public void deleteProject(Long projectId) {
+        Project project = getProjectById(projectId);
+        
+        logger.warn("Deleting project {} ({}) and all associated data", project.getId(), project.getWorkOrderNumber());
+        
+        // Get all photos to delete physical files
+        List<Photo> photos = photoRepository.findByProject(project);
+        
+        // Delete physical photo files
+        for (Photo photo : photos) {
+            deletePhotoFile(photo.getWebpPath());
+            deletePhotoFile(photo.getOriginalPath());
+        }
+        
+        // Delete photo records from database
+        photoRepository.deleteByProject(project);
+        
+        // Delete project view logs
+        projectViewLogRepository.deleteByProject(project);
+        
+        // Delete project messages
+        projectMessageRepository.deleteByProject(project);
+        
+        // Delete project assignments
+        projectAssignmentRepository.deleteByProject(project);
+        
+        // Delete the project itself
+        projectRepository.delete(project);
+        
+        logger.info("Successfully deleted project {} and {} photos", project.getWorkOrderNumber(), photos.size());
+    }
+    
+    private void deletePhotoFile(String filePath) {
+        if (filePath == null || filePath.isEmpty()) {
+            return;
+        }
+        try {
+            Path path = Paths.get(filePath);
+            if (Files.exists(path)) {
+                Files.delete(path);
+                logger.debug("Deleted file: {}", filePath);
+            }
+        } catch (IOException e) {
+            logger.error("Failed to delete file: {}", filePath, e);
+        }
     }
 }

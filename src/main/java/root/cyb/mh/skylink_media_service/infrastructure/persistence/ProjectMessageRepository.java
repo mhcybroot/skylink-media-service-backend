@@ -14,4 +14,9 @@ public interface ProjectMessageRepository extends JpaRepository<ProjectMessage, 
     List<ProjectMessage> findByProjectOrderBySentAtAsc(Project project);
 
     List<ProjectMessage> findByProjectAndSentAtAfterOrderBySentAtAsc(Project project, LocalDateTime since);
+    
+    /**
+     * Delete all messages for a project
+     */
+    void deleteByProject(Project project);
 }

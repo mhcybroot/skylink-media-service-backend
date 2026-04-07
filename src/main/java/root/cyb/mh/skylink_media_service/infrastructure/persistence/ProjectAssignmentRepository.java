@@ -40,4 +40,9 @@ public interface ProjectAssignmentRepository extends JpaRepository<ProjectAssign
      */
     @Query("SELECT CASE WHEN COUNT(pa) > 0 THEN true ELSE false END FROM ProjectAssignment pa WHERE pa.project = :project AND pa.project.status != root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus.CLOSED")
     boolean hasActiveAssignment(@Param("project") Project project);
+    
+    /**
+     * Delete all assignments for a project
+     */
+    void deleteByProject(Project project);
 }
