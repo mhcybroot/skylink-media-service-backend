@@ -381,13 +381,8 @@
                                     th:text="${assignment.project.workOrderNumber}"></h3>
                                 <div class="flex items-center gap-2 mt-1 shrink-0">
                                     <span
-                                        th:class="${assignment.project.status?.name() == 'UNASSIGNED' ? 'bg-neutral-100 text-neutral-600 border border-neutral-200' : 
-                                                    assignment.project.status?.name() == 'ASSIGNED' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' :
-                                                    assignment.project.status?.name() == 'UNREAD' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                                                    assignment.project.status?.name() == 'INFIELD' ? 'bg-orange-50 text-orange-700 border border-orange-200' :
-                                                    assignment.project.status?.name() == 'READY_TO_OFFICE' ? 'bg-purple-50 text-purple-700 border border-purple-200' :
-                                                    assignment.project.status?.name() == 'CLOSED' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-neutral-100 text-neutral-600 border border-neutral-200'}"
-                                        class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-widest shadow-sm">
+                                        th:class="${assignment.project.status?.badgeClasses + ' px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest shadow-sm'}"
+                                        class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest shadow-sm">
                                         <span th:text="${assignment.project.status?.displayName ?: 'Unknown'}"></span>
                                     </span>
 
