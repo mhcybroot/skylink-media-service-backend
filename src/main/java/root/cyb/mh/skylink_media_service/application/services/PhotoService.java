@@ -83,6 +83,7 @@ public class PhotoService {
                 file.getOriginalFilename(), file.getSize(), project, contractor);
         photo.setThumbnailPath(result.getThumbnailPath());
         photo.setWebpPath(result.getFilePath());
+        photo.setOriginalPath(result.getOriginalPath());
         photo.setIsOptimized(true);
         photo.setOptimizedAt(java.time.LocalDateTime.now());
         photo.setOptimizationStatus("COMPLETED");

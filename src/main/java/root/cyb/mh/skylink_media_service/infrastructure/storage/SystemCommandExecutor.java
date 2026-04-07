@@ -12,6 +12,7 @@ public class SystemCommandExecutor {
         ProcessBuilder pb = new ProcessBuilder(
             "cwebp", 
             "-q", String.valueOf(quality),
+            "-metadata", "all",
             inputPath.toString(),
             "-o", outputPath.toString()
         );

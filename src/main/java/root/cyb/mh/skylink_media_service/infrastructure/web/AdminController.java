@@ -428,8 +428,15 @@ public class AdminController {
         try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
             for (root.cyb.mh.skylink_media_service.domain.entities.Photo photo : selectedPhotos) {
                 try {
-                    // Try to read the original file first, fallback to webp
-                    Path filePath = Paths.get("uploads", photo.getFileName());
+                    // Try to read the original file first for maximum quality and metadata preservation
+                    Path filePath = null;
+                    if (photo.getOriginalPath() != null) {
+                        filePath = Paths.get(photo.getOriginalPath());
+                    }
+                    // Fallbacks for older uploads where original was deleted
+                    if (filePath == null || !Files.exists(filePath)) {
+                        filePath = Paths.get("uploads", photo.getFileName());
+                    }
                     if (!Files.exists(filePath) && photo.getWebpPath() != null) {
                         filePath = Paths.get(photo.getWebpPath());
                     }

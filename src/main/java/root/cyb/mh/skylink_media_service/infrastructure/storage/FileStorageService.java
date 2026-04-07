@@ -13,7 +13,6 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 @Service
 public class FileStorageService {
@@ -32,30 +31,27 @@ public class FileStorageService {
     }
     
     public StorageResult storeFile(MultipartFile file) throws IOException {
-        String fileName = generateFileName(file.getOriginalFilename());
+        String originalFileName = generateFileName(file.getOriginalFilename());
         Path uploadPath = ensureUploadDirectory();
         
-        logger.info("Processing file: {} -> {}", file.getOriginalFilename(), fileName);
+        logger.info("Processing file: {}", originalFileName);
         
-        // Save original temporarily
-        Path tempPath = uploadPath.resolve("temp_" + fileName);
-        Files.copy(file.getInputStream(), tempPath);
+        // Save original permanently to preserve EXIF exactly
+        Path originalPath = uploadPath.resolve(originalFileName);
+        Files.copy(file.getInputStream(), originalPath);
         
-        // Convert to WebP
-        String webpFileName = fileName.replaceAll("\\.[^.]+$", ".webp");
+        // Convert to WebP for UI rendering
+        String webpFileName = originalFileName.replaceAll("\\.[^.]+$", ".webp");
         Path webpPath = uploadPath.resolve(webpFileName);
-        commandExecutor.convertToWebP(tempPath, webpPath, 75);
+        commandExecutor.convertToWebP(originalPath, webpPath, 75);
         logger.info("WebP conversion completed: {}", webpFileName);
         
-        // Generate thumbnail from original temp file
+        // Generate thumbnail from original file
         Path thumbnailPath = uploadPath.resolve("thumb_" + webpFileName);
-        thumbnailGenerator.createThumbnail(tempPath, thumbnailPath, 200, 200);
+        thumbnailGenerator.createThumbnail(originalPath, thumbnailPath, 200, 200);
         logger.info("Thumbnail generated: thumb_{}", webpFileName);
         
-        // Schedule cleanup of original
-        scheduleCleanup(tempPath);
-        
-        return new StorageResult(webpFileName, webpPath.toString(), thumbnailPath.toString());
+        return new StorageResult(webpFileName, originalPath.toString(), webpPath.toString(), thumbnailPath.toString());
     }
     
     private String generateFileName(String originalName) {
@@ -71,30 +67,21 @@ public class FileStorageService {
         return uploadPath;
     }
     
-    private void scheduleCleanup(Path tempPath) {
-        CompletableFuture.delayedExecutor(24 * 60 * 60, java.util.concurrent.TimeUnit.SECONDS)
-            .execute(() -> {
-                try {
-                    Files.deleteIfExists(tempPath);
-                    logger.info("Cleaned up temp file: {}", tempPath.getFileName());
-                } catch (IOException e) {
-                    logger.error("Failed to cleanup temp file: {}", tempPath.getFileName(), e);
-                }
-            });
-    }
-    
     public static class StorageResult {
         private final String fileName;
+        private final String originalPath;
         private final String filePath;
         private final String thumbnailPath;
         
-        public StorageResult(String fileName, String filePath, String thumbnailPath) {
+        public StorageResult(String fileName, String originalPath, String filePath, String thumbnailPath) {
             this.fileName = fileName;
+            this.originalPath = originalPath;
             this.filePath = filePath;
             this.thumbnailPath = thumbnailPath;
         }
         
         public String getFileName() { return fileName; }
+        public String getOriginalPath() { return originalPath; }
         public String getFilePath() { return filePath; }
         public String getThumbnailPath() { return thumbnailPath; }
     }
