@@ -405,11 +405,57 @@
                     </svg>
                     <h2 class="text-xl font-bold font-heading text-slate-800">Media Gallery</h2>
                     <span
-                        class="ml-3 px-2.5 py-0.5 rounded-full bg-slate-100 text-xs font-medium text-slate-600 border border-slate-200"
-                        th:text="${#lists.size(photos)} + ' items'"></span>
+                        class="ml-3 px-2.5 py-0.5 rounded-full bg-slate-100 text-xs font-medium text-slate-600 border border-slate-200">
+                        <span id="visibleCount" th:text="${#lists.size(photos)}"></span> / <span th:text="${#lists.size(photos)}"></span> items
+                    </span>
                 </div>
 
-                <div th:if="${not #lists.isEmpty(photos)}" class="flex items-center space-x-3 w-full sm:w-auto">
+                <!-- Category Filter -->
+                <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto" id="categoryFilter">
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1">Filter:</span>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" value="BEFORE" class="category-filter-checkbox sr-only peer" checked />
+                        <span class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider border-2 transition-all peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-500 bg-white text-slate-600 border-slate-200 hover:border-amber-300 peer-focus:ring-2 peer-focus:ring-amber-200">
+                            Before
+                        </span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" value="DURING" class="category-filter-checkbox sr-only peer" checked />
+                        <span class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider border-2 transition-all peer-checked:bg-blue-500 peer-checked:text-white peer-checked:border-blue-500 bg-white text-slate-600 border-slate-200 hover:border-blue-300 peer-focus:ring-2 peer-focus:ring-blue-200">
+                            During
+                        </span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" value="AFTER" class="category-filter-checkbox sr-only peer" checked />
+                        <span class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider border-2 transition-all peer-checked:bg-green-500 peer-checked:text-white peer-checked:border-green-500 bg-white text-slate-600 border-slate-200 hover:border-green-300 peer-focus:ring-2 peer-focus:ring-green-200">
+                            After
+                        </span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" value="UNCATEGORIZED" class="category-filter-checkbox sr-only peer" checked />
+                        <span class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider border-2 transition-all peer-checked:bg-slate-400 peer-checked:text-white peer-checked:border-slate-400 bg-white text-slate-600 border-slate-200 hover:border-slate-300 peer-focus:ring-2 peer-focus:ring-slate-200">
+                            Other
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Active Filter Indicator -->
+            <div id="filterStatus" class="hidden mb-4 px-4 py-2 bg-indigo-50 border border-indigo-100 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-indigo-700">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 6.293A1 1 0 013 5.586V4z"></path>
+                        </svg>
+                        Showing only: <span id="activeCategories" class="font-semibold"></span>
+                    </span>
+                    <button type="button" id="clearFilterBtn" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 underline">
+                        Show All
+                    </button>
+                </div>
+            </div>
+
+            <div th:if="${not #lists.isEmpty(photos)}" class="flex items-center space-x-3 w-full sm:w-auto mb-4">
                     <button type="button" id="selectAllBtn"
                         class="flex-1 sm:flex-none justify-center flex items-center bg-white border border-slate-300 hover:border-blue-400 hover:text-blue-600 text-slate-700 text-sm font-medium py-2 px-4 rounded-xl transition-all shadow-sm">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -458,6 +504,7 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
                     <!-- Photo Card loop -->
                     <div th:each="photo : ${photos}"
+                        th:attr="data-category=${photo.imageCategory != null ? photo.imageCategory.name() : 'UNCATEGORIZED'}"
                         class="photo-card-wrapper bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm relative group photo-card cursor-pointer flex flex-col">
 
                         <!-- Glassy Checkbox container -->
@@ -568,21 +615,44 @@
     <script>
         // Photo selection logic
         document.addEventListener('DOMContentLoaded', function () {
-            const checkboxes = document.querySelectorAll('.photo-checkbox');
             const selectAllBtn = document.getElementById('selectAllBtn');
             const downloadBtn = document.getElementById('downloadBtn');
             const selectedCountSpan = document.getElementById('selectedCount');
             const photoCards = document.querySelectorAll('.photo-card');
 
+            // Helper function to get visible checkboxes (respects filter)
+            function getVisibleCheckboxes() {
+                const allCheckboxes = document.querySelectorAll('.photo-checkbox');
+                const visibleCheckboxes = [];
+                allCheckboxes.forEach(function(checkbox) {
+                    const cardWrapper = checkbox.closest('.photo-card-wrapper');
+                    if (cardWrapper && cardWrapper.style.display !== 'none') {
+                        visibleCheckboxes.push(checkbox);
+                    }
+                });
+                return visibleCheckboxes;
+            }
+
+            // Helper function to get visible checked checkboxes count
+            function getVisibleCheckedCount() {
+                const visibleCheckboxes = getVisibleCheckboxes();
+                let count = 0;
+                visibleCheckboxes.forEach(function(checkbox) {
+                    if (checkbox.checked) count++;
+                });
+                return count;
+            }
+
             function updateDownloadButton() {
-                const checkedCount = document.querySelectorAll('.photo-checkbox:checked').length;
+                const checkedCount = getVisibleCheckedCount();
                 selectedCountSpan.textContent = checkedCount;
                 if (downloadBtn) {
                     downloadBtn.disabled = checkedCount === 0;
                 }
 
+                const visibleCheckboxes = getVisibleCheckboxes();
                 if (selectAllBtn) {
-                    if (checkedCount === checkboxes.length && checkboxes.length > 0) {
+                    if (checkedCount === visibleCheckboxes.length && visibleCheckboxes.length > 0) {
                         selectAllBtn.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg><span>Clear</span>';
                     } else {
                         selectAllBtn.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span>Select All</span>';
@@ -591,7 +661,7 @@
             }
 
             // Handle individual checkbox clicks
-            checkboxes.forEach(function (checkbox) {
+            document.querySelectorAll('.photo-checkbox').forEach(function (checkbox) {
                 checkbox.addEventListener('change', function () {
                     const cardWrapper = this.closest('.photo-card-wrapper');
                     if (this.checked) {
@@ -622,12 +692,13 @@
                 });
             });
 
-            // Handle Select All button
+            // Handle Select All button - only affects visible (filtered) items
             if (selectAllBtn) {
                 selectAllBtn.addEventListener('click', function () {
                     const isSelectAll = this.querySelector('span').textContent.trim() === 'Select All';
+                    const visibleCheckboxes = getVisibleCheckboxes();
 
-                    checkboxes.forEach(function (checkbox) {
+                    visibleCheckboxes.forEach(function (checkbox) {
                         // Only change if it's different from desired state
                         if (checkbox.checked !== isSelectAll) {
                             checkbox.checked = isSelectAll;
@@ -640,6 +711,9 @@
 
             // Initialize button state
             updateDownloadButton();
+
+            // Re-export updateDownloadButton for use by filter logic
+            window.updateSelectionUI = updateDownloadButton;
         });
 
         let currentZoom = 1;
@@ -820,6 +894,100 @@
                     console.error("Error parsing metadata", e);
                 }
             });
+        });
+
+        // Category Filter Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterCheckboxes = document.querySelectorAll('.category-filter-checkbox');
+            const photoCards = document.querySelectorAll('.photo-card-wrapper[data-category]');
+            const visibleCountSpan = document.getElementById('visibleCount');
+            const filterStatus = document.getElementById('filterStatus');
+            const activeCategoriesSpan = document.getElementById('activeCategories');
+            const clearFilterBtn = document.getElementById('clearFilterBtn');
+            const totalCount = photoCards.length;
+
+            function getSelectedCategories() {
+                const selected = [];
+                filterCheckboxes.forEach(function(cb) {
+                    if (cb.checked) {
+                        selected.push(cb.value);
+                    }
+                });
+                return selected;
+            }
+
+            function updateFilter() {
+                const selectedCategories = getSelectedCategories();
+                let visibleCount = 0;
+
+                photoCards.forEach(function(card) {
+                    const category = card.getAttribute('data-category');
+                    if (selectedCategories.includes(category)) {
+                        card.style.display = '';
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none';
+                        // Uncheck hidden cards to prevent them from being downloaded
+                        const checkbox = card.querySelector('.photo-checkbox');
+                        if (checkbox && checkbox.checked) {
+                            checkbox.checked = false;
+                            card.classList.remove('selected', 'selected-ring');
+                            card.classList.add('border-slate-200');
+                        }
+                    }
+                });
+
+                // Update visible count
+                if (visibleCountSpan) {
+                    visibleCountSpan.textContent = visibleCount;
+                }
+
+                // Show/hide filter status indicator
+                if (selectedCategories.length < 4 && selectedCategories.length > 0) {
+                    filterStatus.classList.remove('hidden');
+                    const categoryLabels = {
+                        'BEFORE': 'Before',
+                        'DURING': 'During',
+                        'AFTER': 'After',
+                        'UNCATEGORIZED': 'Other'
+                    };
+                    const labels = selectedCategories.map(c => categoryLabels[c] || c);
+                    activeCategoriesSpan.textContent = labels.join(', ');
+                } else {
+                    filterStatus.classList.add('hidden');
+                }
+
+                // If no categories selected, show all
+                if (selectedCategories.length === 0) {
+                    filterCheckboxes.forEach(function(cb) {
+                        cb.checked = true;
+                    });
+                    updateFilter();
+                }
+
+                // Update selection UI (download button count, select all button state)
+                if (window.updateSelectionUI) {
+                    window.updateSelectionUI();
+                }
+            }
+
+            // Add event listeners to filter checkboxes
+            filterCheckboxes.forEach(function(checkbox) {
+                checkbox.addEventListener('change', updateFilter);
+            });
+
+            // Clear filter button
+            if (clearFilterBtn) {
+                clearFilterBtn.addEventListener('click', function() {
+                    filterCheckboxes.forEach(function(cb) {
+                        cb.checked = true;
+                    });
+                    updateFilter();
+                });
+            }
+
+            // Initialize filter state
+            updateFilter();
         });
     </script>
 </body>
