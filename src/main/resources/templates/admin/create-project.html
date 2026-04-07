@@ -354,6 +354,42 @@
                         </div>
                     </div>
 
+                    <!-- Loan Information Card -->
+                    <div class="saas-card overflow-hidden">
+                        <div class="p-4 bg-white border-b border-neutral-100 flex items-center justify-between">
+                            <h3 class="text-sm font-bold font-heading text-neutral-900 flex items-center gap-2">
+                                <div
+                                    class="w-6 h-6 rounded bg-cyan-50 text-cyan-600 flex items-center justify-center">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
+                                        </path>
+                                    </svg>
+                                </div>
+                                Loan Information
+                            </h3>
+                        </div>
+                        <div class="p-5 bg-[#FAFAFA]/50 grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label for="loanNumber"
+                                    class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                    Loan #
+                                </label>
+                                <input type="text" id="loanNumber" name="loanNumber" 
+                                    placeholder="e.g., 7526-306-113" class="saas-input">
+                            </div>
+
+                            <div>
+                                <label for="loanType"
+                                    class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                    Loan Type
+                                </label>
+                                <input type="text" id="loanType" name="loanType" 
+                                    placeholder="e.g., HECM RMSREO-AZ" class="saas-input">
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Work Logistics Card -->
                     <div class="saas-card overflow-hidden">
                         <div class="p-4 bg-white border-b border-neutral-100 flex items-center justify-between">
@@ -448,6 +484,44 @@
                                     <input type="number" id="invoicePrice" name="invoicePrice" step="0.01" min="0"
                                         placeholder="0.00" class="saas-input saas-input-with-icon font-mono">
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Administrative Details Card -->
+                    <div class="saas-card overflow-hidden">
+                        <div class="p-4 bg-white border-b border-neutral-100 flex items-center justify-between">
+                            <h3 class="text-sm font-bold font-heading text-neutral-900 flex items-center gap-2">
+                                <div
+                                    class="w-6 h-6 rounded bg-neutral-100 text-neutral-600 flex items-center justify-center">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                                        </path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                </div>
+                                Administrative Details
+                            </h3>
+                        </div>
+                        <div class="p-5 bg-[#FAFAFA]/50 grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label for="assignedTo"
+                                    class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                    Assigned To
+                                </label>
+                                <input type="text" id="assignedTo" name="assignedTo" 
+                                    placeholder="e.g., Finara Vendor" class="saas-input">
+                            </div>
+
+                            <div>
+                                <label for="woAdmin"
+                                    class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                    WO Admin
+                                </label>
+                                <input type="text" id="woAdmin" name="woAdmin" 
+                                    placeholder="e.g., Grace Hyland" class="saas-input">
                             </div>
                         </div>
                     </div>
