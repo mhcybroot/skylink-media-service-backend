@@ -870,16 +870,11 @@
                                                     </div>
                                                     <form th:action="@{'/admin/change-payment-status/' + ${project.id}}"
                                                         method="post" class="p-1.5">
-                                                        <button type="submit" name="paymentStatus" value="UNPAID"
-                                                            class="group w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-rose-700 hover:bg-gradient-to-r hover:from-rose-50 hover:to-red-50 transition-all duration-200 flex items-center gap-3 border border-transparent hover:border-rose-100">
-                                                            <span class="w-7 h-7 rounded-lg bg-rose-100 group-hover:bg-rose-200 flex items-center justify-center shrink-0 transition-colors">
-                                                                <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                                                </svg>
-                                                            </span>
-                                                            <span class="text-[11px] font-bold uppercase tracking-wide">Unpaid</span>
-                                                        </button>
-                                                        <button type="submit" name="paymentStatus" value="PARTIAL"
+                                                        <!-- UNPAID button - only show if current status allows transition to UNPAID (never, but kept for reference) -->
+                                                        <!-- UNPAID is never reachable from other statuses -->
+                                                        
+                                                        <!-- PARTIAL button - only show if current status is UNPAID -->
+                                                        <button th:if="${project.paymentStatus?.name() == 'UNPAID'}" type="submit" name="paymentStatus" value="PARTIAL"
                                                             class="group w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-amber-700 hover:bg-gradient-to-r hover:from-amber-50 hover:to-yellow-50 transition-all duration-200 flex items-center gap-3 border border-transparent hover:border-amber-100">
                                                             <span class="w-7 h-7 rounded-lg bg-amber-100 group-hover:bg-amber-200 flex items-center justify-center shrink-0 transition-colors">
                                                                 <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -888,7 +883,9 @@
                                                             </span>
                                                             <span class="text-[11px] font-bold uppercase tracking-wide">Partial</span>
                                                         </button>
-                                                        <button type="submit" name="paymentStatus" value="PAID"
+                                                        
+                                                        <!-- PAID button - show if current status is UNPAID or PARTIAL -->
+                                                        <button th:if="${project.paymentStatus?.name() == 'UNPAID' or project.paymentStatus?.name() == 'PARTIAL'}" type="submit" name="paymentStatus" value="PAID"
                                                             class="group w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold text-emerald-700 hover:bg-gradient-to-r hover:from-emerald-50 hover:to-teal-50 transition-all duration-200 flex items-center gap-3 border border-transparent hover:border-emerald-100">
                                                             <span class="w-7 h-7 rounded-lg bg-emerald-100 group-hover:bg-emerald-200 flex items-center justify-center shrink-0 transition-colors">
                                                                 <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -897,6 +894,15 @@
                                                             </span>
                                                             <span class="text-[11px] font-bold uppercase tracking-wide">Paid</span>
                                                         </button>
+                                                        
+                                                        <!-- Message if no transitions available (PAID status) -->
+                                                        <div th:if="${project.paymentStatus?.name() == 'PAID'}"
+                                                            class="px-3 py-2.5 text-center text-xs text-neutral-500">
+                                                            <svg class="w-4 h-4 mx-auto mb-1 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                            </svg>
+                                                            Payment Complete
+                                                        </div>
                                                     </form>
                                                 </div>
                                             </div>

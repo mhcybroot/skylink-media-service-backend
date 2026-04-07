@@ -52,18 +52,29 @@ public class ChangeProjectStatusUseCase {
         auditLogService.logStatusChanged(project, oldStatusName, newStatus.name(), changedBy);
     }
     
-    public void changePaymentStatus(Long projectId, PaymentStatus paymentStatus, User changedBy) {
+    public void changePaymentStatus(Long projectId, PaymentStatus newStatus, User changedBy) {
         Project project = projectRepository.findById(projectId)
             .orElseThrow(() -> new RuntimeException("Project not found"));
-        
-        String oldStatusName = project.getPaymentStatus().name();
-        
-        project.setPaymentStatus(paymentStatus);
+    
+        PaymentStatus currentStatus = project.getPaymentStatus();
+    
+        // Validate that this is a valid transition
+        if (!currentStatus.canTransitionTo(newStatus)) {
+            throw new InvalidStatusTransitionException(
+                "Invalid payment status transition from " + currentStatus.getDisplayName() + " to " + newStatus.getDisplayName() + ". " +
+                "Payment status can only progress forward: UNPAID → PARTIAL → PAID. " +
+                "Current status: " + currentStatus.getDisplayName()
+            );
+        }
+    
+        String oldStatusName = currentStatus.name();
+    
+        project.setPaymentStatus(newStatus);
         project.setStatusUpdatedBy(changedBy);
         projectRepository.save(project);
-        
+    
         // Log payment status change
-        auditLogService.logPaymentStatusChanged(project, oldStatusName, paymentStatus.name(), changedBy);
+        auditLogService.logPaymentStatusChanged(project, oldStatusName, newStatus.name(), changedBy);
     }
     
     public void assignContractorAndUpdateStatus(Long projectId, Long contractorId, User admin) {

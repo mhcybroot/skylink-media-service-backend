@@ -18,4 +18,27 @@ public enum PaymentStatus {
     public String getDisplayName() { return displayName; }
     public String getBadgeClasses() { return badgeClasses; }
     public String getDotClasses() { return dotClasses; }
+
+    /**
+     * Validates if this payment status can transition to the new status.
+     * Business rules:
+     * - UNPAID can transition to PARTIAL or PAID
+     * - PARTIAL can only transition to PAID (cannot go backwards)
+     * - PAID cannot transition (final state)
+     */
+    public boolean canTransitionTo(PaymentStatus newStatus) {
+        return switch (this) {
+            case UNPAID -> newStatus == PARTIAL || newStatus == PAID;
+            case PARTIAL -> newStatus == PAID;
+            case PAID -> false;
+        };
+    }
+
+    /**
+     * Check if this is a valid transition for admin to perform.
+     * Currently, all transitions follow the same rules.
+     */
+    public boolean isAdminTransition(PaymentStatus newStatus) {
+        return canTransitionTo(newStatus);
+    }
 }
