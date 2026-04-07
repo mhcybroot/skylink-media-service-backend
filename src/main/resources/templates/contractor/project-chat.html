@@ -5,15 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#ffffff">
-    <title th:text="'Chat — ' + ${project.workOrderNumber} + ' - Skylink Hub'">Chat - Skylink Hub</title>
+    <title th:text="'Messages — ' + ${project.workOrderNumber} + ' - Skylink Hub'">Messages - Skylink Hub</title>
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -26,94 +24,35 @@
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
-        [x-cloak] {
-            display: none !important;
-        }
-
-        body {
-            background-color: #FAFAFA;
-        }
-
-        .premium-scroll::-webkit-scrollbar {
-            width: 5px;
-        }
-
-        .premium-scroll::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .premium-scroll::-webkit-scrollbar-thumb {
-            background: #E5E7EB;
-            border-radius: 10px;
-        }
-
+        [x-cloak] { display: none !important; }
+        body { background-color: #FAFAFA; }
+        .premium-scroll::-webkit-scrollbar { width: 5px; }
+        .premium-scroll::-webkit-scrollbar-track { background: transparent; }
+        .premium-scroll::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
         #chat-area {
             background-color: #f0f2f5;
             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e5e7eb' fill-opacity='0.5'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            position: relative;
         }
-
         .bubble-out {
-            background: #4f46e5;
-            color: white;
+            background: #4f46e5; color: white;
             border-radius: 18px 18px 4px 18px;
         }
-
         .bubble-in {
-            background: #ffffff;
-            color: #1f2937;
+            background: #ffffff; color: #1f2937;
             border-radius: 18px 18px 18px 4px;
             border: 1px solid #E5E7EB;
         }
-
-        #message-input:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-            border-color: #818CF8;
-        }
-
-        /* Skeleton loader */
-        @keyframes shimmer {
-            0% {
-                background-position: -400px 0;
-            }
-
-            100% {
-                background-position: 400px 0;
-            }
-        }
-
-        .skeleton {
-            background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
-            background-size: 800px 100%;
-            animation: shimmer 1.4s infinite linear;
-            border-radius: 12px;
-        }
-
-        #chat-loader {
-            transition: opacity 0.4s ease, visibility 0.4s ease;
-        }
-
-        #chat-loader.hidden-loader {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-
+        textarea:focus { outline: none; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); border-color: #818CF8; }
         @media (display-mode: standalone) {
-            body {
-                padding-top: env(safe-area-inset-top);
-            }
+            body { padding-top: env(safe-area-inset-top); }
         }
     </style>
 </head>
 
-<body class="font-sans antialiased flex h-screen overflow-hidden text-neutral-800" x-data="chatApp()" x-init="init()">
+<body class="font-sans antialiased flex h-screen overflow-hidden text-neutral-800" x-data="{ sidebarOpen: false }">
 
     <!-- Mobile Backdrop -->
-    <div x-show="sidebarOpen" x-transition.opacity
-        class="fixed inset-0 z-40 bg-neutral-900/40 backdrop-blur-sm lg:hidden" @click="sidebarOpen = false" x-cloak>
-    </div>
+    <div x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 z-40 bg-neutral-900/40 backdrop-blur-sm lg:hidden" @click="sidebarOpen = false" x-cloak></div>
 
     <!-- Sidebar -->
     <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
@@ -122,53 +61,39 @@
             <div class="flex items-center gap-3 text-white font-bold text-xl tracking-tight font-heading">
                 <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-inner">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                     </svg>
                 </div>
                 Skylink
             </div>
         </div>
         <nav class="flex-1 px-3 py-6 space-y-1 premium-scroll overflow-y-auto">
-            <a href="/contractor/dashboard"
-                class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#1F2937]/50 hover:text-neutral-200 font-medium text-sm transition-colors">
+            <a href="/contractor/dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#1F2937]/50 hover:text-neutral-200 font-medium text-sm transition-colors">
                 <svg class="w-5 h-5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
-                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
                 </svg>
                 My Projects
             </a>
-            <div
-                class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[#1F2937] text-white font-medium text-sm mt-1">
+            <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[#1F2937] text-white font-medium text-sm mt-1">
                 <svg class="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
-                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                 </svg>
-                Chat with Admin
+                Messages
             </div>
         </nav>
         <div class="p-4 border-t border-[#1F2937] bg-[#0B0F19]">
             <div class="flex items-center gap-3 w-full">
-                <div
-                    class="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm border border-indigo-500/30 shrink-0">
-                    <span sec:authentication="name"
-                        th:text="${#authentication.name.substring(0,1).toUpperCase()}">C</span>
+                <div class="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm border border-indigo-500/30 shrink-0">
+                    <span sec:authentication="name" th:text="${#authentication.name.substring(0,1).toUpperCase()}">C</span>
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="text-xs font-semibold text-neutral-200 truncate" sec:authentication="name"></p>
-                    <p class="text-[10px] text-neutral-500 uppercase tracking-widest font-bold font-heading">Contractor
-                    </p>
+                    <p class="text-[10px] text-neutral-500 uppercase tracking-widest font-bold font-heading">Contractor</p>
                 </div>
                 <form th:action="@{/logout}" method="post">
-                    <button type="submit"
-                        class="p-1.5 text-neutral-500 hover:text-red-400 rounded-md hover:bg-[#1F2937] transition-colors"
-                        title="Sign Out">
+                    <button type="submit" class="p-1.5 text-neutral-500 hover:text-red-400 rounded-md hover:bg-[#1F2937] transition-colors" title="Sign Out">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
-                            </path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                         </svg>
                     </button>
                 </form>
@@ -178,30 +103,23 @@
 
     <!-- Main -->
     <main class="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+
         <!-- Topbar -->
-        <header
-            class="h-16 bg-white border-b border-neutral-200 px-4 sm:px-6 flex items-center gap-4 shrink-0 shadow-sm z-20">
-            <button @click="sidebarOpen = true"
-                class="p-1.5 -ml-2 rounded-md text-neutral-500 hover:bg-neutral-100 lg:hidden">
+        <header class="h-16 bg-white border-b border-neutral-200 px-4 sm:px-6 flex items-center gap-4 shrink-0 shadow-sm z-20">
+            <button @click="sidebarOpen = true" class="p-1.5 -ml-2 rounded-md text-neutral-500 hover:bg-neutral-100 lg:hidden">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16">
-                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                 </svg>
             </button>
-            <a th:href="@{'/contractor/project/' + ${project.id} + '/photos'}"
-                class="text-neutral-400 hover:text-neutral-700 transition-colors">
+            <a th:href="@{'/contractor/project/' + ${project.id} + '/photos'}" class="text-neutral-400 hover:text-neutral-700 transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>
             </a>
-            <!-- Admin avatar -->
             <div class="flex items-center gap-3 flex-1 min-w-0">
                 <div class="w-9 h-9 rounded-full bg-neutral-800 flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
-                        </path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                     </svg>
                 </div>
                 <div class="min-w-0">
@@ -211,245 +129,77 @@
                     </p>
                 </div>
             </div>
-            <div class="flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span class="text-[11px] font-semibold text-neutral-500">Live</span>
-            </div>
+            <span class="text-[11px] font-semibold text-neutral-400 shrink-0" th:text="${#lists.size(messages)} + ' messages'"></span>
         </header>
+
+        <!-- Flash messages -->
+        <div th:if="${error}" class="mx-4 mt-3 p-3 rounded-lg bg-red-50 text-red-800 border-l-4 border-red-500 text-sm font-medium shrink-0" th:text="${error}"></div>
 
         <!-- Chat Messages -->
         <div id="chat-area" class="flex-1 overflow-y-auto premium-scroll p-4 sm:p-6 space-y-3">
-            <div class="flex items-center gap-3 my-2">
+
+            <!-- Empty state -->
+            <div th:if="${#lists.isEmpty(messages)}" class="flex flex-col items-center justify-center h-full text-center py-16">
+                <div class="w-16 h-16 rounded-2xl bg-white border border-neutral-200 flex items-center justify-center mb-4 shadow-sm">
+                    <svg class="w-8 h-8 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                    </svg>
+                </div>
+                <p class="text-sm font-semibold text-neutral-500">No messages yet</p>
+                <p class="text-xs text-neutral-400 mt-1">Send a message to the admin below.</p>
+            </div>
+
+            <!-- Date divider -->
+            <div th:if="${!#lists.isEmpty(messages)}" class="flex items-center gap-3 my-2">
                 <div class="flex-1 h-px bg-neutral-200/70"></div>
-                <span
-                    class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest bg-[#f0f2f5] px-2">Conversation</span>
+                <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest bg-[#f0f2f5] px-2">Conversation</span>
                 <div class="flex-1 h-px bg-neutral-200/70"></div>
             </div>
 
-            <template th:each="msg : ${messages}">
-                <!-- OWN (right) -->
-                <div th:if="${msg.sender.username == currentUsername}" class="flex justify-end items-end gap-2"
-                    th:attr="data-msg-id=${msg.id}">
+            <!-- Messages -->
+            <th:block th:each="msg : ${messages}">
+                <!-- Own (right) -->
+                <div th:if="${msg.sender.username == currentUsername}" class="flex justify-end items-end gap-2">
                     <div class="max-w-xs sm:max-w-md lg:max-w-lg">
-                        <p class="bubble-out px-4 py-2.5 text-sm leading-relaxed shadow-sm" th:text="${msg.content}">
-                        </p>
-                        <p class="text-[10px] text-neutral-400 text-right mt-1 px-1"
-                            th:text="${#temporals.format(msg.sentAt, 'MM-dd-yyyy, HH:mm')}"></p>
+                        <p class="bubble-out px-4 py-2.5 text-sm leading-relaxed shadow-sm" th:text="${msg.content}"></p>
+                        <p class="text-[10px] text-neutral-400 text-right mt-1 px-1" th:text="${#temporals.format(msg.sentAt, 'MM-dd-yyyy, HH:mm')}"></p>
                     </div>
                 </div>
-                <!-- INCOMING (left) -->
-                <div th:unless="${msg.sender.username == currentUsername}" class="flex justify-start items-end gap-2"
-                    th:attr="data-msg-id=${msg.id}">
-                    <div
-                        class="w-7 h-7 rounded-full bg-neutral-800 flex items-center justify-center text-[10px] font-bold text-white shrink-0 mb-5">
-                        A</div>
+                <!-- Incoming (left) -->
+                <div th:unless="${msg.sender.username == currentUsername}" class="flex justify-start items-end gap-2">
+                    <div class="w-7 h-7 rounded-full bg-neutral-800 flex items-center justify-center text-[10px] font-bold text-white shrink-0 mb-5">A</div>
                     <div class="max-w-xs sm:max-w-md lg:max-w-lg">
-                        <p class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1 ml-1"
-                            th:text="${msg.sender.username}"></p>
+                        <p class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1 ml-1" th:text="${msg.sender.username}"></p>
                         <p class="bubble-in px-4 py-2.5 text-sm leading-relaxed shadow-sm" th:text="${msg.content}"></p>
-                        <p class="text-[10px] text-neutral-400 mt-1 px-1"
-                            th:text="${#temporals.format(msg.sentAt, 'MM-dd-yyyy, HH:mm')}"></p>
+                        <p class="text-[10px] text-neutral-400 mt-1 px-1" th:text="${#temporals.format(msg.sentAt, 'MM-dd-yyyy, HH:mm')}"></p>
                     </div>
                 </div>
-            </template>
+            </th:block>
 
-            <div id="dynamic-messages"></div>
             <div id="chat-end"></div>
-
-            <!-- Loading Skeleton -->
-            <div id="chat-loader" class="absolute inset-0 z-30 flex flex-col gap-4 p-6" style="background: #f0f2f5;">
-                <!-- Incoming bubble skeleton -->
-                <div class="flex items-end gap-2">
-                    <div class="skeleton w-7 h-7 rounded-full shrink-0"></div>
-                    <div class="flex flex-col gap-1.5">
-                        <div class="skeleton h-3 w-16 mb-1"></div>
-                        <div class="skeleton h-10 w-56 rounded-2xl"></div>
-                        <div class="skeleton h-2.5 w-20"></div>
-                    </div>
-                </div>
-                <!-- Outgoing bubble skeleton -->
-                <div class="flex justify-end items-end gap-2">
-                    <div class="flex flex-col gap-1.5 items-end">
-                        <div class="skeleton h-10 w-48 rounded-2xl"></div>
-                        <div class="skeleton h-2.5 w-20"></div>
-                    </div>
-                </div>
-                <!-- Incoming bubble skeleton 2 -->
-                <div class="flex items-end gap-2">
-                    <div class="skeleton w-7 h-7 rounded-full shrink-0"></div>
-                    <div class="flex flex-col gap-1.5">
-                        <div class="skeleton h-3 w-16 mb-1"></div>
-                        <div class="skeleton h-10 w-64 rounded-2xl"></div>
-                        <div class="skeleton h-2.5 w-20"></div>
-                    </div>
-                </div>
-                <!-- Outgoing bubble skeleton 2 -->
-                <div class="flex justify-end items-end gap-2">
-                    <div class="flex flex-col gap-1.5 items-end">
-                        <div class="skeleton h-10 w-40 rounded-2xl"></div>
-                        <div class="skeleton h-2.5 w-20"></div>
-                    </div>
-                </div>
-                <!-- Loading label -->
-                <div class="absolute bottom-6 left-0 right-0 flex justify-center">
-                    <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest animate-pulse">Loading
-                        conversation…</span>
-                </div>
-            </div>
         </div>
 
         <!-- Input Bar -->
-        <div class="bg-white border-t border-neutral-200 p-3 sm:p-4 flex items-end gap-3 shrink-0"
+        <div class="bg-white border-t border-neutral-200 p-3 sm:p-4 shrink-0"
             style="padding-bottom: max(12px, env(safe-area-inset-bottom));">
-            <textarea id="message-input" x-model="newMessage" @keydown.enter.prevent="!$event.shiftKey && sendMessage()"
-                class="flex-1 resize-none rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm text-neutral-800 transition-all min-h-[42px] max-h-32 overflow-y-auto"
-                placeholder="Type a message…" rows="1" @input="autoResize($event)"></textarea>
-            <button @click="sendMessage()" :disabled="!newMessage.trim()"
-                class="w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-neutral-200 disabled:cursor-not-allowed text-white flex items-center justify-center transition-all shrink-0 shadow-sm active:scale-95">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
-                </svg>
-            </button>
+            <form th:action="@{'/contractor/project/' + ${project.id} + '/chat/send'}" method="post" class="flex items-end gap-3">
+                <textarea name="content" id="message-input" required
+                    class="flex-1 resize-none rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm text-neutral-800 transition-all min-h-[42px] max-h-32 overflow-y-auto"
+                    placeholder="Type a message…" rows="1"
+                    onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.form.submit();}"
+                    oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,128)+'px'"></textarea>
+                <button type="submit"
+                    class="w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center transition-all shrink-0 shadow-sm active:scale-95">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                    </svg>
+                </button>
+            </form>
         </div>
     </main>
 
-    <div id="js-data"
-        th:attr="data-project-id=${project.id}, data-current-user=${currentUsername}, data-send-url=@{'/contractor/project/' + ${project.id} + '/chat/send'}, data-poll-url=@{'/contractor/project/' + ${project.id} + '/chat/poll'}"
-        class="hidden"></div>
-    <meta name="_csrf" th:content="${_csrf.token}">
-    <meta name="_csrf_header" th:content="${_csrf.headerName}">
-
     <script>
-        function chatApp() {
-            const data = document.getElementById('js-data').dataset;
-            const csrf = document.querySelector('meta[name="_csrf"]').content;
-            const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-
-            return {
-                sidebarOpen: false,
-                newMessage: '',
-                lastMessageTime: '2020-01-01T00:00:00',
-                seenIds: new Set(),
-
-                init() {
-                    this.scrollToBottom(false);
-                    this.loadAllMessages();
-                    this.startPolling();
-                },
-
-                async loadAllMessages() {
-                    try {
-                        const resp = await fetch(`${data.pollUrl}?since=2020-01-01T00:00:00`);
-                        const messages = await resp.json();
-                        messages.forEach(msg => {
-                            this.seenIds.add(String(msg.id));
-                            const isOwn = msg.sender === data.currentUser;
-                            this.appendBubble(msg, isOwn);
-                            if (msg.sentAt > this.lastMessageTime) {
-                                this.lastMessageTime = msg.sentAt;
-                            }
-                        });
-                        this.scrollToBottom();
-                        setTimeout(() => {
-                            const loader = document.getElementById('chat-loader');
-                            if (loader) loader.classList.add('hidden-loader');
-                        }, 350);
-                    } catch (e) {
-                        console.error('Failed to load messages', e);
-                        setTimeout(() => {
-                            const loader = document.getElementById('chat-loader');
-                            if (loader) loader.classList.add('hidden-loader');
-                        }, 350);
-                    }
-                },
-
-                scrollToBottom(smooth = true) {
-                    const el = document.getElementById('chat-end');
-                    if (el) el.scrollIntoView({ behavior: smooth ? 'smooth' : 'instant' });
-                },
-
-                async sendMessage() {
-                    const content = this.newMessage.trim();
-                    if (!content) return;
-                    this.newMessage = '';
-                    document.getElementById('message-input').style.height = 'auto';
-
-                    const formData = new FormData();
-                    formData.append('content', content);
-
-                    try {
-                        const resp = await fetch(data.sendUrl, {
-                            method: 'POST',
-                            headers: { [csrfHeader]: csrf },
-                            body: formData
-                        });
-                        const msg = await resp.json();
-                        if (msg.success) {
-                            this.seenIds.add(String(msg.id)); // Mark as seen BEFORE poller runs
-                            this.appendBubble(msg, true);
-                            this.lastMessageTime = msg.sentAt;
-                            this.scrollToBottom();
-                        }
-                    } catch (e) { console.error('Send failed', e); }
-                },
-
-                appendBubble(msg, isOwn) {
-                    const container = document.getElementById('dynamic-messages');
-                    const wrapper = document.createElement('div');
-                    wrapper.className = isOwn ? 'flex justify-end items-end gap-2' : 'flex justify-start items-end gap-2';
-                    wrapper.dataset.msgId = String(msg.id);
-                    const time = new Date(msg.sentAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
-
-                    if (isOwn) {
-                        wrapper.innerHTML = `
-                            <div class="max-w-xs sm:max-w-md lg:max-w-lg">
-                                <p class="bubble-out px-4 py-2.5 text-sm leading-relaxed shadow-sm">${this.escHtml(msg.content)}</p>
-                                <p class="text-[10px] text-neutral-400 text-right mt-1 px-1">${time}</p>
-                            </div>`;
-                    } else {
-                        wrapper.innerHTML = `
-                            <div class="w-7 h-7 rounded-full bg-neutral-800 flex items-center justify-center text-[10px] font-bold text-white shrink-0 mb-5">A</div>
-                            <div class="max-w-xs sm:max-w-md lg:max-w-lg">
-                                <p class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1 ml-1">${this.escHtml(msg.sender)}</p>
-                                <p class="bubble-in px-4 py-2.5 text-sm leading-relaxed shadow-sm">${this.escHtml(msg.content)}</p>
-                                <p class="text-[10px] text-neutral-400 mt-1 px-1">${time}</p>
-                            </div>`;
-                    }
-                    container.appendChild(wrapper);
-                },
-
-                startPolling() {
-                    setInterval(async () => {
-                        try {
-                            const url = `${data.pollUrl}?since=${encodeURIComponent(this.lastMessageTime)}`;
-                            const resp = await fetch(url);
-                            const messages = await resp.json();
-                            let hasNew = false;
-                            messages.forEach(msg => {
-                                if (this.seenIds.has(String(msg.id))) return; // Skip duplicates
-                                this.seenIds.add(String(msg.id));
-                                const isOwn = msg.sender === data.currentUser;
-                                this.appendBubble(msg, isOwn);
-                                this.lastMessageTime = msg.sentAt;
-                                hasNew = true;
-                            });
-                            if (hasNew) this.scrollToBottom();
-                        } catch (e) { /* Silent */ }
-                    }, 3000);
-                },
-
-                escHtml(str) {
-                    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-                },
-
-                autoResize(event) {
-                    const el = event.target;
-                    el.style.height = 'auto';
-                    el.style.height = Math.min(el.scrollHeight, 128) + 'px';
-                }
-            };
-        }
+        document.getElementById('chat-end').scrollIntoView({ behavior: 'instant' });
     </script>
 </body>
-
 </html>

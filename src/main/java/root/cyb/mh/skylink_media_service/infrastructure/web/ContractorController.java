@@ -9,20 +9,21 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import root.cyb.mh.skylink_media_service.application.services.ChatService;
 import root.cyb.mh.skylink_media_service.application.services.PhotoService;
+import root.cyb.mh.skylink_media_service.domain.entities.Project;
 import root.cyb.mh.skylink_media_service.domain.entities.ProjectMessage;
 import root.cyb.mh.skylink_media_service.domain.entities.User;
 import root.cyb.mh.skylink_media_service.domain.entities.Contractor;
 import root.cyb.mh.skylink_media_service.domain.entities.ProjectAssignment;
+import root.cyb.mh.skylink_media_service.domain.entities.ProjectViewLog;
 import root.cyb.mh.skylink_media_service.domain.valueobjects.ImageCategory;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.UserRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectAssignmentRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectRepository;
+import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectViewLogRepository;
 import root.cyb.mh.skylink_media_service.application.usecases.OpenProjectUseCase;
 import root.cyb.mh.skylink_media_service.application.usecases.CompleteProjectUseCase;
 import root.cyb.mh.skylink_media_service.application.usecases.GetContractorProjectsUseCase;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +57,9 @@ public class ContractorController {
     @Autowired
     private ChatService chatService;
 
+    @Autowired
+    private ProjectViewLogRepository projectViewLogRepository;
+
     @GetMapping("/dashboard")
     public String dashboard(Model model, Authentication authentication,
             @RequestParam(required = false) String projectSearch) {
@@ -69,17 +73,25 @@ public class ContractorController {
                 assignments = projectAssignmentRepository.findByContractor(contractor);
             }
 
-            // Add photo counts for each assignment
             Map<Long, Long> photoCounts = new HashMap<>();
+            Map<Long, Long> unreadCounts = new HashMap<>();
             Map<Long, String> availableActions = getContractorProjectsUseCase.getAvailableActions(contractor);
 
             for (ProjectAssignment assignment : assignments) {
-                long photoCount = photoService.getProjectPhotos(assignment.getProject().getId()).size();
-                photoCounts.put(assignment.getProject().getId(), photoCount);
+                Project project = assignment.getProject();
+                photoCounts.put(project.getId(), (long) photoService.getProjectPhotos(project.getId()).size());
+
+                // Unread message count: messages since contractor last read this chat
+                Optional<ProjectViewLog> viewLog = projectViewLogRepository.findByProjectAndContractor(project, contractor);
+                long unread = viewLog
+                        .map(vl -> chatService.countUnreadMessages(project, vl.getChatLastReadAt(), contractor.getUsername()))
+                        .orElseGet(() -> chatService.countUnreadMessages(project, null, contractor.getUsername()));
+                unreadCounts.put(project.getId(), unread);
             }
 
             model.addAttribute("assignments", assignments);
             model.addAttribute("photoCounts", photoCounts);
+            model.addAttribute("unreadCounts", unreadCounts);
             model.addAttribute("availableActions", availableActions);
             model.addAttribute("projectSearch", projectSearch);
         }
@@ -176,9 +188,17 @@ public class ContractorController {
                             projectRepository.findById(projectId).orElse(null),
                             contractor);
             if (assignment.isPresent()) {
-                List<ProjectMessage> messages = chatService.getMessages(projectId);
-                model.addAttribute("project", assignment.get().getProject());
-                model.addAttribute("messages", messages);
+                Project project = assignment.get().getProject();
+
+                // Mark chat as read
+                ProjectViewLog viewLog = projectViewLogRepository
+                        .findByProjectAndContractor(project, contractor)
+                        .orElseGet(() -> new ProjectViewLog(project, contractor));
+                viewLog.recordChatRead();
+                projectViewLogRepository.save(viewLog);
+
+                model.addAttribute("project", project);
+                model.addAttribute("messages", chatService.getMessages(projectId));
                 model.addAttribute("currentUsername", authentication.getName());
                 return "contractor/project-chat";
             }
@@ -187,40 +207,22 @@ public class ContractorController {
     }
 
     @PostMapping("/project/{projectId}/chat/send")
-    @ResponseBody
-    public Map<String, Object> sendMessage(@PathVariable Long projectId,
+    public String sendMessage(@PathVariable Long projectId,
             @RequestParam String content,
-            Authentication authentication) {
-        Map<String, Object> response = new HashMap<>();
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
         try {
-            User sender = userRepository.findByUsername(authentication.getName()).orElseThrow();
-            ProjectMessage msg = chatService.sendMessage(projectId, sender, content.trim());
-            response.put("id", msg.getId());
-            response.put("content", msg.getContent());
-            response.put("sender", msg.getSender().getUsername());
-            response.put("sentAt", msg.getSentAt().toString());
-            response.put("success", true);
+            User user = userRepository.findByUsername(authentication.getName()).orElseThrow();
+            if (user instanceof Contractor contractor) {
+                // Verify assignment
+                projectAssignmentRepository.findByProjectAndContractor(
+                        projectRepository.findById(projectId).orElseThrow(),
+                        contractor).orElseThrow(() -> new RuntimeException("Not assigned to this project"));
+                chatService.sendMessage(projectId, user, content.trim());
+            }
         } catch (Exception e) {
-            response.put("success", false);
-            response.put("error", e.getMessage());
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        return response;
-    }
-
-    @GetMapping("/project/{projectId}/chat/poll")
-    @ResponseBody
-    public List<Map<String, Object>> pollMessages(@PathVariable Long projectId,
-            @RequestParam String since,
-            Authentication authentication) {
-        LocalDateTime sinceTime = LocalDateTime.parse(since, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        List<ProjectMessage> messages = chatService.getMessagesSince(projectId, sinceTime);
-        return messages.stream().map(msg -> {
-            Map<String, Object> m = new HashMap<>();
-            m.put("id", msg.getId());
-            m.put("content", msg.getContent());
-            m.put("sender", msg.getSender().getUsername());
-            m.put("sentAt", msg.getSentAt().toString());
-            return m;
-        }).toList();
+        return "redirect:/contractor/project/" + projectId + "/chat";
     }
 }

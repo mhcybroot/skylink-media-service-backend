@@ -733,11 +733,14 @@
                                                     </svg>
                                                 </a>
                                                 <a th:href="@{'/admin/project/' + ${project.id} + '/chat'}"
-                                                    title="Chat with Contractor"
-                                                    class="w-9 h-9 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg transition-colors shadow-sm flex items-center justify-center border border-indigo-100">
+                                                    title="Messages"
+                                                    class="relative w-9 h-9 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg transition-colors shadow-sm flex items-center justify-center border border-indigo-100">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                                                     </svg>
+                                                    <span th:if="${projectUnreadCounts[project.id] > 0}"
+                                                        th:text="${projectUnreadCounts[project.id]}"
+                                                        class="absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none"></span>
                                                 </a>
                                                 <button type="button" 
                                                     th:attr="data-project-id=${project.id},data-work-order=${project.workOrderNumber}"

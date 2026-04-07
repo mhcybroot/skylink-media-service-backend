@@ -23,9 +23,9 @@ import root.cyb.mh.skylink_media_service.domain.valueobjects.PaymentStatus;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ContractorRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.UserRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectRepository;
+import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectMessageRepository;
 import org.springframework.security.core.Authentication;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;import org.slf4j.LoggerFactory;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,7 +41,6 @@ import java.util.zip.ZipOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
-
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
@@ -81,6 +80,9 @@ public class AdminController {
     @Autowired
     private AuditLogService auditLogService;
 
+    @Autowired
+    private ProjectMessageRepository projectMessageRepository;
+
     @GetMapping("/dashboard")
     public String dashboard(Model model,
             @RequestParam(required = false) String projectSearch,
@@ -91,7 +93,8 @@ public class AdminController {
             @RequestParam(required = false) BigDecimal priceFrom,
             @RequestParam(required = false) BigDecimal priceTo,
             @RequestParam(required = false) Long contractorId,
-            @RequestParam(required = false) String contractorSearch) {
+            @RequestParam(required = false) String contractorSearch,
+            Authentication authentication) {
 
         logger.debug("Dashboard filter params - projectSearch: {}, status: {}, paymentStatus: {}, dueDateFrom: {}, dueDateTo: {}, priceFrom: {}, priceTo: {}, contractorId: {}",
                 projectSearch, status, paymentStatus, dueDateFrom, dueDateTo, priceFrom, priceTo, contractorId);
@@ -161,6 +164,18 @@ public class AdminController {
         model.addAttribute("contractorAvailability", contractorAvailability);
         model.addAttribute("projectAvailability", projectAvailability);
         model.addAttribute("isDevMode", devModeConfig.isDev());
+
+        // Unread message counts per project (messages sent by others, not the current admin)
+        Map<Long, Long> projectUnreadCounts = new HashMap<>();
+        String adminUsername = authentication.getName();
+        for (Project project : projects) {
+            long count = projectMessageRepository.countUnreadMessages(
+                    project,
+                    java.time.LocalDateTime.of(2000, 1, 1, 0, 0),
+                    adminUsername);
+            projectUnreadCounts.put(project.getId(), count);
+        }
+        model.addAttribute("projectUnreadCounts", projectUnreadCounts);
 
         return "admin/dashboard";
     }
@@ -562,39 +577,16 @@ public class AdminController {
     }
 
     @PostMapping("/project/{projectId}/chat/send")
-    @ResponseBody
-    public Map<String, Object> sendMessage(@PathVariable Long projectId,
+    public String sendMessage(@PathVariable Long projectId,
             @RequestParam String content,
-            Authentication authentication) {
-        Map<String, Object> response = new HashMap<>();
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
         try {
             User sender = userRepository.findByUsername(authentication.getName()).orElseThrow();
-            ProjectMessage msg = chatService.sendMessage(projectId, sender, content.trim());
-            response.put("id", msg.getId());
-            response.put("content", msg.getContent());
-            response.put("sender", msg.getSender().getUsername());
-            response.put("sentAt", msg.getSentAt().toString());
-            response.put("success", true);
+            chatService.sendMessage(projectId, sender, content.trim());
         } catch (Exception e) {
-            response.put("success", false);
-            response.put("error", e.getMessage());
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        return response;
-    }
-
-    @GetMapping("/project/{projectId}/chat/poll")
-    @ResponseBody
-    public List<Map<String, Object>> pollMessages(@PathVariable Long projectId,
-            @RequestParam String since) {
-        LocalDateTime sinceTime = LocalDateTime.parse(since, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        List<ProjectMessage> messages = chatService.getMessagesSince(projectId, sinceTime);
-        return messages.stream().map(msg -> {
-            Map<String, Object> m = new HashMap<>();
-            m.put("id", msg.getId());
-            m.put("content", msg.getContent());
-            m.put("sender", msg.getSender().getUsername());
-            m.put("sentAt", msg.getSentAt().toString());
-            return m;
-        }).toList();
+        return "redirect:/admin/project/" + projectId + "/chat";
     }
 }

@@ -37,9 +37,8 @@ public class ChatService {
     }
 
     @Transactional(readOnly = true)
-    public List<ProjectMessage> getMessagesSince(Long projectId, LocalDateTime since) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found: " + projectId));
-        return messageRepository.findByProjectAndSentAtAfterOrderBySentAtAsc(project, since);
+    public long countUnreadMessages(Project project, LocalDateTime since, String viewerUsername) {
+        if (since == null) return 0;
+        return messageRepository.countUnreadMessages(project, since, viewerUsername);
     }
 }

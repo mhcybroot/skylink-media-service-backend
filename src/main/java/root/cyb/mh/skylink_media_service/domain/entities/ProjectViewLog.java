@@ -26,9 +26,12 @@ public class ProjectViewLog {
     
     @Column(name = "view_count", nullable = false)
     private Integer viewCount = 1;
-    
+
+    @Column(name = "chat_last_read_at")
+    private LocalDateTime chatLastReadAt;
+
     protected ProjectViewLog() {}
-    
+
     public ProjectViewLog(Project project, Contractor contractor) {
         this.project = project;
         this.contractor = contractor;
@@ -36,12 +39,16 @@ public class ProjectViewLog {
         this.lastViewedAt = LocalDateTime.now();
         this.viewCount = 1;
     }
-    
+
     public void recordView() {
         this.lastViewedAt = LocalDateTime.now();
         this.viewCount++;
     }
-    
+
+    public void recordChatRead() {
+        this.chatLastReadAt = LocalDateTime.now();
+    }
+
     // Getters
     public Long getId() { return id; }
     public Project getProject() { return project; }
@@ -49,4 +56,6 @@ public class ProjectViewLog {
     public LocalDateTime getFirstViewedAt() { return firstViewedAt; }
     public LocalDateTime getLastViewedAt() { return lastViewedAt; }
     public Integer getViewCount() { return viewCount; }
+    public LocalDateTime getChatLastReadAt() { return chatLastReadAt; }
+    public void setChatLastReadAt(LocalDateTime chatLastReadAt) { this.chatLastReadAt = chatLastReadAt; }
 }
