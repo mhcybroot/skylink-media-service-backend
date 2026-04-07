@@ -66,10 +66,22 @@
                             
                             <div>
                                 <label for="workType" class="block text-sm font-medium text-gray-700">Work Type</label>
-                                <input type="text" id="workType" name="workType" 
-                                       th:value="${project.workType}"
-                                       placeholder="e.g., Grass Re-cut"
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
+                                <select id="workType" name="workType" 
+                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
+                                    <option value="">-- Select Work Type --</option>
+                                    <option value="Grass Re-cut" th:selected="${project.workType == 'Grass Re-cut'}">Grass Re-cut</option>
+                                    <option value="Initial Secure" th:selected="${project.workType == 'Initial Secure'}">Initial Secure</option>
+                                    <option value="Final Secure" th:selected="${project.workType == 'Final Secure'}">Final Secure</option>
+                                    <option value="Inspection" th:selected="${project.workType == 'Inspection'}">Inspection</option>
+                                    <option value="Property Preservation" th:selected="${project.workType == 'Property Preservation'}">Property Preservation</option>
+                                    <option value="Winterization" th:selected="${project.workType == 'Winterization'}">Winterization</option>
+                                    <option value="Debris Removal" th:selected="${project.workType == 'Debris Removal'}">Debris Removal</option>
+                                    <option value="Maintenance" th:selected="${project.workType == 'Maintenance'}">Maintenance</option>
+                                    <option value="Repair" th:selected="${project.workType == 'Repair'}">Repair</option>
+                                    <option value="Pool Maintenance" th:selected="${project.workType == 'Pool Maintenance'}">Pool Maintenance</option>
+                                    <option value="Eviction" th:selected="${project.workType == 'Eviction'}">Eviction</option>
+                                    <option value="Other" th:selected="${project.workType == 'Other'}">Other</option>
+                                </select>
                             </div>
                         </div>
                         

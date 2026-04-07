@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+.<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head>
@@ -471,10 +471,23 @@
                             <div>
                                 <label for="workType"
                                     class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
-                                    Work Type Indicator
+                                    Work Type
                                 </label>
-                                <input type="text" id="workType" name="workType" placeholder="e.g., Grass Re-cut"
-                                    class="saas-input">
+                                <select id="workType" name="workType" class="saas-input">
+                                    <option value="">-- Select Work Type --</option>
+                                    <option value="Grass Re-cut">Grass Re-cut</option>
+                                    <option value="Initial Secure">Initial Secure</option>
+                                    <option value="Final Secure">Final Secure</option>
+                                    <option value="Inspection">Inspection</option>
+                                    <option value="Property Preservation">Property Preservation</option>
+                                    <option value="Winterization">Winterization</option>
+                                    <option value="Debris Removal">Debris Removal</option>
+                                    <option value="Maintenance">Maintenance</option>
+                                    <option value="Repair">Repair</option>
+                                    <option value="Pool Maintenance">Pool Maintenance</option>
+                                    <option value="Eviction">Eviction</option>
+                                    <option value="Other">Other</option>
+                                </select>
                             </div>
 
                             <div class="col-span-1 md:col-span-2">
