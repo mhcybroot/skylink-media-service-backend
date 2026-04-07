@@ -598,15 +598,16 @@
             // Handle clicking anywhere on the card to select (except the image which opens modal)
             photoCards.forEach(function (card) {
                 card.addEventListener('click', function (e) {
-                    // Don't trigger if clicking the image or the checkbox itself
-                    if (e.target.tagName !== 'IMG' && e.target.type !== 'checkbox' && !e.target.closest('button')) {
-                        const checkbox = this.querySelector('.photo-checkbox');
-                        if (checkbox) {
-                            checkbox.checked = !checkbox.checked;
-                            // Trigger the change event manually
-                            const event = new Event('change');
-                            checkbox.dispatchEvent(event);
-                        }
+                    // Don't trigger if clicking the image
+                    if (e.target.tagName === 'IMG') return;
+                    // Don't trigger if clicking a button or link
+                    if (e.target.closest('button') || e.target.closest('a')) return;
+                    // Don't trigger manually if the native checkbox was clicked directly
+                    if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') return;
+                    
+                    const checkbox = this.querySelector('.photo-checkbox');
+                    if (checkbox) {
+                        checkbox.click();
                     }
                 });
             });
