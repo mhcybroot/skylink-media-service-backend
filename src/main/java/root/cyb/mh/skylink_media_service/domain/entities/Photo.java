@@ -2,6 +2,7 @@ package root.cyb.mh.skylink_media_service.domain.entities;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import root.cyb.mh.skylink_media_service.domain.valueobjects.ImageCategory;
 
 @Entity
 @Table(name = "photos")
@@ -42,6 +43,10 @@ public class Photo {
     
     @Column(columnDefinition = "TEXT", name = "metadata_json")
     private String metadataJson;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "image_category")
+    private ImageCategory imageCategory = ImageCategory.UNCATEGORIZED;
     
     @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)
@@ -116,4 +121,7 @@ public class Photo {
     
     public String getOptimizationStatus() { return optimizationStatus; }
     public void setOptimizationStatus(String optimizationStatus) { this.optimizationStatus = optimizationStatus; }
+    
+    public ImageCategory getImageCategory() { return imageCategory; }
+    public void setImageCategory(ImageCategory imageCategory) { this.imageCategory = imageCategory; }
 }

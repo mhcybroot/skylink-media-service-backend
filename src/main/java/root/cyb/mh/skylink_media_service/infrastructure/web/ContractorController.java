@@ -13,6 +13,7 @@ import root.cyb.mh.skylink_media_service.domain.entities.ProjectMessage;
 import root.cyb.mh.skylink_media_service.domain.entities.User;
 import root.cyb.mh.skylink_media_service.domain.entities.Contractor;
 import root.cyb.mh.skylink_media_service.domain.entities.ProjectAssignment;
+import root.cyb.mh.skylink_media_service.domain.valueobjects.ImageCategory;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.UserRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectAssignmentRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectRepository;
@@ -113,6 +114,7 @@ public class ContractorController {
     @PostMapping("/upload-photo/{projectId}")
     public String uploadPhoto(@PathVariable Long projectId,
             @RequestParam("files") MultipartFile[] files,
+            @RequestParam(value = "category", required = false, defaultValue = "UNCATEGORIZED") ImageCategory category,
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
         try {
@@ -120,7 +122,7 @@ public class ContractorController {
             if (user instanceof Contractor contractor) {
                 for (MultipartFile file : files) {
                     if (!file.isEmpty()) {
-                        photoService.uploadPhoto(file, projectId, contractor.getId());
+                        photoService.uploadPhoto(file, projectId, contractor.getId(), category);
                     }
                 }
                 redirectAttributes.addFlashAttribute("success", "Photos uploaded successfully");

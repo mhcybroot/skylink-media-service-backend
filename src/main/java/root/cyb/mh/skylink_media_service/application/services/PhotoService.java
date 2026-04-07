@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 import root.cyb.mh.skylink_media_service.domain.entities.Photo;
 import root.cyb.mh.skylink_media_service.domain.entities.Project;
 import root.cyb.mh.skylink_media_service.domain.entities.Contractor;
+import root.cyb.mh.skylink_media_service.domain.valueobjects.ImageCategory;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.PhotoRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ContractorRepository;
@@ -42,7 +43,7 @@ public class PhotoService {
     @Autowired
     private FileStorageService fileStorageService;
 
-    public Photo uploadPhoto(MultipartFile file, Long projectId, Long contractorId) throws IOException {
+    public Photo uploadPhoto(MultipartFile file, Long projectId, Long contractorId, ImageCategory category) throws IOException {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
 
@@ -53,7 +54,7 @@ public class PhotoService {
             throw new RuntimeException("File is empty");
         }
 
-        logger.info("Uploading photo for project {} by contractor {}", projectId, contractorId);
+        logger.info("Uploading photo for project {} by contractor {} with category {}", projectId, contractorId, category);
 
         FileStorageService.StorageResult result = fileStorageService.storeFile(file);
 
@@ -88,9 +89,10 @@ public class PhotoService {
         photo.setOptimizedAt(java.time.LocalDateTime.now());
         photo.setOptimizationStatus("COMPLETED");
         photo.setMetadataJson(metadataJson);
+        photo.setImageCategory(category != null ? category : ImageCategory.UNCATEGORIZED);
 
         Photo savedPhoto = photoRepository.save(photo);
-        logger.info("Photo saved with ID: {} (optimized)", savedPhoto.getId());
+        logger.info("Photo saved with ID: {} (optimized, category: {})", savedPhoto.getId(), savedPhoto.getImageCategory());
 
         return savedPhoto;
     }
