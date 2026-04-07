@@ -7,6 +7,8 @@
     <title>Edit Project - Project Manager</title>
     <link rel="manifest" href="/manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     
     <style>
         input, textarea, button {
@@ -164,14 +166,14 @@
                                 <label for="receivedDate" class="block text-sm font-medium text-gray-700">Received Date</label>
                                 <input type="date" id="receivedDate" name="receivedDate" 
                                        th:value="${project.receivedDate}"
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm date-input">
                             </div>
                             
                             <div>
                                 <label for="dueDate" class="block text-sm font-medium text-gray-700">Due Date</label>
                                 <input type="date" id="dueDate" name="dueDate" 
                                        th:value="${project.dueDate}"
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm">
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm date-input">
                             </div>
                         </div>
                     </div>
@@ -230,4 +232,13 @@
         </div>
     </div>
 </body>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr(".date-input", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "m-d-Y"
+        });
+    });
+</script>
 </html>

@@ -44,6 +44,10 @@
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
+    <!-- Flatpickr for unified date formatting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
     <style>
         [x-cloak] {
             display: none !important;
@@ -421,7 +425,7 @@
                                     class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
                                     Received Date
                                 </label>
-                                <input type="date" id="receivedDate" name="receivedDate" class="saas-input">
+                                <input type="date" id="receivedDate" name="receivedDate" class="saas-input date-input">
                             </div>
 
                             <div>
@@ -429,7 +433,7 @@
                                     class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
                                     Due Date
                                 </label>
-                                <input type="date" id="dueDate" name="dueDate" class="saas-input">
+                                <input type="date" id="dueDate" name="dueDate" class="saas-input date-input">
                             </div>
 
                             <div>
@@ -515,6 +519,15 @@
     </main>
 
     <script src="/js/pwa-register.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            flatpickr(".date-input", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "m-d-Y"
+            });
+        });
+    </script>
 </body>
 
 </html>

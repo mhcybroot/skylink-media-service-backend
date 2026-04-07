@@ -514,7 +514,7 @@
                                             th:text="${#numbers.formatDecimal(photo.fileSize / 1024.0, 1, 1)}"></span>
                                         KB</span>
                                     <span th:unless="${photo?.fileSize != null}">Unknown Size</span>
-                                    <span th:if="${photo?.uploadedAt != null}" th:text="${#temporals.format(photo.uploadedAt, 'MM/dd, HH:mm')}"></span>
+                                    <span th:if="${photo?.uploadedAt != null}" th:text="${#temporals.format(photo.uploadedAt, 'MM-dd-yyyy, HH:mm')}"></span>
                                     <span th:unless="${photo?.uploadedAt != null}">Unknown Date</span>
                                 </div>
                                 <div th:if="${photo.metadataJson != null}" class="mt-2 pt-2 border-t border-slate-100 text-left meta-container" th:data-meta="${photo.metadataJson}" th:data-src="@{'/uploads/' + ${photo.fileName}}" th:data-alt="${photo.originalName}"></div>

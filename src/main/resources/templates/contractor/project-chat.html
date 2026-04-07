@@ -234,7 +234,7 @@
                         <p class="bubble-out px-4 py-2.5 text-sm leading-relaxed shadow-sm" th:text="${msg.content}">
                         </p>
                         <p class="text-[10px] text-neutral-400 text-right mt-1 px-1"
-                            th:text="${#temporals.format(msg.sentAt, 'MMM d, HH:mm')}"></p>
+                            th:text="${#temporals.format(msg.sentAt, 'MM-dd-yyyy, HH:mm')}"></p>
                     </div>
                 </div>
                 <!-- INCOMING (left) -->
@@ -248,7 +248,7 @@
                             th:text="${msg.sender.username}"></p>
                         <p class="bubble-in px-4 py-2.5 text-sm leading-relaxed shadow-sm" th:text="${msg.content}"></p>
                         <p class="text-[10px] text-neutral-400 mt-1 px-1"
-                            th:text="${#temporals.format(msg.sentAt, 'MMM d, HH:mm')}"></p>
+                            th:text="${#temporals.format(msg.sentAt, 'MM-dd-yyyy, HH:mm')}"></p>
                     </div>
                 </div>
             </template>

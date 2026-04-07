@@ -409,7 +409,7 @@
                                 class="text-[10px] font-bold uppercase tracking-widest text-neutral-400 text-right whitespace-nowrap mt-1">
                                 Assigned<br>
                                 <span class="text-neutral-700"
-                                    th:text="${#temporals.format(assignment.assignedAt, 'MM/dd/yyyy')}"></span>
+                                    th:text="${#temporals.format(assignment.assignedAt, 'MM-dd-yyyy')}"></span>
                             </div>
                         </div>
 
@@ -476,7 +476,7 @@
                                 </p>
                                 <p class="text-sm font-medium text-neutral-700"
                                     th:if="${assignment.project.dueDate != null}"
-                                    th:text="${#temporals.format(assignment.project.dueDate, 'MMM dd, yyyy')}"></p>
+                                    th:text="${#temporals.format(assignment.project.dueDate, 'MM-dd-yyyy')}"></p>
                                 <p class="text-sm text-neutral-400 italic" th:if="${assignment.project.dueDate == null}">
                                     Not set</p>
                             </div>
