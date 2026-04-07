@@ -11,6 +11,7 @@ import root.cyb.mh.skylink_media_service.domain.entities.Project;
 import root.cyb.mh.skylink_media_service.domain.entities.Contractor;
 import root.cyb.mh.skylink_media_service.domain.entities.ProjectAssignment;
 import root.cyb.mh.skylink_media_service.domain.entities.Photo;
+import root.cyb.mh.skylink_media_service.domain.entities.User;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ContractorRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectAssignmentRepository;
@@ -24,6 +25,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @Service
 public class ProjectService {
@@ -48,9 +51,12 @@ public class ProjectService {
     @Autowired
     private ProjectMessageRepository projectMessageRepository;
     
+    @Autowired
+    private AuditLogService auditLogService;
+    
     public Project createProject(String workOrderNumber, String location, String clientCode, String description) {
         return createProject(workOrderNumber, location, clientCode, description, 
-                           null, null, null, null, null, null, null, null, null, null, null, null, null);
+                           null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
     
     public Project createProject(String workOrderNumber, String location, String clientCode, String description,
@@ -58,6 +64,17 @@ public class ProjectService {
                                String customer, String loanNumber, String loanType, String address,
                                LocalDate receivedDate, LocalDate dueDate, String assignedTo, String woAdmin,
                                java.math.BigDecimal invoicePrice) {
+        return createProject(workOrderNumber, location, clientCode, description,
+                           ppwNumber, workType, workDetails, clientCompany,
+                           customer, loanNumber, loanType, address,
+                           receivedDate, dueDate, assignedTo, woAdmin, invoicePrice, null);
+    }
+    
+    public Project createProject(String workOrderNumber, String location, String clientCode, String description,
+                               String ppwNumber, String workType, String workDetails, String clientCompany,
+                               String customer, String loanNumber, String loanType, String address,
+                               LocalDate receivedDate, LocalDate dueDate, String assignedTo, String woAdmin,
+                               java.math.BigDecimal invoicePrice, User createdBy) {
         if (projectRepository.existsByWorkOrderNumber(workOrderNumber)) {
             throw new RuntimeException("Work order number already exists");
         }
@@ -66,7 +83,15 @@ public class ProjectService {
                                     ppwNumber, workType, workDetails, clientCompany,
                                     customer, loanNumber, loanType, address,
                                     receivedDate, dueDate, assignedTo, woAdmin, invoicePrice);
-        return projectRepository.save(project);
+        project.setCreatedBy(createdBy);
+        project = projectRepository.save(project);
+        
+        // Log project creation
+        if (createdBy != null) {
+            auditLogService.logProjectCreated(project, createdBy);
+        }
+        
+        return project;
     }
     
     public List<Project> getAllProjects() {
@@ -79,6 +104,10 @@ public class ProjectService {
     }
     
     public ProjectAssignment assignContractorToProject(Long projectId, Long contractorId) {
+        return assignContractorToProject(projectId, contractorId, null);
+    }
+    
+    public ProjectAssignment assignContractorToProject(Long projectId, Long contractorId, User admin) {
         Project project = getProjectById(projectId);
         Contractor contractor = contractorRepository.findById(contractorId)
             .orElseThrow(() -> new RuntimeException("Contractor not found"));
@@ -119,6 +148,11 @@ public class ProjectService {
             project.setStatus(root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus.ASSIGNED);
             projectRepository.save(project);
         }
+        
+        // Log contractor assignment
+        if (admin != null) {
+            auditLogService.logContractorAssigned(project, contractor, admin);
+        }
             
         return assignment;
     }
@@ -128,6 +162,10 @@ public class ProjectService {
      * If this was the only active assignment, set project status back to UNASSIGNED.
      */
     public void unassignContractorFromProject(Long projectId, Long contractorId) {
+        unassignContractorFromProject(projectId, contractorId, null);
+    }
+    
+    public void unassignContractorFromProject(Long projectId, Long contractorId, User admin) {
         Project project = getProjectById(projectId);
         Contractor contractor = contractorRepository.findById(contractorId)
             .orElseThrow(() -> new RuntimeException("Contractor not found"));
@@ -146,6 +184,11 @@ public class ProjectService {
         if (!projectAssignmentRepository.hasActiveAssignment(project)) {
             project.setStatus(root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus.UNASSIGNED);
             projectRepository.save(project);
+        }
+        
+        // Log contractor unassignment
+        if (admin != null) {
+            auditLogService.logContractorUnassigned(project, contractor, admin);
         }
     }
     
@@ -167,19 +210,83 @@ public class ProjectService {
             .map(ProjectAssignment::getProject)
             .toList();
     }
-    
+        
     public Project updateProject(Long projectId, String workOrderNumber, String location, String clientCode, String description,
                                String ppwNumber, String workType, String workDetails, String clientCompany,
                                String customer, String loanNumber, String loanType, String address,
                                LocalDate receivedDate, LocalDate dueDate, String assignedTo, String woAdmin,
                                java.math.BigDecimal invoicePrice) {
+        return updateProject(projectId, workOrderNumber, location, clientCode, description,
+                           ppwNumber, workType, workDetails, clientCompany,
+                           customer, loanNumber, loanType, address,
+                           receivedDate, dueDate, assignedTo, woAdmin, invoicePrice, null);
+    }
+        
+    public Project updateProject(Long projectId, String workOrderNumber, String location, String clientCode, String description,
+                               String ppwNumber, String workType, String workDetails, String clientCompany,
+                               String customer, String loanNumber, String loanType, String address,
+                               LocalDate receivedDate, LocalDate dueDate, String assignedTo, String woAdmin,
+                               java.math.BigDecimal invoicePrice, User updatedBy) {
         Project existingProject = getProjectById(projectId);
-        
-        if (!existingProject.getWorkOrderNumber().equals(workOrderNumber) && 
-            projectRepository.existsByWorkOrderNumber(workOrderNumber)) {
-            throw new RuntimeException("Work order number already exists");
+            
+        // Track changes
+        Map<String, String> changes = new HashMap<>();
+            
+        if (!existingProject.getWorkOrderNumber().equals(workOrderNumber)) {
+            if (projectRepository.existsByWorkOrderNumber(workOrderNumber)) {
+                throw new RuntimeException("Work order number already exists");
+            }
+            changes.put("workOrderNumber", existingProject.getWorkOrderNumber() + " → " + workOrderNumber);
         }
-        
+        if (!java.util.Objects.equals(existingProject.getLocation(), location)) {
+            changes.put("location", existingProject.getLocation() + " → " + location);
+        }
+        if (!java.util.Objects.equals(existingProject.getClientCode(), clientCode)) {
+            changes.put("clientCode", existingProject.getClientCode() + " → " + clientCode);
+        }
+        if (!java.util.Objects.equals(existingProject.getDescription(), description)) {
+            changes.put("description", "changed");
+        }
+        if (!java.util.Objects.equals(existingProject.getPpwNumber(), ppwNumber)) {
+            changes.put("ppwNumber", existingProject.getPpwNumber() + " → " + ppwNumber);
+        }
+        if (!java.util.Objects.equals(existingProject.getWorkType(), workType)) {
+            changes.put("workType", existingProject.getWorkType() + " → " + workType);
+        }
+        if (!java.util.Objects.equals(existingProject.getWorkDetails(), workDetails)) {
+            changes.put("workDetails", "changed");
+        }
+        if (!java.util.Objects.equals(existingProject.getClientCompany(), clientCompany)) {
+            changes.put("clientCompany", existingProject.getClientCompany() + " → " + clientCompany);
+        }
+        if (!java.util.Objects.equals(existingProject.getCustomer(), customer)) {
+            changes.put("customer", existingProject.getCustomer() + " → " + customer);
+        }
+        if (!java.util.Objects.equals(existingProject.getLoanNumber(), loanNumber)) {
+            changes.put("loanNumber", existingProject.getLoanNumber() + " → " + loanNumber);
+        }
+        if (!java.util.Objects.equals(existingProject.getLoanType(), loanType)) {
+            changes.put("loanType", existingProject.getLoanType() + " → " + loanType);
+        }
+        if (!java.util.Objects.equals(existingProject.getAddress(), address)) {
+            changes.put("address", "changed");
+        }
+        if (!java.util.Objects.equals(existingProject.getReceivedDate(), receivedDate)) {
+            changes.put("receivedDate", String.valueOf(existingProject.getReceivedDate()) + " → " + String.valueOf(receivedDate));
+        }
+        if (!java.util.Objects.equals(existingProject.getDueDate(), dueDate)) {
+            changes.put("dueDate", String.valueOf(existingProject.getDueDate()) + " → " + String.valueOf(dueDate));
+        }
+        if (!java.util.Objects.equals(existingProject.getAssignedTo(), assignedTo)) {
+            changes.put("assignedTo", existingProject.getAssignedTo() + " → " + assignedTo);
+        }
+        if (!java.util.Objects.equals(existingProject.getWoAdmin(), woAdmin)) {
+            changes.put("woAdmin", existingProject.getWoAdmin() + " → " + woAdmin);
+        }
+        if (!java.util.Objects.equals(existingProject.getInvoicePrice(), invoicePrice)) {
+            changes.put("invoicePrice", String.valueOf(existingProject.getInvoicePrice()) + " → " + String.valueOf(invoicePrice));
+        }
+            
         existingProject.setWorkOrderNumber(workOrderNumber);
         existingProject.setLocation(location);
         existingProject.setClientCode(clientCode);
@@ -197,8 +304,15 @@ public class ProjectService {
         existingProject.setAssignedTo(assignedTo);
         existingProject.setWoAdmin(woAdmin);
         existingProject.setInvoicePrice(invoicePrice);
-        
-        return projectRepository.save(existingProject);
+            
+        Project savedProject = projectRepository.save(existingProject);
+            
+        // Log project update if there were changes and an admin was provided
+        if (!changes.isEmpty() && updatedBy != null) {
+            auditLogService.logProjectUpdated(savedProject, updatedBy, changes);
+        }
+            
+        return savedProject;
     }
     
     public List<Project> searchProjects(String searchTerm) {

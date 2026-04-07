@@ -9,6 +9,7 @@ import root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus;
 import root.cyb.mh.skylink_media_service.domain.valueobjects.PaymentStatus;
 import root.cyb.mh.skylink_media_service.domain.exceptions.InvalidStatusTransitionException;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectRepository;
+import root.cyb.mh.skylink_media_service.application.services.AuditLogService;
 
 @Service
 @Transactional
@@ -16,6 +17,9 @@ public class ChangeProjectStatusUseCase {
     
     @Autowired
     private ProjectRepository projectRepository;
+    
+    @Autowired
+    private AuditLogService auditLogService;
     
     /**
      * Change project status - validates that only admin-allowed transitions are performed.
@@ -37,19 +41,29 @@ public class ChangeProjectStatusUseCase {
             );
         }
         
+        String oldStatusName = currentStatus.name();
+        
         project.setStatus(newStatus);
         project.setStatusUpdatedAt(java.time.LocalDateTime.now());
         project.setStatusUpdatedBy(changedBy);
         projectRepository.save(project);
+        
+        // Log status change
+        auditLogService.logStatusChanged(project, oldStatusName, newStatus.name(), changedBy);
     }
     
     public void changePaymentStatus(Long projectId, PaymentStatus paymentStatus, User changedBy) {
         Project project = projectRepository.findById(projectId)
             .orElseThrow(() -> new RuntimeException("Project not found"));
         
+        String oldStatusName = project.getPaymentStatus().name();
+        
         project.setPaymentStatus(paymentStatus);
         project.setStatusUpdatedBy(changedBy);
         projectRepository.save(project);
+        
+        // Log payment status change
+        auditLogService.logPaymentStatusChanged(project, oldStatusName, paymentStatus.name(), changedBy);
     }
     
     public void assignContractorAndUpdateStatus(Long projectId, Long contractorId, User admin) {
@@ -57,10 +71,15 @@ public class ChangeProjectStatusUseCase {
             .orElseThrow(() -> new RuntimeException("Project not found"));
         
         if (project.getStatus() == ProjectStatus.UNASSIGNED) {
+            String oldStatusName = project.getStatus().name();
+            
             project.setStatus(ProjectStatus.ASSIGNED);
             project.setStatusUpdatedAt(java.time.LocalDateTime.now());
             project.setStatusUpdatedBy(admin);
             projectRepository.save(project);
+            
+            // Log status change
+            auditLogService.logStatusChanged(project, oldStatusName, ProjectStatus.ASSIGNED.name(), admin);
         }
     }
 }

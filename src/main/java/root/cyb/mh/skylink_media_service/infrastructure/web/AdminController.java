@@ -12,6 +12,7 @@ import root.cyb.mh.skylink_media_service.application.services.ProjectService;
 import root.cyb.mh.skylink_media_service.application.services.PhotoService;
 import root.cyb.mh.skylink_media_service.application.services.ChatService;
 import root.cyb.mh.skylink_media_service.application.services.ProjectExportService;
+import root.cyb.mh.skylink_media_service.application.services.AuditLogService;
 import root.cyb.mh.skylink_media_service.application.usecases.ChangeProjectStatusUseCase;
 import root.cyb.mh.skylink_media_service.domain.entities.Project;
 import root.cyb.mh.skylink_media_service.domain.entities.Contractor;
@@ -76,6 +77,9 @@ public class AdminController {
     
     @Autowired
     private root.cyb.mh.skylink_media_service.infrastructure.config.DevModeConfig devModeConfig;
+    
+    @Autowired
+    private AuditLogService auditLogService;
 
     @GetMapping("/dashboard")
     public String dashboard(Model model,
@@ -264,8 +268,13 @@ public class AdminController {
             @RequestParam(required = false) String assignedTo,
             @RequestParam(required = false) String woAdmin,
             @RequestParam(required = false) String invoicePrice,
+            Authentication authentication,
             RedirectAttributes redirectAttributes) {
         try {
+            // Get the authenticated admin user
+            User admin = userRepository.findByUsername(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Admin not found"));
+            
             java.time.LocalDate parsedReceivedDate = null;
             java.time.LocalDate parsedDueDate = null;
             java.math.BigDecimal parsedInvoicePrice = null;
@@ -286,7 +295,7 @@ public class AdminController {
             projectService.createProject(workOrderNumber, location, clientCode, description,
                     ppwNumber, workType, workDetails, clientCompany,
                     customer, loanNumber, loanType, address,
-                    parsedReceivedDate, parsedDueDate, assignedTo, woAdmin, parsedInvoicePrice);
+                    parsedReceivedDate, parsedDueDate, assignedTo, woAdmin, parsedInvoicePrice, admin);
             redirectAttributes.addFlashAttribute("success", "Project created successfully");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -314,9 +323,11 @@ public class AdminController {
 
     @PostMapping("/assign-contractor")
     public String assignContractor(@RequestParam Long projectId, @RequestParam Long contractorId,
-            RedirectAttributes redirectAttributes) {
+            Authentication authentication, RedirectAttributes redirectAttributes) {
         try {
-            projectService.assignContractorToProject(projectId, contractorId);
+            User admin = userRepository.findByUsername(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Admin not found"));
+            projectService.assignContractorToProject(projectId, contractorId, admin);
             redirectAttributes.addFlashAttribute("success", "Contractor assigned successfully");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -326,9 +337,11 @@ public class AdminController {
 
     @PostMapping("/unassign-contractor")
     public String unassignContractor(@RequestParam Long projectId, @RequestParam Long contractorId,
-            RedirectAttributes redirectAttributes) {
+            Authentication authentication, RedirectAttributes redirectAttributes) {
         try {
-            projectService.unassignContractorFromProject(projectId, contractorId);
+            User admin = userRepository.findByUsername(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Admin not found"));
+            projectService.unassignContractorFromProject(projectId, contractorId, admin);
             redirectAttributes.addFlashAttribute("success", "Contractor unassigned successfully");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -356,6 +369,17 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("error", "Failed to delete project: " + e.getMessage());
         }
         return "redirect:/admin/dashboard";
+    }
+
+    /**
+     * Get audit history for a project - returns JSON for modal display
+     */
+    @GetMapping("/project/{id}/history")
+    public String getProjectHistory(@PathVariable Long id, Model model) {
+        Project project = projectService.getProjectById(id);
+        model.addAttribute("project", project);
+        model.addAttribute("auditLogs", auditLogService.getAuditLogsForProject(id));
+        return "admin/project-history :: historyContent";
     }
 
     @GetMapping("/project/{id}/photos")
@@ -390,8 +414,13 @@ public class AdminController {
             @RequestParam(required = false) String assignedTo,
             @RequestParam(required = false) String woAdmin,
             @RequestParam(required = false) String invoicePrice,
+            Authentication authentication,
             RedirectAttributes redirectAttributes) {
         try {
+            // Get the authenticated admin user
+            User admin = userRepository.findByUsername(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Admin not found"));
+            
             java.time.LocalDate parsedReceivedDate = null;
             java.time.LocalDate parsedDueDate = null;
             java.math.BigDecimal parsedInvoicePrice = null;
@@ -412,7 +441,7 @@ public class AdminController {
             projectService.updateProject(id, workOrderNumber, location, clientCode, description,
                     ppwNumber, workType, workDetails, clientCompany,
                     customer, loanNumber, loanType, address,
-                    parsedReceivedDate, parsedDueDate, assignedTo, woAdmin, parsedInvoicePrice);
+                    parsedReceivedDate, parsedDueDate, assignedTo, woAdmin, parsedInvoicePrice, admin);
             redirectAttributes.addFlashAttribute("success", "Project updated successfully");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());

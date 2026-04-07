@@ -26,6 +26,10 @@ public class Project {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
+    @ManyToOne
+    @JoinColumn(name = "created_by")
+    private User createdBy;
+    
     // New optional fields
     @Column(name = "ppw_number")
     private String ppwNumber;
@@ -128,6 +132,9 @@ public class Project {
     
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    
+    public User getCreatedBy() { return createdBy; }
+    public void setCreatedBy(User createdBy) { this.createdBy = createdBy; }
     
     public List<ProjectAssignment> getAssignments() { return assignments; }
     public void setAssignments(List<ProjectAssignment> assignments) { this.assignments = assignments; }
