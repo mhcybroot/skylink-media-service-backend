@@ -13,6 +13,7 @@ import root.cyb.mh.skylink_media_service.application.services.PhotoService;
 import root.cyb.mh.skylink_media_service.application.services.ChatService;
 import root.cyb.mh.skylink_media_service.application.services.ProjectExportService;
 import root.cyb.mh.skylink_media_service.application.services.AuditLogService;
+import root.cyb.mh.skylink_media_service.application.services.EmailService;
 import root.cyb.mh.skylink_media_service.application.usecases.ChangeProjectStatusUseCase;
 import root.cyb.mh.skylink_media_service.domain.entities.Project;
 import root.cyb.mh.skylink_media_service.domain.entities.Contractor;
@@ -24,6 +25,8 @@ import root.cyb.mh.skylink_media_service.infrastructure.persistence.ContractorRe
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.UserRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectMessageRepository;
+import root.cyb.mh.skylink_media_service.infrastructure.persistence.AdminChatReadLogRepository;
+import root.cyb.mh.skylink_media_service.domain.entities.AdminChatReadLog;
 import org.springframework.security.core.Authentication;
 import org.slf4j.Logger;import org.slf4j.LoggerFactory;
 import jakarta.servlet.http.HttpServletResponse;
@@ -81,7 +84,13 @@ public class AdminController {
     private AuditLogService auditLogService;
 
     @Autowired
+    private EmailService emailService;
+
+    @Autowired
     private ProjectMessageRepository projectMessageRepository;
+
+    @Autowired
+    private AdminChatReadLogRepository adminChatReadLogRepository;
 
     @GetMapping("/dashboard")
     public String dashboard(Model model,
@@ -165,14 +174,16 @@ public class AdminController {
         model.addAttribute("projectAvailability", projectAvailability);
         model.addAttribute("isDevMode", devModeConfig.isDev());
 
-        // Unread message counts per project (messages sent by others, not the current admin)
+        // Unread message counts per project (messages from contractors since admin last read)
         Map<Long, Long> projectUnreadCounts = new HashMap<>();
         String adminUsername = authentication.getName();
         for (Project project : projects) {
-            long count = projectMessageRepository.countUnreadMessages(
-                    project,
-                    java.time.LocalDateTime.of(2000, 1, 1, 0, 0),
-                    adminUsername);
+            LocalDateTime lastRead = adminChatReadLogRepository
+                    .findByProjectAndAdminUsername(project, adminUsername)
+                    .map(AdminChatReadLog::getLastReadAt)
+                    .orElse(null);
+            long count = lastRead == null ? 0L
+                    : projectMessageRepository.countUnreadMessages(project, lastRead, adminUsername);
             projectUnreadCounts.put(project.getId(), count);
         }
         model.addAttribute("projectUnreadCounts", projectUnreadCounts);
@@ -326,9 +337,10 @@ public class AdminController {
     @PostMapping("/create-contractor")
     public String createContractor(@RequestParam String username, @RequestParam String password,
             @RequestParam String fullName,
+            @RequestParam(required = false) String email,
             RedirectAttributes redirectAttributes) {
         try {
-            userService.createContractor(username, password, fullName);
+            userService.createContractor(username, password, fullName, email);
             redirectAttributes.addFlashAttribute("success", "Contractor created successfully");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -569,10 +581,18 @@ public class AdminController {
         Project project = projectRepository.findById(projectId).orElse(null);
         if (project == null)
             return "redirect:/admin/dashboard";
-        List<ProjectMessage> messages = chatService.getMessages(projectId);
+
+        // Mark chat as read for this admin
+        String adminUsername = authentication.getName();
+        AdminChatReadLog readLog = adminChatReadLogRepository
+                .findByProjectAndAdminUsername(project, adminUsername)
+                .orElseGet(() -> new AdminChatReadLog(project, adminUsername));
+        readLog.markRead();
+        adminChatReadLogRepository.save(readLog);
+
         model.addAttribute("project", project);
-        model.addAttribute("messages", messages);
-        model.addAttribute("currentUsername", authentication.getName());
+        model.addAttribute("messages", chatService.getMessages(projectId));
+        model.addAttribute("currentUsername", adminUsername);
         return "admin/project-chat";
     }
 
@@ -584,6 +604,20 @@ public class AdminController {
         try {
             User sender = userRepository.findByUsername(authentication.getName()).orElseThrow();
             chatService.sendMessage(projectId, sender, content.trim());
+
+            // Email notification to all assigned contractors who have an email
+            Project project = projectRepository.findById(projectId).orElseThrow();
+            String chatUrl = "http://76.13.221.43:8085/contractor/project/" + projectId + "/chat";
+            projectService.getContractorsForProject(projectId).forEach(contractor -> {
+                if (contractor.getEmail() != null && !contractor.getEmail().isBlank()) {
+                    emailService.sendChatNotification(
+                            contractor.getEmail(),
+                            contractor.getFullName() != null ? contractor.getFullName() : contractor.getUsername(),
+                            project.getWorkOrderNumber(),
+                            content.trim(),
+                            chatUrl);
+                }
+            });
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }

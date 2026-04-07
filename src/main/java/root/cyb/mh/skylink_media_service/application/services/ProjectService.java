@@ -50,6 +50,9 @@ public class ProjectService {
     
     @Autowired
     private ProjectMessageRepository projectMessageRepository;
+
+    @Autowired
+    private root.cyb.mh.skylink_media_service.infrastructure.persistence.AdminChatReadLogRepository adminChatReadLogRepository;
     
     @Autowired
     private AuditLogService auditLogService;
@@ -385,6 +388,9 @@ public class ProjectService {
         
         // Delete project messages
         projectMessageRepository.deleteByProject(project);
+
+        // Delete admin chat read logs
+        adminChatReadLogRepository.deleteByProject(project);
         
         // Delete project assignments
         projectAssignmentRepository.deleteByProject(project);

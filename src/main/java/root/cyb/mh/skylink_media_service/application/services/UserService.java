@@ -35,12 +35,11 @@ public class UserService {
         return adminRepository.save(admin);
     }
     
-    public Contractor createContractor(String username, String password, String fullName) {
+    public Contractor createContractor(String username, String password, String fullName, String email) {
         if (userRepository.existsByUsername(username)) {
             throw new RuntimeException("Username already exists");
         }
-        
-        Contractor contractor = new Contractor(username, passwordEncoder.encode(password), fullName);
+        Contractor contractor = new Contractor(username, passwordEncoder.encode(password), fullName, email);
         return contractorRepository.save(contractor);
     }
     
