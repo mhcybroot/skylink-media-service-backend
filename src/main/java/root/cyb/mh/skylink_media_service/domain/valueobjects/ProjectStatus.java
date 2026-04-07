@@ -43,8 +43,9 @@ public enum ProjectStatus {
     }
 
     public boolean isAdminTransition(ProjectStatus newStatus) {
+        // Admins can only manually set INFIELD (for rework) or CLOSED (to finalize)
+        // from READY_TO_OFFICE status. All other transitions are automatic.
         return switch (this) {
-            case UNASSIGNED -> newStatus == ASSIGNED;
             case READY_TO_OFFICE -> newStatus == CLOSED || newStatus == INFIELD;
             default -> false;
         };

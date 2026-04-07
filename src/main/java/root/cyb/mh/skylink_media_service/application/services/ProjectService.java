@@ -59,13 +59,71 @@ public class ProjectService {
         Project project = getProjectById(projectId);
         Contractor contractor = contractorRepository.findById(contractorId)
             .orElseThrow(() -> new RuntimeException("Contractor not found"));
-        
+            
         if (projectAssignmentRepository.findByProjectAndContractor(project, contractor).isPresent()) {
             throw new RuntimeException("Contractor already assigned to this project");
         }
-        
+    
+        // Business Rule 1: One contractor can be assigned to maximum 4 active projects
+        long activeProjectCount = projectAssignmentRepository.countActiveAssignmentsByContractor(contractor);
+        if (activeProjectCount >= 4) {
+            throw new RuntimeException("Contractor '" + (contractor.getFullName() != null ? contractor.getFullName() : contractor.getUsername()) 
+                + "' already has " + activeProjectCount + " active projects. Maximum allowed is 4. "
+                + "Please complete some projects before assigning new ones.");
+        }
+            
+        // Business Rule 2: One project can only be handled by one contractor at a time
+        // Exception: CLOSED projects can have contractors assigned (for record-keeping/reactivation)
+        if (project.getStatus() != root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus.CLOSED) {
+            if (projectAssignmentRepository.hasActiveAssignment(project)) {
+                ProjectAssignment existingAssignment = projectAssignmentRepository.findActiveAssignmentByProject(project).orElse(null);
+                String assignedTo = existingAssignment != null && existingAssignment.getContractor() != null 
+                    ? (existingAssignment.getContractor().getFullName() != null 
+                        ? existingAssignment.getContractor().getFullName() 
+                        : existingAssignment.getContractor().getUsername())
+                    : "another contractor";
+                throw new RuntimeException("Project '" + project.getWorkOrderNumber() + "' is already assigned to " + assignedTo 
+                    + ". A project can only be assigned to one contractor at a time. "
+                    + "Please close or reassign the project first.");
+            }
+        }
+            
         ProjectAssignment assignment = new ProjectAssignment(project, contractor);
-        return projectAssignmentRepository.save(assignment);
+        assignment = projectAssignmentRepository.save(assignment);
+            
+        // Update project status from UNASSIGNED to ASSIGNED if applicable
+        if (project.getStatus() == root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus.UNASSIGNED) {
+            project.setStatus(root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus.ASSIGNED);
+            projectRepository.save(project);
+        }
+            
+        return assignment;
+    }
+    
+    /**
+     * Unassign a contractor from a project.
+     * If this was the only active assignment, set project status back to UNASSIGNED.
+     */
+    public void unassignContractorFromProject(Long projectId, Long contractorId) {
+        Project project = getProjectById(projectId);
+        Contractor contractor = contractorRepository.findById(contractorId)
+            .orElseThrow(() -> new RuntimeException("Contractor not found"));
+        
+        ProjectAssignment assignment = projectAssignmentRepository.findByProjectAndContractor(project, contractor)
+            .orElseThrow(() -> new RuntimeException("Contractor is not assigned to this project"));
+        
+        // Check if project is CLOSED - cannot unassign from closed projects
+        if (project.getStatus() == root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus.CLOSED) {
+            throw new RuntimeException("Cannot unassign contractor from a closed project");
+        }
+        
+        projectAssignmentRepository.delete(assignment);
+        
+        // If no more active assignments, set project status back to UNASSIGNED
+        if (!projectAssignmentRepository.hasActiveAssignment(project)) {
+            project.setStatus(root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus.UNASSIGNED);
+            projectRepository.save(project);
+        }
     }
     
     public List<ProjectAssignment> getProjectAssignments(Long projectId) {
@@ -134,5 +192,31 @@ public class ProjectService {
         
         Specification<Project> spec = ProjectSpecifications.buildSpecification(criteria);
         return projectRepository.findAll(spec);
+    }
+    
+    /**
+     * Get the count of active (non-CLOSED) projects for a contractor
+     */
+    public long getActiveProjectCount(Contractor contractor) {
+        return projectAssignmentRepository.countActiveAssignmentsByContractor(contractor);
+    }
+    
+    /**
+     * Check if a contractor can take more projects (has fewer than 4 active projects)
+     */
+    public boolean canContractorTakeMoreProjects(Contractor contractor) {
+        return getActiveProjectCount(contractor) < 4;
+    }
+    
+    /**
+     * Check if a project is available for assignment (not actively assigned to anyone).
+     * CLOSED projects are always available for assignment (for record-keeping/reactivation purposes).
+     */
+    public boolean isProjectAvailableForAssignment(Project project) {
+        // CLOSED projects can always have contractors assigned
+        if (project.getStatus() == root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus.CLOSED) {
+            return true;
+        }
+        return !projectAssignmentRepository.hasActiveAssignment(project);
     }
 }

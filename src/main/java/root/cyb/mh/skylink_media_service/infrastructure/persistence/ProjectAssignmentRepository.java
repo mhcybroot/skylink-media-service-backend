@@ -22,4 +22,22 @@ public interface ProjectAssignmentRepository extends JpaRepository<ProjectAssign
            "LOWER(pa.project.clientCode) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
            "LOWER(pa.project.description) LIKE LOWER(CONCAT('%', :searchTerm, '%')))")
     List<ProjectAssignment> searchAssignmentsByContractor(@Param("contractor") Contractor contractor, @Param("searchTerm") String searchTerm);
+    
+    /**
+     * Count active (non-CLOSED) project assignments for a contractor
+     */
+    @Query("SELECT COUNT(pa) FROM ProjectAssignment pa WHERE pa.contractor = :contractor AND pa.project.status != root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus.CLOSED")
+    long countActiveAssignmentsByContractor(@Param("contractor") Contractor contractor);
+    
+    /**
+     * Find active (non-CLOSED) project assignment for a project
+     */
+    @Query("SELECT pa FROM ProjectAssignment pa WHERE pa.project = :project AND pa.project.status != root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus.CLOSED")
+    Optional<ProjectAssignment> findActiveAssignmentByProject(@Param("project") Project project);
+    
+    /**
+     * Check if a project has any active (non-CLOSED) assignments
+     */
+    @Query("SELECT CASE WHEN COUNT(pa) > 0 THEN true ELSE false END FROM ProjectAssignment pa WHERE pa.project = :project AND pa.project.status != root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus.CLOSED")
+    boolean hasActiveAssignment(@Param("project") Project project);
 }

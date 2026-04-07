@@ -130,11 +130,29 @@ public class AdminController {
                 ? userService.searchContractors(contractorSearch)
                 : userService.getAllContractors();
 
+        // Build contractor availability map (for UI indicators)
+        Map<Long, Long> contractorActiveCounts = new HashMap<>();
+        Map<Long, Boolean> contractorAvailability = new HashMap<>();
+        for (Contractor contractor : contractors) {
+            long count = projectService.getActiveProjectCount(contractor);
+            contractorActiveCounts.put(contractor.getId(), count);
+            contractorAvailability.put(contractor.getId(), projectService.canContractorTakeMoreProjects(contractor));
+        }
+
+        // Build project availability map (for UI indicators)
+        Map<Long, Boolean> projectAvailability = new HashMap<>();
+        for (Project project : projects) {
+            projectAvailability.put(project.getId(), projectService.isProjectAvailableForAssignment(project));
+        }
+
         model.addAttribute("projects", projects);
         model.addAttribute("contractors", contractors);
         model.addAttribute("searchCriteria", criteria);
         model.addAttribute("allContractors", contractors);
         model.addAttribute("contractorSearch", contractorSearch);
+        model.addAttribute("contractorActiveCounts", contractorActiveCounts);
+        model.addAttribute("contractorAvailability", contractorAvailability);
+        model.addAttribute("projectAvailability", projectAvailability);
 
         return "admin/dashboard";
     }
@@ -296,6 +314,18 @@ public class AdminController {
         try {
             projectService.assignContractorToProject(projectId, contractorId);
             redirectAttributes.addFlashAttribute("success", "Contractor assigned successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin/dashboard";
+    }
+
+    @PostMapping("/unassign-contractor")
+    public String unassignContractor(@RequestParam Long projectId, @RequestParam Long contractorId,
+            RedirectAttributes redirectAttributes) {
+        try {
+            projectService.unassignContractorFromProject(projectId, contractorId);
+            redirectAttributes.addFlashAttribute("success", "Contractor unassigned successfully");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
