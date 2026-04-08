@@ -25,6 +25,7 @@ import root.cyb.mh.skylink_media_service.infrastructure.persistence.ContractorRe
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.UserRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectMessageRepository;
+import root.cyb.mh.skylink_media_service.infrastructure.persistence.AdminRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.AdminChatReadLogRepository;
 import root.cyb.mh.skylink_media_service.domain.entities.AdminChatReadLog;
 import org.springframework.security.core.Authentication;
@@ -88,6 +89,9 @@ public class AdminController {
 
     @Autowired
     private ProjectMessageRepository projectMessageRepository;
+
+    @Autowired
+    private AdminRepository adminRepository;
 
     @Autowired
     private AdminChatReadLogRepository adminChatReadLogRepository;
@@ -255,24 +259,42 @@ public class AdminController {
     }
 
     @GetMapping("/register-admin")
-    public String registerAdminForm() {
+    public String registerAdminForm(Model model, Authentication authentication) {
+        try {
+            model.addAttribute("currentAdmin", userService.getAdminByUsername(authentication.getName()));
+        } catch (Exception ignored) {}
         return "admin/register-admin";
     }
 
     @PostMapping("/register-admin")
     public String registerAdmin(@RequestParam String username, @RequestParam String password,
+            @RequestParam(required = false) String email,
             RedirectAttributes redirectAttributes) {
         try {
-            userService.createAdmin(username, password);
+            userService.createAdmin(username, password, email);
             redirectAttributes.addFlashAttribute("success", "Admin registered successfully");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/admin/dashboard";
+        return "redirect:/admin/register-admin";
+    }
+
+    @PostMapping("/update-email")
+    public String updateEmail(@RequestParam String email,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+        try {
+            userService.updateAdminEmail(authentication.getName(), email);
+            redirectAttributes.addFlashAttribute("emailSuccess", "Notification email updated successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("emailError", e.getMessage());
+        }
+        return "redirect:/admin/register-admin";
     }
 
     @GetMapping("/create-project")
-    public String createProjectForm() {
+    public String createProjectForm(Model model) {
+        model.addAttribute("allAdmins", adminRepository.findAll());
         return "admin/create-project";
     }
 
@@ -419,6 +441,7 @@ public class AdminController {
     @GetMapping("/edit-project/{id}")
     public String editProjectForm(@PathVariable Long id, Model model) {
         model.addAttribute("project", projectService.getProjectById(id));
+        model.addAttribute("allAdmins", adminRepository.findAll());
         return "admin/edit-project";
     }
 

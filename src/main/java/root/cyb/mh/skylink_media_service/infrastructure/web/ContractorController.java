@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import root.cyb.mh.skylink_media_service.application.services.ChatService;
+import root.cyb.mh.skylink_media_service.application.services.EmailService;
 import root.cyb.mh.skylink_media_service.application.services.PhotoService;
 import root.cyb.mh.skylink_media_service.domain.entities.Project;
 import root.cyb.mh.skylink_media_service.domain.entities.ProjectMessage;
@@ -20,6 +21,7 @@ import root.cyb.mh.skylink_media_service.infrastructure.persistence.UserReposito
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectAssignmentRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectRepository;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.ProjectViewLogRepository;
+import root.cyb.mh.skylink_media_service.infrastructure.persistence.AdminRepository;
 import root.cyb.mh.skylink_media_service.application.usecases.OpenProjectUseCase;
 import root.cyb.mh.skylink_media_service.application.usecases.CompleteProjectUseCase;
 import root.cyb.mh.skylink_media_service.application.usecases.GetContractorProjectsUseCase;
@@ -58,7 +60,13 @@ public class ContractorController {
     private ChatService chatService;
 
     @Autowired
+    private EmailService emailService;
+
+    @Autowired
     private ProjectViewLogRepository projectViewLogRepository;
+
+    @Autowired
+    private AdminRepository adminRepository;
 
     @GetMapping("/dashboard")
     public String dashboard(Model model, Authentication authentication,
@@ -214,11 +222,31 @@ public class ContractorController {
         try {
             User user = userRepository.findByUsername(authentication.getName()).orElseThrow();
             if (user instanceof Contractor contractor) {
-                // Verify assignment
                 projectAssignmentRepository.findByProjectAndContractor(
                         projectRepository.findById(projectId).orElseThrow(),
                         contractor).orElseThrow(() -> new RuntimeException("Not assigned to this project"));
                 chatService.sendMessage(projectId, user, content.trim());
+
+                // Email the WO Admin assigned to this project
+                String projectWO = projectRepository.findById(projectId)
+                        .map(p -> p.getWorkOrderNumber()).orElse(String.valueOf(projectId));
+                String woAdminUsername = projectRepository.findById(projectId)
+                        .map(p -> p.getWoAdmin()).orElse(null);
+                String chatUrl = "http://76.13.221.43:8085/admin/project/" + projectId + "/chat";
+                String senderName = contractor.getFullName() != null ? contractor.getFullName() : contractor.getUsername();
+
+                if (woAdminUsername != null && !woAdminUsername.isBlank()) {
+                    adminRepository.findByUsername(woAdminUsername).ifPresent(admin -> {
+                        if (admin.getEmail() != null && !admin.getEmail().isBlank()) {
+                            emailService.sendChatNotification(
+                                    admin.getEmail(),
+                                    senderName,
+                                    projectWO,
+                                    content.trim(),
+                                    chatUrl);
+                        }
+                    });
+                }
             }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());

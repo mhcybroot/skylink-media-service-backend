@@ -20,6 +20,9 @@ public abstract class User {
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "avatar_path")
+    private String avatarPath;
     
     @PrePersist
     protected void onCreate() {
@@ -46,6 +49,9 @@ public abstract class User {
     
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public String getAvatarPath() { return avatarPath; }
+    public void setAvatarPath(String avatarPath) { this.avatarPath = avatarPath; }
     
     public abstract String getRole();
 }

@@ -23,15 +23,35 @@ public class FileController {
         try {
             Path file = Paths.get(uploadDir).resolve(filename);
             Resource resource = new UrlResource(file.toUri());
-            
             if (resource.exists() || resource.isReadable()) {
+                String contentType = filename.endsWith(".webp") ? "image/webp"
+                        : filename.endsWith(".png") ? "image/png"
+                        : filename.endsWith(".gif") ? "image/gif" : "image/jpeg";
                 return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
-                    .header(HttpHeaders.CONTENT_TYPE, "image/webp")
+                    .header(HttpHeaders.CONTENT_TYPE, contentType)
                     .body(resource);
             } else {
                 return ResponseEntity.notFound().build();
             }
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/uploads/avatars/{filename:.+}")
+    public ResponseEntity<Resource> serveAvatar(@PathVariable String filename) {
+        try {
+            Path file = Paths.get(uploadDir).resolve("avatars").resolve(filename);
+            Resource resource = new UrlResource(file.toUri());
+            if (resource.exists() || resource.isReadable()) {
+                String contentType = filename.endsWith(".png") ? "image/png"
+                        : filename.endsWith(".gif") ? "image/gif" : "image/jpeg";
+                return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, contentType)
+                    .body(resource);
+            }
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }

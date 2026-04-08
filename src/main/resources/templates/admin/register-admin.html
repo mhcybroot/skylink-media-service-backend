@@ -316,6 +316,25 @@
                                         class="saas-input saas-input-with-icon font-mono text-lg tracking-widest pt-2.5 pb-2 focus:border-orange-400 focus:ring-orange-500/10">
                                 </div>
                             </div>
+
+                            <div>
+                                <label for="newAdminEmail"
+                                    class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                    Email Address
+                                    <span class="ml-1 text-[9px] font-bold text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded uppercase tracking-widest">Notifications</span>
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <input type="email" id="newAdminEmail" name="email" placeholder="admin@example.com"
+                                        class="saas-input saas-input-with-icon focus:border-orange-400 focus:ring-orange-500/10">
+                                </div>
+                                <p class="text-[10px] text-neutral-400 mt-2 font-medium">Admin will receive email notifications when a contractor sends a message.</p>
+                            </div>
                         </div>
                     </div>
 
@@ -329,6 +348,59 @@
                     </div>
 
                 </form>
+
+                <!-- My Notification Email Card -->
+                <div class="saas-card overflow-hidden border-indigo-100 mb-24">
+                    <div class="p-4 bg-indigo-50/50 border-b border-indigo-100/50">
+                        <h3 class="text-sm font-bold font-heading text-indigo-800 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            My Notification Email
+                        </h3>
+                        <p class="text-xs text-indigo-600 mt-1">You will receive an email when a contractor sends a message on any project.</p>
+                    </div>
+                    <div class="p-6 bg-white">
+
+                        <div th:if="${emailSuccess}"
+                            class="mb-4 p-3.5 rounded-lg bg-emerald-50 text-emerald-800 border-l-4 border-emerald-500 flex items-start text-sm font-medium">
+                            <svg class="w-5 h-5 text-emerald-600 mr-2.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span th:text="${emailSuccess}"></span>
+                        </div>
+                        <div th:if="${emailError}"
+                            class="mb-4 p-3.5 rounded-lg bg-red-50 text-red-800 border-l-4 border-red-500 flex items-start text-sm font-medium">
+                            <svg class="w-5 h-5 text-red-600 mr-2.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span th:text="${emailError}"></span>
+                        </div>
+
+                        <form th:action="@{/admin/update-email}" method="post" class="flex gap-3 items-end">
+                            <div class="flex-1">
+                                <label class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1.5">Your Email</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <input type="email" name="email" required
+                                        th:value="${currentAdmin?.email}"
+                                        placeholder="your@email.com"
+                                        class="saas-input saas-input-with-icon">
+                                </div>
+                            </div>
+                            <button type="submit"
+                                class="px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-lg text-sm hover:bg-indigo-700 transition-all shadow-sm border border-indigo-700 active:scale-[0.98] shrink-0">
+                                Save Email
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
 
         </div>
