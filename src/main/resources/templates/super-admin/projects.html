@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <th:block th:replace="~{fragments/super-admin-layout :: head(~{::title/text()})}"></th:block>
+    <title>All Projects - Super Admin | Skylink</title>
+</head>
+
+<body class="text-neutral-800 font-sans antialiased overflow-hidden flex h-screen" x-data="{ sidebarOpen: false }">
+
+    <!-- Mobile Backdrop -->
+    <div x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 z-40 bg-neutral-900/40 backdrop-blur-sm lg:hidden" @click="sidebarOpen = false" x-cloak></div>
+
+    <!-- Sidebar -->
+    <aside th:replace="~{fragments/super-admin-layout :: sidebar('projects')}"></aside>
+
+    <!-- Mobile Overlay -->
+    <th:block th:replace="~{fragments/super-admin-layout :: mobile-overlay}"></th:block>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Header -->
+        <header th:replace="~{fragments/super-admin-layout :: header('Projects', '/super-admin/projects')}"></header>
+
+        <!-- Main -->
+        <main class="flex-1 overflow-y-auto premium-scroll p-4 lg:p-6 bg-neutral-50">
+            <!-- Flash Messages -->
+            <th:block th:replace="~{fragments/super-admin-layout :: flash-messages}"></th:block>
+
+            <!-- Page Header -->
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-neutral-900 font-heading">All Projects</h1>
+                <p class="text-sm text-neutral-500 mt-1">View and manage all projects across the platform</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="saas-card p-4">
+                    <p class="text-xs font-medium text-neutral-500 uppercase tracking-wider">Total Projects</p>
+                    <p class="text-2xl font-bold text-neutral-900 mt-1" th:text="${#lists.size(projects)}">0</p>
+                </div>
+                <div class="saas-card p-4">
+                    <p class="text-xs font-medium text-neutral-500 uppercase tracking-wider">Active</p>
+                    <p class="text-2xl font-bold text-green-600 mt-1" th:text="${#lists.size(projects.?[status.name() != 'CLOSED'])}">0</p>
+                </div>
+                <div class="saas-card p-4">
+                    <p class="text-xs font-medium text-neutral-500 uppercase tracking-wider">Pending</p>
+                    <p class="text-2xl font-bold text-yellow-600 mt-1" th:text="${#lists.size(projects.?[status.name() == 'PENDING'])}">0</p>
+                </div>
+                <div class="saas-card p-4">
+                    <p class="text-xs font-medium text-neutral-500 uppercase tracking-wider">Contractors</p>
+                    <p class="text-2xl font-bold text-purple-600 mt-1" th:text="${#lists.size(contractors)}">0</p>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="saas-card p-4 mb-6">
+                <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-neutral-500 mb-1">Search</label>
+                        <input type="text" name="projectSearch" th:value="${searchCriteria.textSearch}" placeholder="Search projects..."
+                            class="saas-input px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-purple-500/20">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-neutral-500 mb-1">Status</label>
+                        <select name="status" class="saas-input px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-purple-500/20">
+                            <option value="">All Statuses</option>
+                            <option th:each="s : ${T(root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus).values()}" 
+                                    th:value="${s}" th:selected="${searchCriteria.status != null && searchCriteria.status == s}"
+                                    th:text="${s.displayName}">Status</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-neutral-500 mb-1">Payment Status</label>
+                        <select name="paymentStatus" class="saas-input px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-purple-500/20">
+                            <option value="">All Payment Statuses</option>
+                            <option th:each="ps : ${T(root.cyb.mh.skylink_media_service.domain.valueobjects.PaymentStatus).values()}" 
+                                    th:value="${ps}" th:selected="${searchCriteria.paymentStatus != null && searchCriteria.paymentStatus == ps}"
+                                    th:text="${ps.displayName}">Payment Status</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-neutral-500 mb-1">Contractor</label>
+                        <select name="contractorId" class="saas-input px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-purple-500/20">
+                            <option value="">All Contractors</option>
+                            <option th:each="c : ${contractors}" th:value="${c.id}" 
+                                    th:selected="${searchCriteria.assignedContractorId != null && searchCriteria.assignedContractorId == c.id}"
+                                    th:text="${c.fullName != null ? c.fullName : c.username}">Contractor</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-4 flex gap-2">
+                        <button type="submit" class="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors">
+                            Apply Filters
+                        </button>
+                        <a href="/super-admin/projects" class="px-4 py-2 bg-neutral-100 text-neutral-700 text-sm font-medium rounded-lg hover:bg-neutral-200 transition-colors">
+                            Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Projects Table -->
+            <div class="saas-card overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-neutral-50 border-b border-neutral-100">
+                            <tr>
+                                <th class="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Work Order</th>
+                                <th class="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Location</th>
+                                <th class="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider hidden md:table-cell">Client</th>
+                                <th class="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Status</th>
+                                <th class="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider hidden lg:table-cell">Contractors</th>
+                                <th class="text-left px-4 py-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-neutral-100">
+                            <tr th:each="project : ${projects}" class="hover:bg-neutral-50 transition-colors">
+                                <td class="px-4 py-3">
+                                    <a th:href="@{/super-admin/projects/{id}(id=${project.id})}" 
+                                       class="text-sm font-semibold text-purple-600 hover:text-purple-700" th:text="${project.workOrderNumber}">WO-001</a>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="text-sm text-neutral-700" th:text="${project.location}">Location</span>
+                                </td>
+                                <td class="px-4 py-3 hidden md:table-cell">
+                                    <span class="text-sm text-neutral-700" th:text="${project.clientCode}">Client</span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span th:switch="${project.status.name()}" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium">
+                                        <span th:case="'PENDING'" class="bg-yellow-100 text-yellow-800">Pending</span>
+                                        <span th:case="'IN_PROGRESS'" class="bg-blue-100 text-blue-800">In Progress</span>
+                                        <span th:case="'REVIEW'" class="bg-purple-100 text-purple-800">Review</span>
+                                        <span th:case="'COMPLETED'" class="bg-green-100 text-green-800">Completed</span>
+                                        <span th:case="'CLOSED'" class="bg-neutral-100 text-neutral-800">Closed</span>
+                                        <span th:case="*" class="bg-neutral-100 text-neutral-600" th:text="${project.status.displayName}">Status</span>
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 hidden lg:table-cell">
+                                    <div class="flex -space-x-2">
+                                        <div th:each="contractor, stat : ${project.assignedContractors}" 
+                                             th:if="${stat.index < 3}"
+                                             class="w-7 h-7 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 text-xs font-bold border-2 border-white"
+                                             th:text="${#strings.substring(contractor.fullName != null ? contractor.fullName : contractor.username, 0, 1).toUpperCase()}">C</div>
+                                        <div th:if="${#lists.size(project.assignedContractors) > 3}" 
+                                             class="w-7 h-7 rounded-full bg-neutral-200 flex items-center justify-center text-neutral-600 text-xs font-bold border-2 border-white"
+                                             th:text="${'+' + (#lists.size(project.assignedContractors) - 3)}">+2</div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center gap-2">
+                                        <a th:href="@{/super-admin/projects/{id}(id=${project.id})}" 
+                                           class="p-1.5 text-neutral-400 hover:text-purple-600 transition-colors" title="View">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                        </a>
+                                        <a th:href="@{/super-admin/projects/{id}/chat(id=${project.id})}" 
+                                           class="p-1.5 text-neutral-400 hover:text-blue-600 transition-colors relative" title="Chat">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                            </svg>
+                                            <span th:if="${projectUnreadCounts[project.id] > 0}" 
+                                                  class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center"
+                                                  th:text="${projectUnreadCounts[project.id]}">3</span>
+                                        </a>
+                                        <a th:href="@{/super-admin/projects/{id}/photos(id=${project.id})}" 
+                                           class="p-1.5 text-neutral-400 hover:text-green-600 transition-colors" title="Photos">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                            </svg>
+                                        </a>
+                                        <a th:href="@{/super-admin/projects/{id}/history(id=${project.id})}" 
+                                           class="p-1.5 text-neutral-400 hover:text-amber-600 transition-colors" title="History">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(projects)}">
+                                <td colspan="6" class="px-4 py-8 text-center text-neutral-500">
+                                    <p class="text-sm">No projects found</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

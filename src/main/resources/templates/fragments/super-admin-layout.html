@@ -165,6 +165,28 @@
         </a>
         
         <div class="pt-4 pb-2">
+            <p class="px-3 text-[10px] font-bold text-neutral-600 uppercase tracking-widest">Project Management</p>
+        </div>
+        
+        <a href="/super-admin/projects" 
+           th:classappend="${activePage == 'projects'} ? 'bg-[#1F2937] text-white' : 'hover:bg-[#1F2937]/50 hover:text-neutral-200'"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-sm transition-colors">
+            <svg class="w-5 h-5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+            All Projects
+        </a>
+        
+        <a href="/super-admin/create-project" 
+           th:classappend="${activePage == 'create-project'} ? 'bg-[#1F2937] text-white' : 'hover:bg-[#1F2937]/50 hover:text-neutral-200'"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-sm transition-colors">
+            <svg class="w-5 h-5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+            Create Project
+        </a>
+        
+        <div class="pt-4 pb-2">
             <p class="px-3 text-[10px] font-bold text-neutral-600 uppercase tracking-widest">Monitoring</p>
         </div>
         

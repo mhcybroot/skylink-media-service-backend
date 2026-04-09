@@ -113,7 +113,12 @@ public class SuperAdminController {
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            Model model) {
+            Model model,
+            Authentication authentication) {
+
+        // Get current user for sidebar
+        User currentUser = userRepository.findByUsername(authentication.getName()).orElseThrow();
+        model.addAttribute("currentUser", currentUser);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<User> users;
@@ -187,7 +192,9 @@ public class SuperAdminController {
     // ==================== Admin Creation ====================
 
     @GetMapping("/create-admin")
-    public String createAdminForm() {
+    public String createAdminForm(Model model, Authentication authentication) {
+        User currentUser = userRepository.findByUsername(authentication.getName()).orElseThrow();
+        model.addAttribute("currentUser", currentUser);
         return "super-admin/create-admin";
     }
 
@@ -216,7 +223,9 @@ public class SuperAdminController {
     }
 
     @GetMapping("/create-contractor")
-    public String createContractorForm() {
+    public String createContractorForm(Model model, Authentication authentication) {
+        User currentUser = userRepository.findByUsername(authentication.getName()).orElseThrow();
+        model.addAttribute("currentUser", currentUser);
         return "super-admin/create-contractor";
     }
 
@@ -246,7 +255,11 @@ public class SuperAdminController {
             @RequestParam(required = false) String targetType,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size,
-            Model model) {
+            Model model,
+            Authentication authentication) {
+
+        User currentUser = userRepository.findByUsername(authentication.getName()).orElseThrow();
+        model.addAttribute("currentUser", currentUser);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("timestamp").descending());
         Page<SystemAuditLog> logs;
@@ -277,7 +290,11 @@ public class SuperAdminController {
             @RequestParam(required = false) Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size,
-            Model model) {
+            Model model,
+            Authentication authentication) {
+
+        User currentUser = userRepository.findByUsername(authentication.getName()).orElseThrow();
+        model.addAttribute("currentUser", currentUser);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("loginTime").descending());
         Page<LoginAuditLog> logs = loginAuditLogRepository.findByFilters(userType, successful, userId, pageable);
@@ -293,7 +310,10 @@ public class SuperAdminController {
     // ==================== Live Monitor ====================
 
     @GetMapping("/live-monitor")
-    public String liveMonitor(Model model) {
+    public String liveMonitor(Model model, Authentication authentication) {
+        User currentUser = userRepository.findByUsername(authentication.getName()).orElseThrow();
+        model.addAttribute("currentUser", currentUser);
+
         List<UserPresenceService.UserPresence> activeUsers = userPresenceService.getActiveUsers();
         var usersByPage = userPresenceService.getUsersByPage();
 
@@ -310,6 +330,7 @@ public class SuperAdminController {
     public String profile(Model model, Authentication authentication) {
         User currentUser = userRepository.findByUsername(authentication.getName()).orElseThrow();
         model.addAttribute("user", currentUser);
+        model.addAttribute("currentUser", currentUser); // For sidebar fragment
         model.addAttribute("email", currentUser instanceof SuperAdmin sa ? sa.getEmail() : "");
         return "super-admin/profile";
     }

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <th:block th:replace="~{fragments/super-admin-layout :: head(~{::title/text()})}"></th:block>
+    <title th:text="'Photos — ' + ${project.workOrderNumber} + ' - Super Admin | Skylink'">Photos - Skylink</title>
+    <style>
+        .photo-card {
+            transition: all 0.2s ease;
+        }
+        .photo-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px -4px rgba(0,0,0,0.1);
+        }
+        .photo-checkbox:checked + .photo-overlay {
+            opacity: 1;
+        }
+        .photo-overlay {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .photo-card:hover .photo-overlay {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body class="text-neutral-800 font-sans antialiased overflow-hidden flex h-screen" x-data="{ sidebarOpen: false, selectAll: false, selectedPhotos: [] }">
+
+    <!-- Mobile Backdrop -->
+    <div x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 z-40 bg-neutral-900/40 backdrop-blur-sm lg:hidden" @click="sidebarOpen = false" x-cloak></div>
+
+    <!-- Sidebar -->
+    <aside th:replace="~{fragments/super-admin-layout :: sidebar('projects')}"></aside>
+
+    <!-- Mobile Overlay -->
+    <th:block th:replace="~{fragments/super-admin-layout :: mobile-overlay}"></th:block>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Header -->
+        <header class="h-16 bg-white border-b border-neutral-200 px-4 sm:px-6 flex items-center gap-4 shrink-0 shadow-sm z-20">
+            <button @click="sidebarOpen = true" class="p-1.5 -ml-2 rounded-md text-neutral-500 hover:bg-neutral-100 lg:hidden">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+            <a href="/super-admin/projects" class="text-neutral-400 hover:text-purple-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+            </a>
+            <div class="flex-1 min-w-0">
+                <h1 class="text-lg font-bold text-neutral-900 truncate font-heading" th:text="${project.workOrderNumber}">Project</h1>
+                <p class="text-xs text-neutral-500 truncate" th:text="${project.location}">Location</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-sm text-neutral-500" th:text="${#lists.size(photos) + ' photos'}">0 photos</span>
+                <a th:href="@{/super-admin/projects/{id}(id=${project.id})}" class="px-3 py-1.5 text-xs font-medium text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                    View Project
+                </a>
+            </div>
+        </header>
+
+        <!-- Main -->
+        <main class="flex-1 overflow-y-auto premium-scroll p-4 lg:p-6 bg-neutral-50">
+            <!-- Flash Messages -->
+            <div th:if="${success}" class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p class="text-sm text-green-700" th:text="${success}">Success message</p>
+            </div>
+            <div th:if="${error}" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p class="text-sm text-red-700" th:text="${error}">Error message</p>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="saas-card p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-semibold text-neutral-900">Project Photos</h2>
+                    <p class="text-sm text-neutral-500">View and download project photos</p>
+                </div>
+                <form th:if="${#lists.size(photos) > 0}" th:action="@{/admin/project/{id}/photos/download(id=${project.id})}" method="post">
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                    <div id="selectedPhotoIds" x-html="'<input type=\'hidden\' name=\'photoIds\' value=\'' + selectedPhotos.join(',') + '\'>'"></div>
+                    <button type="submit" class="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Download Selected
+                        <span x-show="selectedPhotos.length > 0" x-text="'(' + selectedPhotos.length + ')'" class="bg-white/20 px-1.5 py-0.5 rounded text-xs"></span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Photo Grid -->
+            <div th:if="${#lists.size(photos) > 0}" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                <div th:each="photo : ${photos}" class="photo-card saas-card overflow-hidden group">
+                    <div class="relative aspect-square">
+                        <!-- Photo Image -->
+                        <img th:if="${photo.webpPath != null}" 
+                             th:src="@{'/uploads/' + ${photo.webpPath}}" 
+                             alt="Project photo" 
+                             class="w-full h-full object-cover">
+                        <img th:unless="${photo.webpPath != null}" 
+                             th:src="@{'/uploads/' + ${photo.fileName}}" 
+                             alt="Project photo" 
+                             class="w-full h-full object-cover">
+                        
+                        <!-- Overlay -->
+                        <div class="photo-overlay absolute inset-0 bg-black/40 flex items-center justify-center">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" :value="${photo.id}" x-model="selectedPhotos" 
+                                       class="w-5 h-5 rounded border-white text-purple-600 focus:ring-purple-500">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="p-2">
+                        <p class="text-xs text-neutral-500 truncate" th:text="${#temporals.format(photo.uploadedAt, 'MMM dd, yyyy')}">Date</p>
+                        <p th:if="${photo.uploadedBy != null}" class="text-xs text-neutral-400 truncate" th:text="${'by ' + photo.uploadedBy.username}">Uploader</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${#lists.isEmpty(photos)}" class="saas-card p-12 text-center">
+                <div class="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <p class="text-neutral-500 font-medium">No photos uploaded</p>
+                <p class="text-sm text-neutral-400 mt-1">Photos will appear here when contractors upload them</p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

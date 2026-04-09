@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <th:block th:replace="~{fragments/super-admin-layout :: head(~{::title/text()})}"></th:block>
+    <title th:text="'Messages — ' + ${project.workOrderNumber} + ' - Super Admin | Skylink'">Messages - Skylink</title>
+    <style>
+        #chat-area {
+            background-color: #f0f2f5;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e5e7eb' fill-opacity='0.5'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .bubble-out {
+            background: #7c3aed; color: white;
+            border-radius: 18px 18px 4px 18px;
+        }
+        .bubble-in {
+            background: #ffffff; color: #1f2937;
+            border-radius: 18px 18px 18px 4px;
+            border: 1px solid #E5E7EB;
+        }
+        textarea:focus { outline: none; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); border-color: #8B5CF6; }
+    </style>
+</head>
+
+<body class="font-sans antialiased flex h-screen overflow-hidden text-neutral-800" x-data="{ sidebarOpen: false }">
+
+    <!-- Mobile Backdrop -->
+    <div x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 z-40 bg-neutral-900/40 backdrop-blur-sm lg:hidden" @click="sidebarOpen = false" x-cloak></div>
+
+    <!-- Sidebar -->
+    <aside th:replace="~{fragments/super-admin-layout :: sidebar('projects')}"></aside>
+
+    <!-- Mobile Overlay -->
+    <th:block th:replace="~{fragments/super-admin-layout :: mobile-overlay}"></th:block>
+
+    <!-- Main -->
+    <main class="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+
+        <!-- Topbar -->
+        <header class="h-16 bg-white border-b border-neutral-200 px-4 sm:px-6 flex items-center gap-4 shrink-0 shadow-sm z-20">
+            <button @click="sidebarOpen = true" class="p-1.5 -ml-2 rounded-md text-neutral-500 hover:bg-neutral-100 lg:hidden">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+            <a href="/super-admin/projects" class="text-neutral-400 hover:text-purple-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+            </a>
+            <div class="flex-1 min-w-0">
+                <h1 class="text-lg font-bold text-neutral-900 truncate font-heading" th:text="${project.workOrderNumber}">Project</h1>
+                <p class="text-xs text-neutral-500 truncate" th:text="${project.location}">Location</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <a th:href="@{/super-admin/projects/{id}(id=${project.id})}" class="px-3 py-1.5 text-xs font-medium text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                    View Project
+                </a>
+            </div>
+        </header>
+
+        <!-- Chat Area -->
+        <div id="chat-area" class="flex-1 overflow-y-auto premium-scroll px-4 py-6">
+            <div class="max-w-3xl mx-auto space-y-4">
+                <!-- Messages -->
+                <div th:each="msg : ${messages}" class="flex" th:classappend="${msg.sender.username == currentUsername} ? 'justify-end' : 'justify-start'">
+                    <div class="max-w-[75%]" th:classappend="${msg.sender.username == currentUsername} ? 'items-end' : 'items-start'">
+                        <!-- Sender info -->
+                        <div class="flex items-center gap-2 mb-1" th:classappend="${msg.sender.username == currentUsername} ? 'justify-end' : 'justify-start'">
+                            <div class="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 text-xs font-bold">
+                                <span th:text="${#strings.substring(msg.sender.username, 0, 1).toUpperCase()}">U</span>
+                            </div>
+                            <span class="text-xs text-neutral-500" th:text="${msg.sender.username}">Username</span>
+                            <span class="text-xs text-neutral-400" th:text="${#temporals.format(msg.timestamp, 'HH:mm')}">12:00</span>
+                        </div>
+                        <!-- Message bubble -->
+                        <div th:classappend="${msg.sender.username == currentUsername} ? 'bubble-out' : 'bubble-in'" class="px-4 py-2.5 text-sm whitespace-pre-wrap">
+                            <span th:text="${msg.content}">Message content</span>
+                        </div>
+                        <p class="text-[10px] text-neutral-400 mt-1" th:text="${#temporals.format(msg.timestamp, 'MMM dd, yyyy HH:mm')}">Date</p>
+                    </div>
+                </div>
+
+                <!-- Empty state -->
+                <div th:if="${#lists.isEmpty(messages)}" class="text-center py-12">
+                    <div class="w-16 h-16 rounded-full bg-neutral-200 flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                    </div>
+                    <p class="text-neutral-500 font-medium">No messages yet</p>
+                    <p class="text-sm text-neutral-400 mt-1">Send a message to start the conversation</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="bg-white border-t border-neutral-200 px-4 py-3">
+            <form th:action="@{/admin/project/{id}/chat/send(id=${project.id})}" method="post" class="max-w-3xl mx-auto">
+                <div class="flex items-end gap-3">
+                    <textarea name="content" rows="1" placeholder="Type a message..." required
+                        class="flex-1 resize-none rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm focus:border-purple-400 transition-colors"></textarea>
+                    <button type="submit" class="shrink-0 px-4 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors flex items-center gap-2 font-medium text-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                        </svg>
+                        Send
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

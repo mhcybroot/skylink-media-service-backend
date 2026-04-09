@@ -230,4 +230,87 @@ public class AuditLogService {
             logger.error("Failed to log contractor password change: {}", e.getMessage());
         }
     }
+    
+    /**
+     * Log a project viewed event
+     */
+    public void logProjectViewed(Project project, User user) {
+        try {
+            ProjectAuditLog auditLog = new ProjectAuditLog(
+                project,
+                ProjectAuditLog.ActionType.PROJECT_VIEWED,
+                user,
+                null,
+                null,
+                "Project viewed: " + project.getWorkOrderNumber()
+            );
+            auditLogRepository.save(auditLog);
+            logger.debug("Logged project view for project {} by user {}", project.getId(), user.getId());
+        } catch (Exception e) {
+            logger.error("Failed to log project view: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * Log a chat message sent event
+     */
+    public void logChatMessageSent(Project project, User user, String messagePreview) {
+        try {
+            String preview = messagePreview != null && messagePreview.length() > 50 
+                ? messagePreview.substring(0, 50) + "..." 
+                : messagePreview;
+            ProjectAuditLog auditLog = new ProjectAuditLog(
+                project,
+                ProjectAuditLog.ActionType.CHAT_MESSAGE_SENT,
+                user,
+                null,
+                null,
+                "Message sent: " + preview
+            );
+            auditLogRepository.save(auditLog);
+            logger.debug("Logged chat message sent for project {} by user {}", project.getId(), user.getId());
+        } catch (Exception e) {
+            logger.error("Failed to log chat message: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * Log a photos viewed event
+     */
+    public void logPhotosViewed(Project project, User user, int photoCount) {
+        try {
+            ProjectAuditLog auditLog = new ProjectAuditLog(
+                project,
+                ProjectAuditLog.ActionType.PHOTOS_VIEWED,
+                user,
+                null,
+                null,
+                "Viewed " + photoCount + " photos for project: " + project.getWorkOrderNumber()
+            );
+            auditLogRepository.save(auditLog);
+            logger.debug("Logged photos view for project {} by user {}", project.getId(), user.getId());
+        } catch (Exception e) {
+            logger.error("Failed to log photos view: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * Log a photos downloaded event
+     */
+    public void logPhotosDownloaded(Project project, User user, int photoCount) {
+        try {
+            ProjectAuditLog auditLog = new ProjectAuditLog(
+                project,
+                ProjectAuditLog.ActionType.PHOTOS_DOWNLOADED,
+                user,
+                null,
+                null,
+                "Downloaded " + photoCount + " photos from project: " + project.getWorkOrderNumber()
+            );
+            auditLogRepository.save(auditLog);
+            logger.debug("Logged photos download for project {} by user {}", project.getId(), user.getId());
+        } catch (Exception e) {
+            logger.error("Failed to log photos download: {}", e.getMessage());
+        }
+    }
 }

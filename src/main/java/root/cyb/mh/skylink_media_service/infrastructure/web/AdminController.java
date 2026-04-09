@@ -439,9 +439,20 @@ public class AdminController {
     }
 
     @GetMapping("/project/{id}/photos")
-    public String viewProjectPhotos(@PathVariable Long id, Model model) {
-        model.addAttribute("project", projectService.getProjectById(id));
-        model.addAttribute("photos", photoService.getProjectPhotos(id));
+    public String viewProjectPhotos(@PathVariable Long id, Model model, Authentication authentication) {
+        Project project = projectService.getProjectById(id);
+        model.addAttribute("project", project);
+        var photos = photoService.getProjectPhotos(id);
+        model.addAttribute("photos", photos);
+        
+        // Audit log for photos viewed
+        try {
+            User user = userRepository.findByUsername(authentication.getName()).orElseThrow();
+            auditLogService.logPhotosViewed(project, user, photos.size());
+        } catch (Exception e) {
+            logger.warn("Failed to log photos view: {}", e.getMessage());
+        }
+        
         return "admin/project-photos";
     }
 
@@ -543,7 +554,8 @@ public class AdminController {
     @PostMapping("/project/{id}/photos/download")
     public void downloadSelectedPhotos(@PathVariable Long id,
             @RequestParam(required = false) List<Long> photoIds,
-            HttpServletResponse response) throws IOException {
+            HttpServletResponse response,
+            Authentication authentication) throws IOException {
         if (photoIds == null || photoIds.isEmpty()) {
             response.sendRedirect("/admin/project/" + id + "/photos?error=No+photos+selected");
             return;
@@ -561,6 +573,14 @@ public class AdminController {
         if (selectedPhotos.isEmpty()) {
             response.sendRedirect("/admin/project/" + id + "/photos?error=No+valid+photos+found");
             return;
+        }
+        
+        // Audit log for photos downloaded
+        try {
+            User user = userRepository.findByUsername(authentication.getName()).orElseThrow();
+            auditLogService.logPhotosDownloaded(project, user, selectedPhotos.size());
+        } catch (Exception e) {
+            logger.warn("Failed to log photos download: {}", e.getMessage());
         }
 
         response.setContentType("application/zip");
@@ -637,6 +657,10 @@ public class AdminController {
 
             // Email notification to all assigned contractors who have an email
             Project project = projectRepository.findById(projectId).orElseThrow();
+            
+            // Audit log for chat message sent
+            auditLogService.logChatMessageSent(project, sender, content.trim());
+            
             String chatUrl = "http://76.13.221.43:8085/contractor/project/" + projectId + "/chat";
             String senderName = sender instanceof Admin admin 
                     ? (admin.getUsername() != null ? admin.getUsername() : "Admin")

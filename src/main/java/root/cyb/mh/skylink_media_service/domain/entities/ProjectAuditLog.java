@@ -18,11 +18,15 @@ public class ProjectAuditLog {
     public enum ActionType {
         PROJECT_CREATED("Project Created"),
         PROJECT_UPDATED("Project Updated"),
+        PROJECT_VIEWED("Project Viewed"),
         CONTRACTOR_ASSIGNED("Contractor Assigned"),
         CONTRACTOR_UNASSIGNED("Contractor Unassigned"),
         STATUS_CHANGED("Status Changed"),
         PAYMENT_STATUS_CHANGED("Payment Status Changed"),
         PROJECT_DELETED("Project Deleted"),
+        CHAT_MESSAGE_SENT("Chat Message Sent"),
+        PHOTOS_VIEWED("Photos Viewed"),
+        PHOTOS_DOWNLOADED("Photos Downloaded"),
         CONTRACTOR_UPDATED("Contractor Updated"),
         CONTRACTOR_PASSWORD_CHANGED("Contractor Password Changed");
         
