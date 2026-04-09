@@ -17,6 +17,7 @@ import root.cyb.mh.skylink_media_service.application.services.EmailService;
 import root.cyb.mh.skylink_media_service.application.usecases.ChangeProjectStatusUseCase;
 import root.cyb.mh.skylink_media_service.domain.entities.Project;
 import root.cyb.mh.skylink_media_service.domain.entities.Contractor;
+import root.cyb.mh.skylink_media_service.domain.entities.Admin;
 import root.cyb.mh.skylink_media_service.domain.entities.ProjectMessage;
 import root.cyb.mh.skylink_media_service.domain.entities.User;
 import root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus;
@@ -631,6 +632,9 @@ public class AdminController {
             // Email notification to all assigned contractors who have an email
             Project project = projectRepository.findById(projectId).orElseThrow();
             String chatUrl = "http://76.13.221.43:8085/contractor/project/" + projectId + "/chat";
+            String senderName = sender instanceof Admin admin 
+                    ? (admin.getUsername() != null ? admin.getUsername() : "Admin")
+                    : sender.getUsername();
             projectService.getContractorsForProject(projectId).forEach(contractor -> {
                 if (contractor.getEmail() != null && !contractor.getEmail().isBlank()) {
                     emailService.sendChatNotification(
@@ -638,7 +642,8 @@ public class AdminController {
                             contractor.getFullName() != null ? contractor.getFullName() : contractor.getUsername(),
                             project.getWorkOrderNumber(),
                             content.trim(),
-                            chatUrl);
+                            chatUrl,
+                            senderName);
                 }
             });
         } catch (Exception e) {

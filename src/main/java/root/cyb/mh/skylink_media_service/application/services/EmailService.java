@@ -27,9 +27,9 @@ public class EmailService {
     }
 
     @Async
-    public void sendChatNotification(String toEmail, String contractorName,
-                                     String workOrderNumber, String adminMessage,
-                                     String chatUrl) {
+    public void sendChatNotification(String toEmail, String recipientName,
+                                     String workOrderNumber, String message,
+                                     String chatUrl, String senderName) {
         if (toEmail == null || toEmail.isBlank()) return;
 
         try {
@@ -49,7 +49,7 @@ public class EmailService {
                       <div style="padding:32px;">
                         <p style="margin:0 0 8px;font-size:13px;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">New Message</p>
                         <h2 style="margin:0 0 24px;font-size:20px;font-weight:700;color:#111827;">WO# %s</h2>
-                        <p style="margin:0 0 8px;font-size:12px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Message from Admin</p>
+                        <p style="margin:0 0 8px;font-size:12px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Message from %s</p>
                         <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:16px 20px;margin-bottom:28px;">
                           <p style="margin:0;font-size:14px;color:#1F2937;line-height:1.6;">%s</p>
                         </div>
@@ -59,9 +59,9 @@ public class EmailService {
                         <p style="margin:0;font-size:11px;color:#9CA3AF;">You are receiving this because you are assigned to project WO# %s on Skylink Hub.</p>
                       </div>
                     </div>
-                    """.formatted(workOrderNumber, escapeHtml(adminMessage), chatUrl, workOrderNumber);
+                    """.formatted(workOrderNumber, escapeHtml(senderName), escapeHtml(message), chatUrl, workOrderNumber);
 
-            helper.setText(buildPlainText(workOrderNumber, adminMessage, chatUrl), html);
+            helper.setText(buildPlainText(workOrderNumber, message, chatUrl, senderName), html);
 
             mailSender.send(mime);
             logger.info("Chat notification sent to {} for project WO#{}", toEmail, workOrderNumber);
@@ -71,9 +71,9 @@ public class EmailService {
         }
     }
 
-    private String buildPlainText(String workOrderNumber, String message, String chatUrl) {
+    private String buildPlainText(String workOrderNumber, String message, String chatUrl, String senderName) {
         return "New message on project WO# " + workOrderNumber + "\n\n"
-                + "Message from Admin:\n" + message + "\n\n"
+                + "Message from " + senderName + ":\n" + message + "\n\n"
                 + "View conversation: " + chatUrl;
     }
 

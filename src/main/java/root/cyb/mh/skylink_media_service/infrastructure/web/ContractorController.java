@@ -240,10 +240,11 @@ public class ContractorController {
                         if (admin.getEmail() != null && !admin.getEmail().isBlank()) {
                             emailService.sendChatNotification(
                                     admin.getEmail(),
-                                    senderName,
+                                    admin.getUsername(),
                                     projectWO,
                                     content.trim(),
-                                    chatUrl);
+                                    chatUrl,
+                                    senderName);
                         }
                     });
                 }
