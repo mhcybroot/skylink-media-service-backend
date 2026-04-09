@@ -190,4 +190,44 @@ public class AuditLogService {
     public List<ProjectAuditLog> getAuditLogsForProject(Project project) {
         return auditLogRepository.findByProjectOrderByTimestampDesc(project);
     }
+    
+    /**
+     * Log a contractor update event (by admin)
+     */
+    public void logContractorUpdated(Long contractorId, User admin) {
+        try {
+            ProjectAuditLog auditLog = new ProjectAuditLog(
+                null, // No project associated
+                ProjectAuditLog.ActionType.CONTRACTOR_UPDATED,
+                admin,
+                null,
+                String.valueOf(contractorId),
+                "Contractor profile updated by admin"
+            );
+            auditLogRepository.save(auditLog);
+            logger.debug("Logged contractor update for contractor {}", contractorId);
+        } catch (Exception e) {
+            logger.error("Failed to log contractor update: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * Log a contractor password change event (by admin)
+     */
+    public void logContractorPasswordChanged(Long contractorId, User admin) {
+        try {
+            ProjectAuditLog auditLog = new ProjectAuditLog(
+                null,
+                ProjectAuditLog.ActionType.CONTRACTOR_PASSWORD_CHANGED,
+                admin,
+                null,
+                null,
+                "Contractor password changed by admin (ID: " + contractorId + ")"
+            );
+            auditLogRepository.save(auditLog);
+            logger.debug("Logged contractor password change for contractor {}", contractorId);
+        } catch (Exception e) {
+            logger.error("Failed to log contractor password change: {}", e.getMessage());
+        }
+    }
 }

@@ -22,7 +22,9 @@ public class ProjectAuditLog {
         CONTRACTOR_UNASSIGNED("Contractor Unassigned"),
         STATUS_CHANGED("Status Changed"),
         PAYMENT_STATUS_CHANGED("Payment Status Changed"),
-        PROJECT_DELETED("Project Deleted");
+        PROJECT_DELETED("Project Deleted"),
+        CONTRACTOR_UPDATED("Contractor Updated"),
+        CONTRACTOR_PASSWORD_CHANGED("Contractor Password Changed");
         
         private final String displayName;
         
@@ -40,7 +42,7 @@ public class ProjectAuditLog {
     private Long id;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", nullable = false)
+    @JoinColumn(name = "project_id", nullable = true)
     private Project project;
     
     @Column(name = "action_type", nullable = false)

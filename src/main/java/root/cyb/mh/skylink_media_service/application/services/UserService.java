@@ -85,4 +85,35 @@ public class UserService {
         }
         return contractorRepository.searchContractors(searchTerm.trim());
     }
+
+    public Contractor getContractorById(Long contractorId) {
+        return contractorRepository.findById(contractorId)
+                .orElseThrow(() -> new RuntimeException("Contractor not found"));
+    }
+
+    public Contractor updateContractor(Long contractorId, String fullName, String email) {
+        Contractor contractor = getContractorById(contractorId);
+        if (fullName != null && !fullName.trim().isEmpty()) {
+            contractor.setFullName(fullName.trim());
+        }
+        if (email != null) {
+            contractor.setEmail(email.trim().isEmpty() ? null : email.trim());
+        }
+        return contractorRepository.save(contractor);
+    }
+
+    public void adminChangeContractorPassword(Long contractorId, String newPassword) {
+        if (newPassword == null || newPassword.length() < 6) {
+            throw new RuntimeException("Password must be at least 6 characters");
+        }
+        Contractor contractor = getContractorById(contractorId);
+        contractor.setPassword(passwordEncoder.encode(newPassword));
+        contractorRepository.save(contractor);
+    }
+
+    public void adminUpdateContractorAvatar(Long contractorId, String avatarPath) {
+        Contractor contractor = getContractorById(contractorId);
+        contractor.setAvatarPath(avatarPath);
+        contractorRepository.save(contractor);
+    }
 }

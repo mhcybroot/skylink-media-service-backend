@@ -1,10 +1,12 @@
 package root.cyb.mh.skylink_media_service.infrastructure.web;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import root.cyb.mh.skylink_media_service.application.dto.ProjectSearchCriteria;
 import root.cyb.mh.skylink_media_service.application.services.UserService;
@@ -46,11 +48,15 @@ import java.util.zip.ZipOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
+import java.util.UUID;
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
 
     private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
+
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
 
     @Autowired
     private UserService userService;
@@ -650,5 +656,95 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/admin/project/" + projectId + "/chat";
+    }
+
+    // ── Contractor Management ─────────────────────────────────────────────────
+
+    @GetMapping("/contractors/{contractorId}/edit")
+    public String editContractorForm(@PathVariable Long contractorId, Model model) {
+        Contractor contractor = userService.getContractorById(contractorId);
+        model.addAttribute("contractor", contractor);
+        return "admin/edit-contractor";
+    }
+
+    @PostMapping("/contractors/{contractorId}/update")
+    public String updateContractor(@PathVariable Long contractorId,
+            @RequestParam(required = false) String fullName,
+            @RequestParam(required = false) String email,
+            @RequestParam(value = "avatar", required = false) MultipartFile avatar,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+        try {
+            User admin = userRepository.findByUsername(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Admin not found"));
+            
+            // Update profile info
+            userService.updateContractor(contractorId, fullName, email);
+            
+            // Handle avatar upload if provided
+            if (avatar != null && !avatar.isEmpty()) {
+                String avatarPath = saveContractorAvatar(avatar, contractorId);
+                userService.adminUpdateContractorAvatar(contractorId, avatarPath);
+            }
+            
+            // Log the action
+            auditLogService.logContractorUpdated(contractorId, admin);
+            
+            redirectAttributes.addFlashAttribute("success", "Contractor updated successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin/dashboard";
+    }
+
+    @PostMapping("/contractors/{contractorId}/change-password")
+    public String changeContractorPassword(@PathVariable Long contractorId,
+            @RequestParam String newPassword,
+            @RequestParam String confirmPassword,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+        try {
+            if (!newPassword.equals(confirmPassword)) {
+                throw new RuntimeException("Passwords do not match");
+            }
+            
+            User admin = userRepository.findByUsername(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Admin not found"));
+            
+            userService.adminChangeContractorPassword(contractorId, newPassword);
+            
+            // Log the password change
+            auditLogService.logContractorPasswordChanged(contractorId, admin);
+            
+            redirectAttributes.addFlashAttribute("passwordSuccess", "Password changed successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("passwordError", e.getMessage());
+        }
+        return "redirect:/admin/contractors/" + contractorId + "/edit";
+    }
+
+    private String saveContractorAvatar(MultipartFile avatar, Long contractorId) throws IOException {
+        if (avatar == null || avatar.isEmpty()) return null;
+
+        String contentType = avatar.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new RuntimeException("Only image files are allowed for avatar");
+        }
+        if (avatar.getSize() > 2 * 1024 * 1024) {
+            throw new RuntimeException("Avatar must be under 2MB");
+        }
+
+        Path avatarDir = Paths.get(uploadDir, "avatars");
+        Files.createDirectories(avatarDir);
+
+        String ext = avatar.getOriginalFilename() != null && avatar.getOriginalFilename().contains(".")
+                ? avatar.getOriginalFilename().substring(avatar.getOriginalFilename().lastIndexOf("."))
+                : ".jpg";
+        String filename = "avatar_contractor_" + contractorId + "_" + UUID.randomUUID().toString().substring(0, 8) + ext;
+        Path dest = avatarDir.resolve(filename);
+        Files.copy(avatar.getInputStream(), dest, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+        logger.info("Contractor avatar saved for ID {}: {}", contractorId, filename);
+        return "avatars/" + filename;
     }
 }
