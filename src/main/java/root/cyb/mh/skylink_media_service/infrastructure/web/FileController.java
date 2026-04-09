@@ -30,6 +30,9 @@ public class FileController {
                 return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
                     .header(HttpHeaders.CONTENT_TYPE, contentType)
+                    .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
+                    .header(HttpHeaders.PRAGMA, "no-cache")
+                    .header(HttpHeaders.EXPIRES, "0")
                     .body(resource);
             } else {
                 return ResponseEntity.notFound().build();
@@ -49,6 +52,9 @@ public class FileController {
                         : filename.endsWith(".gif") ? "image/gif" : "image/jpeg";
                 return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_TYPE, contentType)
+                    .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
+                    .header(HttpHeaders.PRAGMA, "no-cache")
+                    .header(HttpHeaders.EXPIRES, "0")
                     .body(resource);
             }
             return ResponseEntity.notFound().build();

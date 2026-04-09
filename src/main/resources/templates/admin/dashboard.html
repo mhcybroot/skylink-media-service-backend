@@ -972,10 +972,16 @@
                             <th:block th:each="contractor : ${contractors}">
                                 <div class="saas-card p-5 flex flex-col sm:flex-row gap-5 items-start">
                                     <!-- Avatar -->
-                                    <div
-                                        class="w-14 h-14 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-700 font-bold text-xl shrink-0 border border-indigo-100 shadow-inner font-heading">
-                                        <span
-                                            th:text="${contractor.fullName != null ? contractor.fullName.substring(0,1).toUpperCase() : contractor.username.substring(0,1).toUpperCase()}">C</span>
+                                    <div class="w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-indigo-100 shadow-inner">
+                                        <img th:if="${contractor.avatarPath != null}"
+                                             th:src="@{'/uploads/' + ${contractor.avatarPath}}"
+                                             class="w-full h-full object-cover"
+                                             alt="Contractor Avatar">
+                                        <div th:if="${contractor.avatarPath == null}"
+                                            class="w-full h-full bg-indigo-50 flex items-center justify-center text-indigo-700 font-bold text-xl font-heading">
+                                            <span
+                                                th:text="${contractor.fullName != null ? contractor.fullName.substring(0,1).toUpperCase() : contractor.username.substring(0,1).toUpperCase()}">C</span>
+                                        </div>
                                     </div>
 
                                     <div class="flex-1 min-w-0 w-full">
