@@ -1,68 +1,61 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Contractor - Super Admin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .saas-card { background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
-        .saas-input { width: 100%; background: #FAFAFA; border: 1px solid #E5E7EB; border-radius: 10px; padding: 0.75rem 1rem; color: #111827; font-size: 0.875rem; transition: all 0.2s; height: 48px; }
-        .saas-input:focus { background: #FFFFFF; border-color: #818CF8; outline: none; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
-    </style>
-</head>
-<body class="bg-gray-50 min-h-screen font-sans">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/super-admin-layout :: head('Create Contractor')}"></head>
+<body class="font-sans antialiased flex h-screen overflow-hidden text-neutral-800" x-data="{ sidebarOpen: false }">
 
-    <!-- Navigation -->
-    <nav class="bg-[#1f2937] text-white sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center gap-4">
-                    <a href="/super-admin/dashboard" class="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                        </svg>
-                    </a>
-                    <span class="text-xl font-bold font-heading">Create Contractor</span>
+    <!-- Mobile Overlay -->
+    <div th:replace="~{fragments/super-admin-layout :: mobile-overlay}"></div>
+
+    <!-- Sidebar -->
+    <aside th:replace="~{fragments/super-admin-layout :: sidebar('create-contractor')}"></aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+        
+        <!-- Header -->
+        <header th:replace="~{fragments/super-admin-layout :: header('Create Contractor', '/super-admin/create-contractor')}"></header>
+
+        <!-- Scrollable Content Area -->
+        <div class="flex-1 overflow-y-auto premium-scroll p-4 sm:p-8">
+            <div class="max-w-xl mx-auto space-y-6 pb-12">
+
+                <!-- Flash Messages -->
+                <div th:replace="~{fragments/super-admin-layout :: flash-messages}"></div>
+
+                <div class="saas-card p-6 sm:p-8">
+                    <form th:action="@{/super-admin/create-contractor}" method="post" class="space-y-5">
+                        <div>
+                            <label class="block text-[11px] font-bold text-neutral-500 uppercase tracking-wider mb-2">Username</label>
+                            <input type="text" name="username" required class="saas-input" placeholder="Enter username">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-neutral-500 uppercase tracking-wider mb-2">Password</label>
+                            <input type="password" name="password" required minlength="6" class="saas-input" placeholder="Enter password (min 6 characters)">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-neutral-500 uppercase tracking-wider mb-2">Full Name</label>
+                            <input type="text" name="fullName" required class="saas-input" placeholder="Enter full name">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-neutral-500 uppercase tracking-wider mb-2">Email (Optional)</label>
+                            <input type="email" name="email" class="saas-input" placeholder="contractor@example.com">
+                        </div>
+
+                        <div class="flex items-center justify-between pt-4 border-t border-neutral-100">
+                            <a href="/super-admin/users" class="px-4 py-2 text-xs font-medium text-neutral-600 hover:text-neutral-900 transition-colors">
+                                Cancel
+                            </a>
+                            <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
+                                Create Contractor
+                            </button>
+                        </div>
+                    </form>
                 </div>
+
             </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <main class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="saas-card p-8">
-            <form th:action="@{/super-admin/create-contractor}" method="post" class="space-y-6">
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Username</label>
-                    <input type="text" name="username" required class="saas-input" placeholder="Enter username">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Password</label>
-                    <input type="password" name="password" required minlength="6" class="saas-input" placeholder="Enter password">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Full Name</label>
-                    <input type="text" name="fullName" required class="saas-input" placeholder="Enter full name">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Email (Optional)</label>
-                    <input type="email" name="email" class="saas-input" placeholder="contractor@example.com">
-                </div>
-
-                <div class="flex items-center justify-between pt-4 border-t border-gray-100">
-                    <a href="/super-admin/users" class="px-6 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
-                        Cancel
-                    </a>
-                    <button type="submit" class="px-6 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
-                        Create Contractor
-                    </button>
-                </div>
-            </form>
         </div>
     </main>
 

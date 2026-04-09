@@ -1,85 +1,84 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audit Logs - Super Admin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .saas-card { background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
-    </style>
-</head>
-<body class="bg-gray-50 min-h-screen font-sans">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/super-admin-layout :: head('Audit Logs')}"></head>
+<body class="font-sans antialiased flex h-screen overflow-hidden text-neutral-800" x-data="{ sidebarOpen: false }">
 
-    <nav class="bg-[#1f2937] text-white sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center gap-4">
-                    <a href="/super-admin/dashboard" class="text-gray-400 hover:text-white">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                        </svg>
-                    </a>
-                    <span class="text-xl font-bold font-heading">Audit Logs</span>
+    <!-- Mobile Overlay -->
+    <div th:replace="~{fragments/super-admin-layout :: mobile-overlay}"></div>
+
+    <!-- Sidebar -->
+    <aside th:replace="~{fragments/super-admin-layout :: sidebar('audit-logs')}"></aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+        
+        <!-- Header -->
+        <header th:replace="~{fragments/super-admin-layout :: header('Audit Logs', '/super-admin/audit-logs')}"></header>
+
+        <!-- Scrollable Content Area -->
+        <div class="flex-1 overflow-y-auto premium-scroll p-4 sm:p-8">
+            <div class="max-w-7xl mx-auto space-y-6 pb-12">
+
+                <!-- Filters -->
+                <div class="saas-card p-4">
+                    <form method="get" class="flex flex-wrap gap-3 items-center">
+                        <select name="actionType" class="saas-input !w-auto !py-2.5 !px-4 text-sm">
+                            <option value="">All Actions</option>
+                            <option th:each="type : ${actionTypes}" th:value="${type.name()}" th:selected="${actionType == type.name()}" th:text="${type.displayName}">Type</option>
+                        </select>
+                        <select name="targetType" class="saas-input !w-auto !py-2.5 !px-4 text-sm">
+                            <option value="">All Targets</option>
+                            <option value="Admin" th:selected="${targetType == 'Admin'}">Admin</option>
+                            <option value="Contractor" th:selected="${targetType == 'Contractor'}">Contractor</option>
+                            <option value="SuperAdmin" th:selected="${targetType == 'SuperAdmin'}">SuperAdmin</option>
+                        </select>
+                        <button type="submit" class="px-4 py-2.5 bg-neutral-900 text-white text-xs font-semibold rounded-lg hover:bg-neutral-800 transition-colors">Filter</button>
+                        <a href="/super-admin/audit-logs" class="px-4 py-2.5 text-neutral-600 text-xs font-medium hover:text-neutral-900 transition-colors">Clear</a>
+                    </form>
                 </div>
+
+                <!-- Audit Logs Table -->
+                <div class="saas-card overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-neutral-200">
+                            <thead class="bg-neutral-50">
+                                <tr>
+                                    <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Timestamp</th>
+                                    <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Action</th>
+                                    <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider hidden sm:table-cell">Actor</th>
+                                    <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider hidden md:table-cell">Target</th>
+                                    <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider hidden lg:table-cell">Details</th>
+                                    <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider hidden xl:table-cell">IP</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-neutral-200">
+                                <tr th:each="log : ${logs}" class="hover:bg-neutral-50">
+                                    <td class="px-4 sm:px-6 py-4 text-sm text-neutral-500 whitespace-nowrap" th:text="${#temporals.format(log.timestamp, 'MM-dd HH:mm:ss')}">Time</td>
+                                    <td class="px-4 sm:px-6 py-4">
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full"
+                                              th:classappend="${log.actionType.name().contains('DELETE')} ? 'bg-red-100 text-red-800' : (${log.actionType.name().contains('BLOCK')} ? 'bg-amber-100 text-amber-800' : (${log.actionType.name().contains('LOGIN')} ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'))"
+                                              th:text="${log.actionType.displayName}">Action</span>
+                                    </td>
+                                    <td class="px-4 sm:px-6 py-4 text-sm text-neutral-900 hidden sm:table-cell" th:text="${log.actorUsername ?: 'System'}">Actor</td>
+                                    <td class="px-4 sm:px-6 py-4 text-sm text-neutral-500 hidden md:table-cell" th:text="${log.targetType + ' #' + log.targetId}">Target</td>
+                                    <td class="px-4 sm:px-6 py-4 text-sm text-neutral-500 max-w-xs truncate hidden lg:table-cell" th:text="${log.details}">Details</td>
+                                    <td class="px-4 sm:px-6 py-4 text-sm text-neutral-400 hidden xl:table-cell" th:text="${log.ipAddress}">IP</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div th:if="${logs.empty}" class="p-8 text-center text-neutral-400">No audit logs found</div>
+                </div>
+
+                <!-- Pagination -->
+                <div th:if="${logs.totalPages > 1}" class="flex justify-center gap-2">
+                    <a th:if="${logs.hasPrevious()}" th:href="@{/super-admin/audit-logs(page=${logs.number - 1}, actionType=${actionType}, targetType=${targetType})}" 
+                       class="px-4 py-2 border border-neutral-200 rounded-lg text-sm text-neutral-600 hover:bg-neutral-50 transition-colors">Previous</a>
+                    <a th:if="${logs.hasNext()}" th:href="@{/super-admin/audit-logs(page=${logs.number + 1}, actionType=${actionType}, targetType=${targetType})}" 
+                       class="px-4 py-2 border border-neutral-200 rounded-lg text-sm text-neutral-600 hover:bg-neutral-50 transition-colors">Next</a>
+                </div>
+
             </div>
-        </div>
-    </nav>
-
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Filters -->
-        <div class="saas-card p-4 mb-6">
-            <form method="get" class="flex flex-wrap gap-4 items-center">
-                <select name="actionType" class="px-4 py-2 border border-gray-200 rounded-lg text-sm">
-                    <option value="">All Actions</option>
-                    <option th:each="type : ${actionTypes}" th:value="${type.name()}" th:selected="${actionType == type.name()}" th:text="${type.displayName}">Type</option>
-                </select>
-                <select name="targetType" class="px-4 py-2 border border-gray-200 rounded-lg text-sm">
-                    <option value="">All Targets</option>
-                    <option value="Admin" th:selected="${targetType == 'Admin'}">Admin</option>
-                    <option value="Contractor" th:selected="${targetType == 'Contractor'}">Contractor</option>
-                    <option value="SuperAdmin" th:selected="${targetType == 'SuperAdmin'}">SuperAdmin</option>
-                </select>
-                <button type="submit" class="px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg">Filter</button>
-                <a href="/super-admin/audit-logs" class="text-gray-600 text-sm">Clear</a>
-            </form>
-        </div>
-
-        <div class="saas-card overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Timestamp</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actor</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Target</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Details</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">IP</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    <tr th:each="log : ${logs}">
-                        <td class="px-6 py-4 text-sm text-gray-500" th:text="${#temporals.format(log.timestamp, 'MM-dd HH:mm:ss')}">Time</td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full"
-                                  th:classappend="${log.actionType.name().contains('DELETE')} ? 'bg-red-100 text-red-800' : (${log.actionType.name().contains('BLOCK')} ? 'bg-amber-100 text-amber-800' : (${log.actionType.name().contains('LOGIN')} ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'))"
-                                  th:text="${log.actionType.displayName}">Action</span>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-900" th:text="${log.actorUsername ?: 'System'}">Actor</td>
-                        <td class="px-6 py-4 text-sm text-gray-500" th:text="${log.targetType + ' #' + log.targetId}">Target</td>
-                        <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" th:text="${log.details}">Details</td>
-                        <td class="px-6 py-4 text-sm text-gray-400" th:text="${log.ipAddress}">IP</td>
-                    </tr>
-                </tbody>
-            </table>
-            <div th:if="${logs.empty}" class="p-8 text-center text-gray-400">No audit logs found</div>
-        </div>
-
-        <!-- Pagination -->
-        <div th:if="${logs.totalPages > 1}" class="flex justify-center mt-6 gap-2">
-            <a th:if="${logs.hasPrevious()}" th:href="@{/super-admin/audit-logs(page=${logs.number - 1}, actionType=${actionType}, targetType=${targetType})}" class="px-4 py-2 border rounded-lg text-sm">Previous</a>
-            <a th:if="${logs.hasNext()}" th:href="@{/super-admin/audit-logs(page=${logs.number + 1}, actionType=${actionType}, targetType=${targetType})}" class="px-4 py-2 border rounded-lg text-sm">Next</a>
         </div>
     </main>
 
