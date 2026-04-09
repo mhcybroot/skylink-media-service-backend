@@ -31,6 +31,9 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     
+    @Autowired
+    private CustomLogoutHandler customLogoutHandler;
+    
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -46,8 +49,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/api/v1/auth/**","/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/api/v1/**").authenticated()
-                .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/uploads/**", "/thumbnails/**").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/uploads/**", "/thumbnails/**", "/ws/**").permitAll()
+                .requestMatchers("/super-admin/**").hasRole("SUPER_ADMIN")
+                .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                 .requestMatchers("/contractor/**").hasRole("CONTRACTOR")
                 .anyRequest().authenticated()
             )
@@ -60,7 +64,12 @@ public class SecurityConfig {
                 .permitAll()
             )
             .logout(logout -> logout
+                .logoutUrl("/logout")
+                .addLogoutHandler(customLogoutHandler)
                 .logoutSuccessUrl("/login?logout")
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .deleteCookies("JSESSIONID")
                 .permitAll()
             )
             .exceptionHandling(exception -> exception

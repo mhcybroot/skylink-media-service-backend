@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login History - Super Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .saas-card { background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans">
+
+    <nav class="bg-[#1f2937] text-white sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center gap-4">
+                    <a href="/super-admin/dashboard" class="text-gray-400 hover:text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                    </a>
+                    <span class="text-xl font-bold font-heading">Login History</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Filters -->
+        <div class="saas-card p-4 mb-6">
+            <form method="get" class="flex flex-wrap gap-4 items-center">
+                <select name="userType" class="px-4 py-2 border border-gray-200 rounded-lg text-sm">
+                    <option value="">All Types</option>
+                    <option value="ADMIN" th:selected="${userType == 'ADMIN'}">Admin</option>
+                    <option value="CONTRACTOR" th:selected="${userType == 'CONTRACTOR'}">Contractor</option>
+                    <option value="SUPER_ADMIN" th:selected="${userType == 'SUPER_ADMIN'}">Super Admin</option>
+                </select>
+                <select name="successful" class="px-4 py-2 border border-gray-200 rounded-lg text-sm">
+                    <option value="">All Status</option>
+                    <option value="true" th:selected="${successful == true}">Success</option>
+                    <option value="false" th:selected="${successful == false}">Failed</option>
+                </select>
+                <button type="submit" class="px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg">Filter</button>
+                <a href="/super-admin/login-history" class="text-gray-600 text-sm">Clear</a>
+            </form>
+        </div>
+
+        <div class="saas-card overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">IP Address</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User Agent</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <tr th:each="log : ${logs}">
+                        <td class="px-6 py-4 text-sm text-gray-500" th:text="${#temporals.format(log.loginTime, 'MM-dd HH:mm:ss')}">Time</td>
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900" th:text="${log.username}">Username</td>
+                        <td class="px-6 py-4 text-sm text-gray-500" th:text="${log.userType}">Type</td>
+                        <td class="px-6 py-4">
+                            <span th:if="${log.successful}" class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Success</span>
+                            <span th:unless="${log.successful}" class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Failed</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500" th:text="${log.ipAddress}">IP</td>
+                        <td class="px-6 py-4 text-sm text-gray-400 max-w-xs truncate" th:text="${log.userAgent}">Agent</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div th:if="${logs.empty}" class="p-8 text-center text-gray-400">No login history found</div>
+        </div>
+
+        <!-- Pagination -->
+        <div th:if="${logs.totalPages > 1}" class="flex justify-center mt-6 gap-2">
+            <a th:if="${logs.hasPrevious()}" th:href="@{/super-admin/login-history(page=${logs.number - 1}, userType=${userType}, successful=${successful})}" class="px-4 py-2 border rounded-lg text-sm">Previous</a>
+            <a th:if="${logs.hasNext()}" th:href="@{/super-admin/login-history(page=${logs.number + 1}, userType=${userType}, successful=${successful})}" class="px-4 py-2 border rounded-lg text-sm">Next</a>
+        </div>
+    </main>
+
+</body>
+</html>

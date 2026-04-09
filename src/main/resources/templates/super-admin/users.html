@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Super Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+        .saas-card { background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans">
+
+    <!-- Navigation -->
+    <nav class="bg-[#1f2937] text-white sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center gap-4">
+                    <a href="/super-admin/dashboard" class="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                    </a>
+                    <span class="text-xl font-bold font-heading">User Management</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <a href="/super-admin/create-admin" class="px-4 py-2 bg-purple-600 text-white text-sm font-semibold rounded-lg hover:bg-purple-700 transition-colors">
+                        Create Admin
+                    </a>
+                    <a href="/super-admin/create-contractor" class="px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 transition-colors">
+                        Create Contractor
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- Messages -->
+        <div th:if="${success}" class="mb-6 p-4 rounded-lg bg-green-50 text-green-800 border border-green-200">
+            <span th:text="${success}">Success</span>
+        </div>
+        <div th:if="${error}" class="mb-6 p-4 rounded-lg bg-red-50 text-red-800 border border-red-200">
+            <span th:text="${error}">Error</span>
+        </div>
+
+        <!-- Filters -->
+        <div class="saas-card p-4 mb-6">
+            <form method="get" class="flex flex-wrap gap-4 items-center">
+                <select name="userType" class="px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">All Types</option>
+                    <option value="ADMIN" th:selected="${userType == 'ADMIN'}">Admins</option>
+                    <option value="CONTRACTOR" th:selected="${userType == 'CONTRACTOR'}">Contractors</option>
+                    <option value="SUPER_ADMIN" th:selected="${userType == 'SUPER_ADMIN'}">Super Admins</option>
+                </select>
+                <button type="submit" class="px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition-colors">
+                    Filter
+                </button>
+                <a href="/super-admin/users" class="px-4 py-2 text-gray-600 text-sm font-medium hover:text-gray-900 transition-colors">
+                    Clear
+                </a>
+            </form>
+        </div>
+
+        <!-- Users Table -->
+        <div class="saas-card overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <tr th:each="user : ${users}">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm"
+                                     th:text="${user.username.substring(0,1).toUpperCase()}">U</div>
+                                <div class="ml-3">
+                                    <p class="text-sm font-medium text-gray-900" th:text="${user.username}">Username</p>
+                                    <p class="text-xs text-gray-500" th:if="${user instanceof T(root.cyb.mh.skylink_media_service.domain.entities.Contractor)}"
+                                       th:text="${user.fullName}">Full Name</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full"
+                                  th:classappend="${user.role == 'SUPER_ADMIN'} ? 'bg-purple-100 text-purple-800' : (${user.role == 'ADMIN'} ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-800')"
+                                  th:text="${user.role}">Type</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                            th:text="${#temporals.format(user.createdAt, 'MM-dd-yyyy')}">Date</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span th:if="${user.isBlocked != null and user.isBlocked}" class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Blocked</span>
+                            <span th:unless="${user.isBlocked != null and user.isBlocked}" class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <!-- Edit -->
+                            <a th:href="@{/super-admin/users/{id}/edit(id=${user.id})}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
+                            <!-- Block/Unblock -->
+                            <form th:if="${(user.isBlocked == null or !user.isBlocked) and user.role != 'SUPER_ADMIN'}" th:action="@{/super-admin/users/{id}/block(id=${user.id})}" method="post" class="inline" onsubmit="return confirm('Block this user?');">
+                                <button type="submit" class="text-amber-600 hover:text-amber-900 mr-3">Block</button>
+                            </form>
+                            <form th:if="${user.isBlocked != null and user.isBlocked}" th:action="@{/super-admin/users/{id}/unblock(id=${user.id})}" method="post" class="inline">
+                                <button type="submit" class="text-green-600 hover:text-green-900 mr-3">Unblock</button>
+                            </form>
+                            <!-- Delete -->
+                            <form th:if="${user.role != 'SUPER_ADMIN'}" th:action="@{/super-admin/users/{id}/delete(id=${user.id})}" method="post" class="inline" onsubmit="return confirm('Are you sure? This cannot be undone.');">
+                                <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div th:if="${users.empty}" class="p-8 text-center text-gray-400">
+                No users found
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div th:if="${users.totalPages > 1}" class="flex justify-center mt-6 gap-2">
+            <a th:if="${users.hasPrevious()}" th:href="@{/super-admin/users(page=${users.number - 1}, userType=${userType})}" 
+               class="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Previous</a>
+            <span th:each="i : ${#numbers.sequence(0, users.totalPages - 1)}"
+                  th:classappend="${i == users.number} ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
+                  class="px-4 py-2 border border-gray-200 rounded-lg text-sm cursor-pointer">
+                <a th:href="@{/super-admin/users(page=${i}, userType=${userType})}" th:text="${i + 1}">1</a>
+            </span>
+            <a th:if="${users.hasNext()}" th:href="@{/super-admin/users(page=${users.number + 1}, userType=${userType})}"
+               class="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Next</a>
+        </div>
+
+    </main>
+
+</body>
+</html>

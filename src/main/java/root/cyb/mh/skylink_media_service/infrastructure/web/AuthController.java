@@ -15,7 +15,9 @@ public class AuthController {
     
     @GetMapping("/dashboard")
     public String dashboard(Authentication authentication) {
-        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
+        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"))) {
+            return "redirect:/super-admin/dashboard";
+        } else if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
             return "redirect:/admin/dashboard";
         } else if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CONTRACTOR"))) {
             return "redirect:/contractor/dashboard";

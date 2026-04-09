@@ -23,6 +23,18 @@ public abstract class User {
 
     @Column(name = "avatar_path")
     private String avatarPath;
+
+    @Column(name = "is_blocked")
+    private Boolean isBlocked = false;
+
+    @Column(name = "blocked_at")
+    private LocalDateTime blockedAt;
+
+    @Column(name = "blocked_by_id")
+    private Long blockedById;
+
+    @Column(name = "block_reason")
+    private String blockReason;
     
     @PrePersist
     protected void onCreate() {
@@ -52,6 +64,18 @@ public abstract class User {
 
     public String getAvatarPath() { return avatarPath; }
     public void setAvatarPath(String avatarPath) { this.avatarPath = avatarPath; }
-    
+
+    public Boolean getIsBlocked() { return isBlocked; }
+    public void setIsBlocked(Boolean isBlocked) { this.isBlocked = isBlocked; }
+
+    public LocalDateTime getBlockedAt() { return blockedAt; }
+    public void setBlockedAt(LocalDateTime blockedAt) { this.blockedAt = blockedAt; }
+
+    public Long getBlockedById() { return blockedById; }
+    public void setBlockedById(Long blockedById) { this.blockedById = blockedById; }
+
+    public String getBlockReason() { return blockReason; }
+    public void setBlockReason(String blockReason) { this.blockReason = blockReason; }
+
     public abstract String getRole();
 }
