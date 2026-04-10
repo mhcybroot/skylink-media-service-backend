@@ -106,7 +106,20 @@
 </head>
 
 <body class="text-neutral-800 font-sans antialiased overflow-hidden flex h-screen"
-    x-data="{ sidebarOpen: false, activeTab: new URLSearchParams(window.location.search).get('tab') || 'projects' }">
+    x-data="{
+        sidebarOpen: false,
+        activeTab: new URLSearchParams(window.location.search).get('tab') || 'projects',
+        projectViewMode: localStorage.getItem('admin-project-view-mode') || 'grid',
+        contractorViewMode: localStorage.getItem('admin-contractor-view-mode') || 'grid',
+        setProjectViewMode(mode) {
+            this.projectViewMode = mode;
+            localStorage.setItem('admin-project-view-mode', mode);
+        },
+        setContractorViewMode(mode) {
+            this.contractorViewMode = mode;
+            localStorage.setItem('admin-contractor-view-mode', mode);
+        }
+    }">
 
     <!-- Mobile Backdrop -->
     <div x-show="sidebarOpen" x-transition.opacity
@@ -503,8 +516,29 @@
                             </form>
                         </div>
 
+                        <div class="mb-4 flex items-center justify-end">
+                            <div class="inline-flex rounded-lg border border-neutral-200 bg-white p-1 shadow-sm">
+                                <button type="button" @click="setProjectViewMode('grid')"
+                                    :class="projectViewMode === 'grid' ? 'bg-neutral-900 text-white shadow-sm' : 'text-neutral-600 hover:text-neutral-900'"
+                                    class="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h7v7H4V6zm9 0h7v7h-7V6zM4 15h7v5H4v-5zm9 0h7v5h-7v-5z"></path>
+                                    </svg>
+                                    Grid
+                                </button>
+                                <button type="button" @click="setProjectViewMode('list')"
+                                    :class="projectViewMode === 'list' ? 'bg-neutral-900 text-white shadow-sm' : 'text-neutral-600 hover:text-neutral-900'"
+                                    class="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                                    </svg>
+                                    List
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Projects Grid -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div x-show="projectViewMode === 'grid'" x-transition.opacity.duration.150ms class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <th:block th:each="project : ${projects}">
                                 <!-- High-Density Project Card -->
                                 <div class="saas-card flex flex-col h-full relative group hover:z-30">
@@ -941,6 +975,187 @@
                                 </div>
                             </th:block>
                         </div>
+
+                        <!-- Projects List -->
+                        <div x-show="projectViewMode === 'list'" x-transition.opacity.duration.150ms x-cloak class="saas-card overflow-hidden">
+                            <div class="overflow-x-auto premium-scroll">
+                                <table class="min-w-full divide-y divide-neutral-200">
+                                    <thead class="bg-neutral-50">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Project</th>
+                                            <th class="px-4 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider hidden lg:table-cell">Location</th>
+                                            <th class="px-4 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider hidden md:table-cell">Client</th>
+                                            <th class="px-4 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Status</th>
+                                            <th class="px-4 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider hidden xl:table-cell">Contractors</th>
+                                            <th class="px-4 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Controls</th>
+                                            <th class="px-4 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-neutral-100 bg-white">
+                                        <tr th:each="project : ${projects}" class="align-top hover:bg-neutral-50/80 transition-colors">
+                                            <td class="px-4 py-4">
+                                                <div class="space-y-1.5">
+                                                    <div class="flex items-center gap-2">
+                                                        <a th:href="@{'/admin/edit-project/' + ${project.id}}"
+                                                           class="font-bold text-neutral-900 hover:text-indigo-600 transition-colors"
+                                                           th:text="${project.workOrderNumber}">WO#</a>
+                                                        <span th:if="${projectUnreadCounts[project.id] > 0}"
+                                                              class="inline-flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white"
+                                                              th:text="${projectUnreadCounts[project.id]}">0</span>
+                                                    </div>
+                                                    <p class="text-xs text-neutral-500" th:if="${project.description}" th:text="${project.description}">Description</p>
+                                                    <p class="text-xs font-medium text-emerald-600" th:if="${project.invoicePrice}"
+                                                       th:text="'$' + ${#numbers.formatDecimal(project.invoicePrice, 1, 2)}">$0.00</p>
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-4 hidden lg:table-cell">
+                                                <div th:if="${!#strings.isEmpty(project.location)}" class="text-sm text-neutral-700">
+                                                    <a th:if="${#strings.startsWith(project.location, 'http')}"
+                                                       th:href="${project.location}" target="_blank" rel="noopener noreferrer"
+                                                       class="text-orange-600 hover:text-orange-700 hover:underline">Open Google Maps</a>
+                                                    <span th:unless="${#strings.startsWith(project.location, 'http')}" th:text="${project.location}">Location</span>
+                                                </div>
+                                                <span th:if="${#strings.isEmpty(project.location)}" class="text-sm text-neutral-400 italic">No Location</span>
+                                            </td>
+                                            <td class="px-4 py-4 hidden md:table-cell text-sm text-neutral-700" th:text="${project.clientCode}">Client</td>
+                                            <td class="px-4 py-4">
+                                                <div class="flex flex-col gap-2">
+                                                    <span th:class="${project.status?.badgeClasses + ' inline-flex w-fit px-2 py-0.5 text-[11px] font-bold uppercase tracking-widest rounded-md shadow-sm'}"
+                                                          class="inline-flex w-fit px-2 py-0.5 text-[11px] font-bold uppercase tracking-widest rounded-md shadow-sm">
+                                                        <span th:text="${project.status?.displayName != null ? project.status.displayName : 'Unknown'}"></span>
+                                                    </span>
+                                                    <span th:class="${project.paymentStatus?.badgeClasses + ' inline-flex w-fit px-2 py-0.5 text-[11px] font-bold uppercase tracking-widest rounded-md shadow-sm'}"
+                                                          class="inline-flex w-fit px-2 py-0.5 text-[11px] font-bold uppercase tracking-widest rounded-md shadow-sm">
+                                                        <span th:text="${project.paymentStatus?.displayName != null ? project.paymentStatus.displayName : 'Unknown'}"></span>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-4 hidden xl:table-cell">
+                                                <div class="flex flex-wrap gap-2">
+                                                    <span th:each="assignment : ${project.assignments}"
+                                                          class="inline-flex items-center gap-1.5 rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1 text-xs font-semibold text-neutral-700">
+                                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                                        <span th:text="${assignment.contractor.fullName != null ? assignment.contractor.fullName : assignment.contractor.username}">Contractor</span>
+                                                    </span>
+                                                    <span th:if="${#lists.isEmpty(project.assignments)}" class="text-xs text-neutral-400 italic">Unassigned</span>
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-4">
+                                                <div class="space-y-2 min-w-[180px]">
+                                                    <div x-data="{ open: false, filter: '' }" class="relative" :class="open ? 'z-50' : 'z-10'" @click.away="open = false">
+                                                        <button @click="open = !open" type="button"
+                                                            class="w-full flex items-center justify-between rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-bold text-neutral-700 shadow-sm transition-colors hover:border-indigo-400">
+                                                            <span class="truncate">Assign...</span>
+                                                            <svg class="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                            </svg>
+                                                        </button>
+                                                        <div x-show="open" x-transition.opacity.duration.150ms
+                                                            class="absolute left-0 top-full mt-1 w-[280px] overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-float"
+                                                            style="display: none;">
+                                                            <div class="border-b border-neutral-100 bg-neutral-50 p-2">
+                                                                <input x-model="filter" type="text" placeholder="Search contractors..."
+                                                                    class="w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs font-medium text-neutral-600 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+                                                            </div>
+                                                            <div th:if="${!projectAvailability.get(project.id)}" class="border-b border-amber-100 bg-amber-50 px-3 py-2">
+                                                                <p class="text-[10px] font-bold text-amber-700">Project already assigned</p>
+                                                            </div>
+                                                            <form th:action="@{/admin/assign-contractor}" method="post" class="max-h-52 overflow-y-auto premium-scroll py-1">
+                                                                <input type="hidden" name="projectId" th:value="${project.id}">
+                                                                <th:block th:each="contractor : ${contractors}">
+                                                                    <button type="submit" name="contractorId" th:value="${contractor.id}"
+                                                                        th:disabled="${!contractorAvailability.get(contractor.id) or !projectAvailability.get(project.id)}"
+                                                                        x-show="'[[${contractor.fullName != null ? contractor.fullName : ''}]] [[${contractor.username}]]'.toLowerCase().includes(filter.toLowerCase())"
+                                                                        th:class="${!contractorAvailability.get(contractor.id) or !projectAvailability.get(project.id) ? 'w-full cursor-not-allowed bg-neutral-50 px-3 py-2 text-left text-xs font-semibold text-neutral-400' : 'w-full px-3 py-2 text-left text-xs font-semibold text-neutral-700 transition-colors hover:bg-indigo-50 hover:text-indigo-700'}">
+                                                                        <span th:text="${contractor.fullName != null ? contractor.fullName + ' (@' + contractor.username + ')' : '@' + contractor.username}">Contractor</span>
+                                                                        <span class="block text-[9px]" th:text="${contractorActiveCounts.get(contractor.id) + '/4 active'}">0/4 active</span>
+                                                                    </button>
+                                                                </th:block>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex gap-2">
+                                                        <div x-data="{ open: false }" class="relative flex-1" :class="open ? 'z-50' : 'z-10'" @click.away="open = false">
+                                                            <button @click="open = !open" type="button"
+                                                                class="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-neutral-700 shadow-sm transition-colors hover:border-indigo-300"
+                                                                th:classappend="${project.status?.name() == 'READY_TO_OFFICE' ? '' : ' opacity-60 cursor-not-allowed hover:!border-neutral-200'}"
+                                                                th:disabled="${project.status?.name() != 'READY_TO_OFFICE'}">Status</button>
+                                                            <div x-show="open" x-transition.opacity.duration.150ms
+                                                                class="absolute left-0 top-full mt-1 w-40 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-float"
+                                                                style="display: none;">
+                                                                <form th:action="@{'/admin/change-status/' + ${project.id}}" method="post" class="p-1.5">
+                                                                    <button type="submit" name="status" value="INFIELD"
+                                                                        class="w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-orange-700 transition-colors hover:bg-orange-50">Rework</button>
+                                                                    <button type="submit" name="status" value="CLOSED"
+                                                                        class="w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-50">Finalize</button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                        <div x-data="{ open: false }" class="relative flex-1" :class="open ? 'z-50' : 'z-10'" @click.away="open = false">
+                                                            <button @click="open = !open" type="button"
+                                                                class="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-neutral-700 shadow-sm transition-colors hover:border-emerald-300">Payment</button>
+                                                            <div x-show="open" x-transition.opacity.duration.150ms
+                                                                class="absolute left-0 top-full mt-1 w-40 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-float"
+                                                                style="display: none;">
+                                                                <form th:action="@{'/admin/change-payment-status/' + ${project.id}}" method="post" class="p-1.5">
+                                                                    <button th:if="${project.paymentStatus?.name() == 'UNPAID'}" type="submit" name="paymentStatus" value="PARTIAL"
+                                                                        class="w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-50">Partial</button>
+                                                                    <button th:if="${project.paymentStatus?.name() == 'UNPAID' or project.paymentStatus?.name() == 'PARTIAL'}" type="submit" name="paymentStatus" value="PAID"
+                                                                        class="w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-50">Paid</button>
+                                                                    <div th:if="${project.paymentStatus?.name() == 'PAID'}" class="px-3 py-2 text-xs font-medium text-neutral-400">Complete</div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-4">
+                                                <div class="flex flex-wrap gap-2 min-w-[180px]">
+                                                    <a th:href="@{'/admin/edit-project/' + ${project.id}}"
+                                                       class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600 transition-colors hover:bg-neutral-200 hover:text-neutral-800"
+                                                       title="Edit Project">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                        </svg>
+                                                    </a>
+                                                    <a th:href="@{'/admin/project/' + ${project.id} + '/chat'}"
+                                                       class="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-indigo-100 bg-indigo-50 text-indigo-600 transition-colors hover:bg-indigo-100"
+                                                       title="Messages">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                                        </svg>
+                                                        <span th:if="${projectUnreadCounts[project.id] > 0}"
+                                                              th:text="${projectUnreadCounts[project.id]}"
+                                                              class="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-bold text-white"></span>
+                                                    </a>
+                                                    <button type="button" th:attr="data-project-id=${project.id},data-work-order=${project.workOrderNumber}"
+                                                            onclick="openHistoryModal(this)"
+                                                            class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-purple-100 bg-purple-50 text-purple-600 transition-colors hover:bg-purple-100"
+                                                            title="Project History">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                        </svg>
+                                                    </button>
+                                                    <a th:href="@{'/admin/project/' + ${project.id} + '/photos'}"
+                                                       class="inline-flex h-9 items-center justify-center rounded-lg bg-indigo-600 px-3 text-xs font-bold text-white transition-colors hover:bg-indigo-700"
+                                                       title="View Project Photos">Photos</a>
+                                                    <form th:if="${isDevMode}" th:action="@{'/admin/delete-project/' + ${project.id}}"
+                                                          method="post" class="inline"
+                                                          onsubmit="return confirm('Delete this project and all associated data? This action cannot be undone.');">
+                                                        <button type="submit"
+                                                            class="inline-flex h-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 px-3 text-xs font-bold text-red-600 transition-colors hover:bg-red-100"
+                                                            title="Delete Project">Delete</button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr th:if="${#lists.isEmpty(projects)}">
+                                            <td colspan="7" class="px-4 py-8 text-center text-sm text-neutral-500">No projects found.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Contractors View -->
@@ -963,12 +1178,33 @@
                             <div class="flex gap-2">
                                 <button type="submit"
                                     class="px-4 py-2 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 text-sm font-semibold transition-colors shadow-sm">Search</button>
-                                <a href="/admin/dashboard"
+                                <a href="/admin/dashboard?tab=contractors"
                                     class="px-4 py-2 bg-white border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 text-sm font-semibold shadow-sm transition-colors flex items-center">Reset</a>
                             </div>
                         </form>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="mb-4 flex items-center justify-end">
+                            <div class="inline-flex rounded-lg border border-neutral-200 bg-white p-1 shadow-sm">
+                                <button type="button" @click="setContractorViewMode('grid')"
+                                    :class="contractorViewMode === 'grid' ? 'bg-neutral-900 text-white shadow-sm' : 'text-neutral-600 hover:text-neutral-900'"
+                                    class="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h7v7H4V6zm9 0h7v7h-7V6zM4 15h7v5H4v-5zm9 0h7v5h-7v-5z"></path>
+                                    </svg>
+                                    Grid
+                                </button>
+                                <button type="button" @click="setContractorViewMode('list')"
+                                    :class="contractorViewMode === 'list' ? 'bg-neutral-900 text-white shadow-sm' : 'text-neutral-600 hover:text-neutral-900'"
+                                    class="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                                    </svg>
+                                    List
+                                </button>
+                            </div>
+                        </div>
+
+                        <div x-show="contractorViewMode === 'grid'" x-transition.opacity.duration.150ms class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <th:block th:each="contractor : ${contractors}">
                                 <div class="saas-card p-5 flex flex-col sm:flex-row gap-5 items-start">
                                     <!-- Avatar -->
@@ -1028,6 +1264,77 @@
                                     </div>
                                 </div>
                             </th:block>
+                        </div>
+
+                        <div x-show="contractorViewMode === 'list'" x-transition.opacity.duration.150ms x-cloak class="saas-card overflow-hidden">
+                            <div class="overflow-x-auto premium-scroll">
+                                <table class="min-w-full divide-y divide-neutral-200">
+                                    <thead class="bg-neutral-50">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Contractor</th>
+                                            <th class="px-4 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider hidden md:table-cell">Email</th>
+                                            <th class="px-4 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Active Projects</th>
+                                            <th class="px-4 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Capacity</th>
+                                            <th class="px-4 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider hidden lg:table-cell">Assignments</th>
+                                            <th class="px-4 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-neutral-100 bg-white">
+                                        <tr th:each="contractor : ${contractors}" class="align-top hover:bg-neutral-50/80 transition-colors">
+                                            <td class="px-4 py-4">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="h-10 w-10 overflow-hidden rounded-xl border border-indigo-100 shadow-inner shrink-0">
+                                                        <img th:if="${contractor.avatarPath != null}"
+                                                             th:src="@{'/uploads/' + ${contractor.avatarPath}}"
+                                                             class="h-full w-full object-cover"
+                                                             alt="Contractor Avatar">
+                                                        <div th:if="${contractor.avatarPath == null}"
+                                                            class="flex h-full w-full items-center justify-center bg-indigo-50 text-sm font-bold font-heading text-indigo-700">
+                                                            <span th:text="${contractor.fullName != null ? contractor.fullName.substring(0,1).toUpperCase() : contractor.username.substring(0,1).toUpperCase()}">C</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="min-w-0">
+                                                        <p class="truncate font-bold text-neutral-900" th:text="${contractor.fullName != null ? contractor.fullName : contractor.username}">Name</p>
+                                                        <p class="truncate text-sm text-neutral-500" th:text="${'@' + contractor.username}">@username</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-4 hidden md:table-cell text-sm text-neutral-600" th:text="${contractor.email != null && !#strings.isEmpty(contractor.email) ? contractor.email : '-'}">-</td>
+                                            <td class="px-4 py-4">
+                                                <span class="inline-flex rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700"
+                                                      th:text="${contractorActiveCounts.get(contractor.id)}">0</span>
+                                            </td>
+                                            <td class="px-4 py-4">
+                                                <span th:if="${contractorAvailability.get(contractor.id)}"
+                                                      class="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">Available</span>
+                                                <span th:unless="${contractorAvailability.get(contractor.id)}"
+                                                      class="inline-flex rounded-full bg-red-50 px-2.5 py-1 text-xs font-bold text-red-700">Full (4/4)</span>
+                                            </td>
+                                            <td class="px-4 py-4 hidden lg:table-cell">
+                                                <div class="flex flex-wrap gap-2">
+                                                    <span th:each="assignment : ${contractor.assignments}"
+                                                          class="inline-flex rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1 text-xs font-semibold text-neutral-700">
+                                                        WO# <span class="ml-1" th:text="${assignment.project.workOrderNumber}">000</span>
+                                                    </span>
+                                                    <span th:if="${#lists.isEmpty(contractor.assignments)}" class="text-xs text-neutral-400 italic">No active projects</span>
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-4">
+                                                <a th:href="@{/admin/contractors/{id}/edit(id=${contractor.id})}"
+                                                   class="inline-flex items-center gap-2 rounded-lg bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-600 transition-colors hover:bg-indigo-100">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                    </svg>
+                                                    Edit
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        <tr th:if="${#lists.isEmpty(contractors)}">
+                                            <td colspan="6" class="px-4 py-8 text-center text-sm text-neutral-500">No contractors found.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
 
