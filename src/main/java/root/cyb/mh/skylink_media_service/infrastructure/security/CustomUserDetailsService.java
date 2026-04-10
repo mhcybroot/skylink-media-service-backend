@@ -6,6 +6,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
+import root.cyb.mh.skylink_media_service.domain.entities.SuperAdmin;
 import root.cyb.mh.skylink_media_service.domain.entities.User;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.UserRepository;
 import java.util.Collections;
@@ -20,15 +21,13 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-        
-        // Check if user is blocked
-        if (user.getIsBlocked() != null && user.getIsBlocked()) {
-            throw new org.springframework.security.authentication.DisabledException("User account is blocked");
-        }
+
+        boolean blocked = !(user instanceof SuperAdmin) && user.getIsBlocked() != null && user.getIsBlocked();
         
         return org.springframework.security.core.userdetails.User.builder()
             .username(user.getUsername())
             .password(user.getPassword())
+            .disabled(blocked)
             .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole())))
             .build();
     }

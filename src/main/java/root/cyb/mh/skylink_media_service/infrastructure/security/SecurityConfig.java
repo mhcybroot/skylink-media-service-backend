@@ -9,7 +9,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -38,6 +40,17 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+    @Bean
+    public AuthenticationFailureHandler authenticationFailureHandler() {
+        return (request, response, exception) -> {
+            if (exception instanceof DisabledException) {
+                response.sendRedirect("/login?blocked");
+                return;
+            }
+            response.sendRedirect("/login?error");
+        };
+    }
     
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -61,6 +74,7 @@ public class SecurityConfig {
             .formLogin(form -> form
                 .loginPage("/login")
                 .defaultSuccessUrl("/dashboard", true)
+                .failureHandler(authenticationFailureHandler())
                 .permitAll()
             )
             .logout(logout -> logout

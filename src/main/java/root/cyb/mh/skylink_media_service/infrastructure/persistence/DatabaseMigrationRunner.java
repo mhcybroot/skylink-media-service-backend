@@ -65,6 +65,24 @@ public class DatabaseMigrationRunner implements CommandLineRunner {
             logger.warn("Could not fix is_blocked column: {}", e.getMessage());
         }
 
+        // Migration 3b: Ensure super admin accounts can never remain blocked
+        try {
+            logger.info("Clearing blocked flags from super admin accounts if any exist...");
+
+            jdbcTemplate.execute("""
+                UPDATE users
+                SET is_blocked = false,
+                    blocked_at = NULL,
+                    blocked_by_id = NULL,
+                    block_reason = NULL
+                WHERE user_type = 'SUPER_ADMIN' AND is_blocked = true;
+                """);
+
+            logger.info("Successfully ensured super admin accounts are not blocked.");
+        } catch (Exception e) {
+            logger.warn("Could not clear super admin blocked flags: {}", e.getMessage());
+        }
+
         // Migration 4: Update project audit log action type constraint
         try {
             logger.info("Updating project_audit_log_action_type_check constraint...");

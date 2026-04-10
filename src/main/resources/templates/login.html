@@ -158,6 +158,16 @@
             <form th:action="@{/login}" method="post" class="space-y-5">
 
                 <!-- Feedback Alerts -->
+                <div th:if="${param.blocked}"
+                    class="p-3.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-100 flex items-start text-sm font-medium">
+                    <svg class="w-5 h-5 text-amber-500 mr-2.5 shrink-0" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M12 9v3m0 4h.01M5.07 19h13.86c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <span>Your account is blocked. Please contact a super admin for access.</span>
+                </div>
+
                 <div th:if="${param.error}"
                     class="p-3.5 rounded-xl bg-red-50 text-red-800 border border-red-100 flex items-start text-sm font-medium animate-[pulse_0.2s_ease-in-out]">
                     <svg class="w-5 h-5 text-red-500 mr-2.5 shrink-0" fill="none" stroke="currentColor"
