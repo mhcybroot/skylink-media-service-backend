@@ -26,19 +26,19 @@ public interface ProjectAssignmentRepository extends JpaRepository<ProjectAssign
     /**
      * Count active (non-CLOSED) project assignments for a contractor
      */
-    @Query("SELECT COUNT(pa) FROM ProjectAssignment pa WHERE pa.contractor = :contractor AND pa.project.status != root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus.CLOSED")
+    @Query("SELECT COUNT(pa) FROM ProjectAssignment pa WHERE pa.contractor = :contractor AND pa.project.status != root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus.CLOSED AND pa.project.blocked = false")
     long countActiveAssignmentsByContractor(@Param("contractor") Contractor contractor);
     
     /**
      * Find active (non-CLOSED) project assignment for a project
      */
-    @Query("SELECT pa FROM ProjectAssignment pa WHERE pa.project = :project AND pa.project.status != root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus.CLOSED")
+    @Query("SELECT pa FROM ProjectAssignment pa WHERE pa.project = :project AND pa.project.status != root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus.CLOSED AND pa.project.blocked = false")
     Optional<ProjectAssignment> findActiveAssignmentByProject(@Param("project") Project project);
     
     /**
      * Check if a project has any active (non-CLOSED) assignments
      */
-    @Query("SELECT CASE WHEN COUNT(pa) > 0 THEN true ELSE false END FROM ProjectAssignment pa WHERE pa.project = :project AND pa.project.status != root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus.CLOSED")
+    @Query("SELECT CASE WHEN COUNT(pa) > 0 THEN true ELSE false END FROM ProjectAssignment pa WHERE pa.project = :project AND pa.project.status != root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus.CLOSED AND pa.project.blocked = false")
     boolean hasActiveAssignment(@Param("project") Project project);
     
     /**

@@ -297,6 +297,45 @@ public class AuditLogService {
             logger.error("Failed to log project completed: {}", e.getMessage());
         }
     }
+
+    public void logProjectBlocked(Project project, User admin, String reason) {
+        try {
+            String details = "Project blocked by " + displayName(admin);
+            if (reason != null && !reason.isBlank()) {
+                details += " - Reason: " + reason.trim();
+            }
+
+            ProjectAuditLog auditLog = new ProjectAuditLog(
+                project,
+                ProjectAuditLog.ActionType.PROJECT_BLOCKED,
+                admin,
+                "ACTIVE",
+                "BLOCKED",
+                details
+            );
+            auditLogRepository.save(auditLog);
+            logger.debug("Logged project block for project {} by user {}", project.getId(), admin.getId());
+        } catch (Exception e) {
+            logger.error("Failed to log project block: {}", e.getMessage());
+        }
+    }
+
+    public void logProjectUnblocked(Project project, User admin) {
+        try {
+            ProjectAuditLog auditLog = new ProjectAuditLog(
+                project,
+                ProjectAuditLog.ActionType.PROJECT_UNBLOCKED,
+                admin,
+                "BLOCKED",
+                "ACTIVE",
+                "Project unblocked by " + displayName(admin)
+            );
+            auditLogRepository.save(auditLog);
+            logger.debug("Logged project unblock for project {} by user {}", project.getId(), admin.getId());
+        } catch (Exception e) {
+            logger.error("Failed to log project unblock: {}", e.getMessage());
+        }
+    }
     
     /**
      * Log a chat message sent event

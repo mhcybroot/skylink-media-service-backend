@@ -80,11 +80,14 @@ public class SuperAdminController {
         long totalContractors = contractorRepository.count();
         long totalSuperAdmins = superAdminRepository.count();
         long totalProjects = projectRepository.count();
+        long blockedProjects = projectRepository.countByBlockedTrue();
         long activeProjects = projectRepository.findAll().stream()
-                .filter(p -> p.getStatus() != ProjectStatus.CLOSED)
+                .filter(p -> p.getStatus() != ProjectStatus.CLOSED && !p.isBlocked())
                 .count();
         long totalUsers = totalAdmins + totalContractors + totalSuperAdmins;
-        long closedProjects = Math.max(0, totalProjects - activeProjects);
+        long closedProjects = projectRepository.findAll().stream()
+                .filter(p -> p.getStatus() == ProjectStatus.CLOSED)
+                .count();
 
         // Recent activities
         var recentActivities = unifiedAuditFeedService.getRecentAuditFeed(null, null, null, null, null, 10);
@@ -121,6 +124,7 @@ public class SuperAdminController {
         model.addAttribute("totalProjects", totalProjects);
         model.addAttribute("activeProjects", activeProjects);
         model.addAttribute("closedProjects", closedProjects);
+        model.addAttribute("blockedProjects", blockedProjects);
         model.addAttribute("recentActivities", recentActivities);
         model.addAttribute("recentActivityPreview", recentActivities);
         model.addAttribute("recentLogins", recentLogins);

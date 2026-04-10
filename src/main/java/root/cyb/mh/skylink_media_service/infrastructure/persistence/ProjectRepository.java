@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface ProjectRepository extends JpaRepository<Project, Long>, JpaSpecificationExecutor<Project> {
     Optional<Project> findByWorkOrderNumber(String workOrderNumber);
     boolean existsByWorkOrderNumber(String workOrderNumber);
+    long countByBlockedTrue();
     
     @Query("SELECT p FROM Project p WHERE " +
            "LOWER(p.workOrderNumber) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +

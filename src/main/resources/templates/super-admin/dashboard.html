@@ -49,7 +49,7 @@
                                 <div class="telemetry-chip rounded-2xl px-4 py-4">
                                     <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Active Projects</p>
                                     <p class="mt-2 font-heading text-2xl font-semibold text-white" th:text="${activeProjects}">0</p>
-                                    <p class="mt-1 text-xs text-slate-400">Projects not yet closed</p>
+                                    <p class="mt-1 text-xs text-slate-400">Projects available for normal work</p>
                                 </div>
                                 <div class="rounded-2xl px-4 py-4 telemetry-chip"
                                      th:classappend="${blockedUsers > 0} ? ' telemetry-chip-rose' : ' telemetry-chip-emerald'">
@@ -147,6 +147,7 @@
                         <div class="mt-5 flex flex-wrap gap-2 text-xs">
                             <span class="telemetry-chip telemetry-chip-emerald rounded-full px-3 py-1">Active <span class="ml-1 font-semibold text-white" th:text="${activeProjects}">0</span></span>
                             <span class="telemetry-chip rounded-full px-3 py-1">Closed <span class="ml-1 font-semibold text-white" th:text="${closedProjects}">0</span></span>
+                            <span class="telemetry-chip telemetry-chip-amber rounded-full px-3 py-1">Blocked <span class="ml-1 font-semibold text-white" th:text="${blockedProjects}">0</span></span>
                         </div>
                     </article>
 
@@ -388,6 +389,10 @@
                                     <div class="rounded-2xl border border-neon-400/10 bg-command-900/70 px-4 py-4">
                                         <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Closed Projects</p>
                                         <p class="mt-2 font-heading text-3xl font-semibold text-white" th:text="${closedProjects}">0</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-amber-400/10 bg-command-900/70 px-4 py-4 col-span-2">
+                                        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Blocked Projects</p>
+                                        <p class="mt-2 font-heading text-3xl font-semibold text-amber-300" th:text="${blockedProjects}">0</p>
                                     </div>
                                 </div>
                             </div>

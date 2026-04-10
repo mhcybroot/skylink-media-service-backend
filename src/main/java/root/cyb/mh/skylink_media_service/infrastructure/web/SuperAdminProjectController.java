@@ -202,6 +202,35 @@ public class SuperAdminProjectController {
         return "super-admin/project-detail";
     }
 
+    @PostMapping("/projects/{id}/block")
+    public String blockProject(@PathVariable Long id,
+            @RequestParam(required = false) String reason,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+        try {
+            User currentUser = userRepository.findByUsername(authentication.getName()).orElseThrow();
+            projectService.blockProject(id, currentUser, reason);
+            redirectAttributes.addFlashAttribute("success", "Project blocked successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/super-admin/projects/" + id;
+    }
+
+    @PostMapping("/projects/{id}/unblock")
+    public String unblockProject(@PathVariable Long id,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+        try {
+            User currentUser = userRepository.findByUsername(authentication.getName()).orElseThrow();
+            projectService.unblockProject(id, currentUser);
+            redirectAttributes.addFlashAttribute("success", "Project unblocked successfully");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/super-admin/projects/" + id;
+    }
+
     @PostMapping("/delete-project/{id}")
     public String deleteProject(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         if (!devModeConfig.isDev()) {

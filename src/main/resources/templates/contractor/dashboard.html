@@ -380,7 +380,12 @@
                                 <h3 class="font-bold text-neutral-900 font-heading"
                                     th:text="${assignment.project.workOrderNumber}"></h3>
                                 <div class="flex items-center gap-2 mt-1 shrink-0">
+                                    <span th:if="${assignment.project.blocked}"
+                                        class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest shadow-sm bg-red-100 text-red-700">
+                                        Blocked
+                                    </span>
                                     <span
+                                        th:unless="${assignment.project.blocked}"
                                         th:class="${assignment.project.status?.badgeClasses + ' px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest shadow-sm'}"
                                         class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest shadow-sm">
                                         <span th:text="${assignment.project.status?.displayName ?: 'Unknown'}"></span>
@@ -551,10 +556,17 @@
                                     </svg>
                                     Project Closed
                                 </div>
+                                <div th:case="'BLOCKED'"
+                                    class="w-full flex justify-center items-center py-2.5 h-[44px] bg-red-50 text-red-600 font-bold rounded-xl text-sm border border-red-200 cursor-not-allowed">
+                                    Project Temporarily Blocked
+                                </div>
                             </div>
 
                             <!-- Media Secondary Actions Grid -->
-                            <div class="grid grid-cols-3 gap-2">
+                            <div th:if="${assignment.project.blocked}" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm font-medium text-red-700">
+                                This project is temporarily blocked by super admin. Uploads and chat are paused until it is unblocked.
+                            </div>
+                            <div th:unless="${assignment.project.blocked}" class="grid grid-cols-3 gap-2">
                                 <a th:href="@{'/contractor/upload-photo/' + ${assignment.project.id}}"
                                     class="flex justify-center items-center py-2 h-[44px] bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold rounded-xl text-sm transition-colors border border-indigo-200 active:scale-[0.98]">
                                     <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

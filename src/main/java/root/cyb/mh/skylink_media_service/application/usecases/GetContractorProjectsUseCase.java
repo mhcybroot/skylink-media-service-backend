@@ -45,6 +45,10 @@ public class GetContractorProjectsUseCase {
     }
     
     private String determineAvailableAction(ProjectAssignment assignment, Contractor contractor) {
+        if (assignment.getProject().isBlocked()) {
+            return "BLOCKED";
+        }
+
         ProjectStatus status = assignment.getProject().getStatus();
         
         if (status == null) {

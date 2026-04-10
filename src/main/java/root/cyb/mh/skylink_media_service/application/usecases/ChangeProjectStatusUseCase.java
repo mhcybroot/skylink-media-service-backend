@@ -29,6 +29,10 @@ public class ChangeProjectStatusUseCase {
     public void changeProjectStatus(Long projectId, ProjectStatus newStatus, User changedBy) {
         Project project = projectRepository.findById(projectId)
             .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        if (project.isBlocked()) {
+            throw new RuntimeException("This project is temporarily blocked. Status changes are disabled until it is unblocked.");
+        }
         
         ProjectStatus currentStatus = project.getStatus();
         

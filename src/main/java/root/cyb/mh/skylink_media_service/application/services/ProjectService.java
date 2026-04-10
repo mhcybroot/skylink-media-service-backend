@@ -105,6 +105,12 @@ public class ProjectService {
         return projectRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Project not found"));
     }
+
+    public void assertProjectNotBlocked(Project project) {
+        if (project.isBlocked()) {
+            throw new RuntimeException("Project '" + project.getWorkOrderNumber() + "' is temporarily blocked by super admin");
+        }
+    }
     
     public ProjectAssignment assignContractorToProject(Long projectId, Long contractorId) {
         return assignContractorToProject(projectId, contractorId, null);
@@ -112,6 +118,7 @@ public class ProjectService {
     
     public ProjectAssignment assignContractorToProject(Long projectId, Long contractorId, User admin) {
         Project project = getProjectById(projectId);
+        assertProjectNotBlocked(project);
         Contractor contractor = contractorRepository.findById(contractorId)
             .orElseThrow(() -> new RuntimeException("Contractor not found"));
             
@@ -170,6 +177,7 @@ public class ProjectService {
     
     public void unassignContractorFromProject(Long projectId, Long contractorId, User admin) {
         Project project = getProjectById(projectId);
+        assertProjectNotBlocked(project);
         Contractor contractor = contractorRepository.findById(contractorId)
             .orElseThrow(() -> new RuntimeException("Contractor not found"));
         
@@ -353,11 +361,52 @@ public class ProjectService {
      * CLOSED projects are always available for assignment (for record-keeping/reactivation purposes).
      */
     public boolean isProjectAvailableForAssignment(Project project) {
+        if (project.isBlocked()) {
+            return false;
+        }
         // CLOSED projects can always have contractors assigned
         if (project.getStatus() == root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus.CLOSED) {
             return true;
         }
         return !projectAssignmentRepository.hasActiveAssignment(project);
+    }
+
+    @Transactional
+    public Project blockProject(Long projectId, User admin, String reason) {
+        Project project = getProjectById(projectId);
+        if (project.isBlocked()) {
+            throw new RuntimeException("Project is already blocked");
+        }
+
+        project.setBlocked(true);
+        project.setBlockedAt(java.time.LocalDateTime.now());
+        project.setBlockedBy(admin);
+        project.setBlockedReason(reason != null && !reason.isBlank() ? reason.trim() : null);
+
+        Project savedProject = projectRepository.save(project);
+        if (admin != null) {
+            auditLogService.logProjectBlocked(savedProject, admin, reason);
+        }
+        return savedProject;
+    }
+
+    @Transactional
+    public Project unblockProject(Long projectId, User admin) {
+        Project project = getProjectById(projectId);
+        if (!project.isBlocked()) {
+            throw new RuntimeException("Project is not blocked");
+        }
+
+        project.setBlocked(false);
+        project.setBlockedAt(null);
+        project.setBlockedBy(null);
+        project.setBlockedReason(null);
+
+        Project savedProject = projectRepository.save(project);
+        if (admin != null) {
+            auditLogService.logProjectUnblocked(savedProject, admin);
+        }
+        return savedProject;
     }
     
     /**

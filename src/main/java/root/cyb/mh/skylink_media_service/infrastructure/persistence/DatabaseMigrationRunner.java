@@ -79,6 +79,8 @@ public class DatabaseMigrationRunner implements CommandLineRunner {
                         'PROJECT_VIEWED',
                         'PROJECT_OPENED',
                         'PROJECT_COMPLETED',
+                        'PROJECT_BLOCKED',
+                        'PROJECT_UNBLOCKED',
                         'CONTRACTOR_ASSIGNED',
                         'CONTRACTOR_UNASSIGNED',
                         'STATUS_CHANGED',
@@ -97,6 +99,23 @@ public class DatabaseMigrationRunner implements CommandLineRunner {
             logger.info("Successfully updated project_audit_log_action_type_check constraint.");
         } catch (Exception e) {
             logger.warn("Could not update project_audit_log_action_type_check constraint: {}", e.getMessage());
+        }
+
+        // Migration 5: Add project blocking columns
+        try {
+            logger.info("Ensuring project blocking columns exist...");
+
+            jdbcTemplate.execute("ALTER TABLE projects ADD COLUMN IF NOT EXISTS is_blocked boolean DEFAULT false;");
+            jdbcTemplate.execute("UPDATE projects SET is_blocked = false WHERE is_blocked IS NULL;");
+            jdbcTemplate.execute("ALTER TABLE projects ALTER COLUMN is_blocked SET DEFAULT false;");
+            jdbcTemplate.execute("ALTER TABLE projects ALTER COLUMN is_blocked SET NOT NULL;");
+            jdbcTemplate.execute("ALTER TABLE projects ADD COLUMN IF NOT EXISTS blocked_at timestamp;");
+            jdbcTemplate.execute("ALTER TABLE projects ADD COLUMN IF NOT EXISTS blocked_by bigint;");
+            jdbcTemplate.execute("ALTER TABLE projects ADD COLUMN IF NOT EXISTS blocked_reason varchar(500);");
+
+            logger.info("Successfully ensured project blocking columns exist.");
+        } catch (Exception e) {
+            logger.warn("Could not ensure project blocking columns: {}", e.getMessage());
         }
     }
 }

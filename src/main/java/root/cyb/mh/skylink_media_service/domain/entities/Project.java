@@ -220,6 +220,19 @@ public class Project {
     @ManyToOne
     @JoinColumn(name = "completed_by")
     private User completedBy;
+
+    @Column(name = "is_blocked", nullable = false)
+    private boolean blocked = false;
+
+    @Column(name = "blocked_at")
+    private LocalDateTime blockedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "blocked_by")
+    private User blockedBy;
+
+    @Column(name = "blocked_reason", length = 500)
+    private String blockedReason;
     
     public root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus getStatus() { return status; }
     public void setStatus(root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus status) { 
@@ -256,6 +269,18 @@ public class Project {
     
     public User getCompletedBy() { return completedBy; }
     public void setCompletedBy(User completedBy) { this.completedBy = completedBy; }
+
+    public boolean isBlocked() { return blocked; }
+    public void setBlocked(boolean blocked) { this.blocked = blocked; }
+
+    public LocalDateTime getBlockedAt() { return blockedAt; }
+    public void setBlockedAt(LocalDateTime blockedAt) { this.blockedAt = blockedAt; }
+
+    public User getBlockedBy() { return blockedBy; }
+    public void setBlockedBy(User blockedBy) { this.blockedBy = blockedBy; }
+
+    public String getBlockedReason() { return blockedReason; }
+    public void setBlockedReason(String blockedReason) { this.blockedReason = blockedReason; }
     
     public boolean isAssignedToContractor(Contractor contractor) {
         return assignments != null && assignments.stream()

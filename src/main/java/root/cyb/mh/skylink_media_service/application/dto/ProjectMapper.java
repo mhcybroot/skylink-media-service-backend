@@ -37,5 +37,9 @@ public interface ProjectMapper {
     @Mapping(target = "assignedTo", ignore = true)
     @Mapping(target = "woAdmin", ignore = true)
     @Mapping(target = "invoicePrice", ignore = true)
+    @Mapping(target = "blocked", ignore = true)
+    @Mapping(target = "blockedAt", ignore = true)
+    @Mapping(target = "blockedBy", ignore = true)
+    @Mapping(target = "blockedReason", ignore = true)
     Project toEntity(ProjectDTO projectDTO);
 }

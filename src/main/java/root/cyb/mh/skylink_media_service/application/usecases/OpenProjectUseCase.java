@@ -26,6 +26,10 @@ public class OpenProjectUseCase {
     public void openProject(Long projectId, Contractor contractor) {
         Project project = projectRepository.findById(projectId)
             .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        if (project.isBlocked()) {
+            throw new RuntimeException("This project is temporarily blocked and cannot be opened right now");
+        }
         
         if (!project.isAssignedToContractor(contractor)) {
             throw new RuntimeException("Contractor not assigned to this project");

@@ -50,6 +50,10 @@ public class PhotoService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
 
+        if (project.isBlocked()) {
+            throw new RuntimeException("This project is temporarily blocked. Photo uploads are disabled until it is unblocked.");
+        }
+
         Contractor contractor = contractorRepository.findById(contractorId)
                 .orElseThrow(() -> new RuntimeException("Contractor not found"));
 

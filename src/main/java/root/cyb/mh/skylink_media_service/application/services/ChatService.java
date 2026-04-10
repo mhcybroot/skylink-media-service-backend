@@ -28,6 +28,9 @@ public class ChatService {
     public ProjectMessage sendMessage(Long projectId, User sender, String content) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found: " + projectId));
+        if (project.isBlocked()) {
+            throw new RuntimeException("This project is temporarily blocked. Chat is disabled until it is unblocked.");
+        }
         ProjectMessage message = new ProjectMessage(project, sender, content);
         ProjectMessage savedMessage = messageRepository.save(message);
         auditLogService.logChatMessageSent(project, sender, savedMessage.getContent());

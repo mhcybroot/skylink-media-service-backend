@@ -21,6 +21,8 @@ public class ProjectAuditLog {
         PROJECT_VIEWED("Project Viewed"),
         PROJECT_OPENED("Project Opened"),
         PROJECT_COMPLETED("Project Completed"),
+        PROJECT_BLOCKED("Project Blocked"),
+        PROJECT_UNBLOCKED("Project Unblocked"),
         CONTRACTOR_ASSIGNED("Contractor Assigned"),
         CONTRACTOR_UNASSIGNED("Contractor Unassigned"),
         STATUS_CHANGED("Status Changed"),
