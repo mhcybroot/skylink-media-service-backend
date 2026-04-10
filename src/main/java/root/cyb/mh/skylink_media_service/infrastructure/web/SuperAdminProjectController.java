@@ -17,6 +17,7 @@ import root.cyb.mh.skylink_media_service.application.services.PhotoService;
 import root.cyb.mh.skylink_media_service.application.services.ChatService;
 import root.cyb.mh.skylink_media_service.application.services.AuditLogService;
 import root.cyb.mh.skylink_media_service.application.services.UserService;
+import root.cyb.mh.skylink_media_service.infrastructure.config.DevModeConfig;
 import root.cyb.mh.skylink_media_service.domain.entities.Project;
 import root.cyb.mh.skylink_media_service.domain.entities.User;
 import root.cyb.mh.skylink_media_service.domain.entities.Contractor;
@@ -83,6 +84,9 @@ public class SuperAdminProjectController {
 
     @Autowired
     private AdminRepository adminRepository;
+
+    @Autowired
+    private DevModeConfig devModeConfig;
 
     // ==================== Project List ====================
 
@@ -173,6 +177,7 @@ public class SuperAdminProjectController {
         model.addAttribute("projectContractors", projectContractors);
         model.addAttribute("projectUnreadCounts", projectUnreadCounts);
         model.addAttribute("activePage", "projects");
+        model.addAttribute("isDevMode", devModeConfig.isDev());
 
         return "super-admin/projects";
     }
@@ -192,8 +197,26 @@ public class SuperAdminProjectController {
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("auditLogs", auditLogService.getAuditLogsForProject(id));
         model.addAttribute("activePage", "projects");
+        model.addAttribute("isDevMode", devModeConfig.isDev());
 
         return "super-admin/project-detail";
+    }
+
+    @PostMapping("/delete-project/{id}")
+    public String deleteProject(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        if (!devModeConfig.isDev()) {
+            redirectAttributes.addFlashAttribute("error", "Project deletion is only available in development mode");
+            return "redirect:/super-admin/projects/" + id;
+        }
+
+        try {
+            projectService.deleteProject(id);
+            redirectAttributes.addFlashAttribute("success", "Project deleted successfully");
+            return "redirect:/super-admin/projects";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to delete project: " + e.getMessage());
+            return "redirect:/super-admin/projects/" + id;
+        }
     }
 
     // ==================== Project Chat ====================

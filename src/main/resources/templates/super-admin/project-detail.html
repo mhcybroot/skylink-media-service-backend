@@ -43,7 +43,7 @@
                         <h1 class="text-2xl font-bold text-neutral-900 font-heading" th:text="${project.workOrderNumber}">WO-001</h1>
                         <p class="text-neutral-500 mt-1" th:text="${project.location}">Location</p>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
                         <span th:switch="${project.status.name()}" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium">
                             <span th:case="'PENDING'" class="bg-yellow-100 text-yellow-800">Pending</span>
                             <span th:case="'IN_PROGRESS'" class="bg-blue-100 text-blue-800">In Progress</span>
@@ -59,6 +59,14 @@
                             <span th:case="'PAID'" class="bg-green-100 text-green-800">Paid</span>
                             <span th:case="*" class="bg-neutral-100 text-neutral-600" th:text="${project.paymentStatus.displayName}">Payment</span>
                         </span>
+                        <form th:if="${isDevMode}" th:action="@{'/super-admin/delete-project/' + ${project.id}}"
+                              method="post" class="inline"
+                              onsubmit="return confirm('Delete this project and all associated data? This action cannot be undone.')">
+                            <button type="submit"
+                                    class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200 transition-colors">
+                                Delete Project
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -214,14 +222,22 @@
                         </div>
                     </div>
 
-                    <!-- Admin Actions -->
+                    <!-- Project Actions -->
                     <div class="saas-card p-6">
-                        <h2 class="text-lg font-semibold text-neutral-900 mb-4">Admin Actions</h2>
+                        <h2 class="text-lg font-semibold text-neutral-900 mb-4">Project Actions</h2>
                         <div class="space-y-3">
                             <a th:href="@{/admin/project/{id}/photos(id=${project.id})}" 
                                class="block w-full text-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors">
                                 Manage as Admin
                             </a>
+                            <form th:if="${isDevMode}" th:action="@{'/super-admin/delete-project/' + ${project.id}}"
+                                  method="post"
+                                  onsubmit="return confirm('Delete this project and all associated data? This action cannot be undone.')">
+                                <button type="submit"
+                                        class="block w-full text-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
+                                    Delete Project
+                                </button>
+                            </form>
                             <form th:action="@{/admin/assign-contractor}" method="post" class="hidden">
                                 <input type="hidden" name="projectId" th:value="${project.id}">
                             </form>

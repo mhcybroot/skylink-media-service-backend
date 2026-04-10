@@ -15,6 +15,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import root.cyb.mh.skylink_media_service.application.services.*;
 import root.cyb.mh.skylink_media_service.domain.entities.*;
 import root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus;
+import root.cyb.mh.skylink_media_service.infrastructure.config.DevModeConfig;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.*;
 
 import java.io.IOException;
@@ -61,6 +62,9 @@ public class SuperAdminController {
     @Autowired
     private UnifiedAuditFeedService unifiedAuditFeedService;
 
+    @Autowired
+    private DevModeConfig devModeConfig;
+
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
 
@@ -80,7 +84,7 @@ public class SuperAdminController {
                 .filter(p -> p.getStatus() != ProjectStatus.CLOSED)
                 .count();
         long totalUsers = totalAdmins + totalContractors + totalSuperAdmins;
-        long inactiveProjects = Math.max(0, totalProjects - activeProjects);
+        long closedProjects = Math.max(0, totalProjects - activeProjects);
 
         // Recent activities
         var recentActivities = unifiedAuditFeedService.getRecentAuditFeed(null, null, null, null, null, 10);
@@ -116,7 +120,7 @@ public class SuperAdminController {
         model.addAttribute("totalUsers", totalUsers);
         model.addAttribute("totalProjects", totalProjects);
         model.addAttribute("activeProjects", activeProjects);
-        model.addAttribute("inactiveProjects", inactiveProjects);
+        model.addAttribute("closedProjects", closedProjects);
         model.addAttribute("recentActivities", recentActivities);
         model.addAttribute("recentActivityPreview", recentActivities);
         model.addAttribute("recentLogins", recentLogins);
@@ -126,6 +130,7 @@ public class SuperAdminController {
         model.addAttribute("topPages", topPages);
         model.addAttribute("recentLogins24h", recentLogins24h);
         model.addAttribute("blockedUsers", blockedUsers);
+        model.addAttribute("isDevMode", devModeConfig.isDev());
 
         return "super-admin/dashboard";
     }
