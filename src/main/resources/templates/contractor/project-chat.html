@@ -160,18 +160,30 @@
             <th:block th:each="msg : ${messages}">
                 <!-- Own (right) -->
                 <div th:if="${msg.sender.username == currentUsername}" class="flex justify-end items-end gap-2">
-                    <div class="max-w-xs sm:max-w-md lg:max-w-lg">
-                        <p class="bubble-out px-4 py-2.5 text-sm leading-relaxed shadow-sm" th:text="${msg.content}"></p>
-                        <p class="text-[10px] text-neutral-400 text-right mt-1 px-1" th:text="${#temporals.format(msg.sentAt, 'MM-dd-yyyy, HH:mm')}"></p>
+                    <div class="max-w-xs sm:max-w-md lg:max-w-lg flex flex-col items-end">
+                        <div class="flex items-center gap-2 mb-1 justify-end">
+                            <div class="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-xs font-bold">
+                                <span th:text="${msg.sender.username.substring(0,1).toUpperCase()}">C</span>
+                            </div>
+                            <span class="text-xs font-medium text-neutral-600" th:text="${msg.sender.username}">contractor</span>
+                            <span class="text-[10px] uppercase tracking-wide text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">CONTRACTOR</span>
+                            <span class="text-xs text-neutral-400" th:text="${#temporals.format(msg.sentAt, 'HH:mm')}">12:00</span>
+                        </div>
+                        <p class="bubble-out inline-block w-fit max-w-full px-4 py-2.5 text-sm leading-relaxed text-right shadow-sm whitespace-pre-wrap break-words" th:text="${msg.content}"></p>
+                        <p class="text-[10px] text-neutral-400 text-right mt-1 px-1" th:text="${#temporals.format(msg.sentAt, 'MMM dd, yyyy HH:mm')}">Date</p>
                     </div>
                 </div>
                 <!-- Incoming (left) -->
                 <div th:unless="${msg.sender.username == currentUsername}" class="flex justify-start items-end gap-2">
                     <div class="w-7 h-7 rounded-full bg-neutral-800 flex items-center justify-center text-[10px] font-bold text-white shrink-0 mb-5">A</div>
                     <div class="max-w-xs sm:max-w-md lg:max-w-lg">
-                        <p class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1 ml-1" th:text="${msg.sender.username}"></p>
-                        <p class="bubble-in px-4 py-2.5 text-sm leading-relaxed shadow-sm" th:text="${msg.content}"></p>
-                        <p class="text-[10px] text-neutral-400 mt-1 px-1" th:text="${#temporals.format(msg.sentAt, 'MM-dd-yyyy, HH:mm')}"></p>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-xs font-medium text-neutral-600" th:text="${msg.sender.username}">admin</span>
+                            <span class="text-[10px] uppercase tracking-wide text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">ADMIN</span>
+                            <span class="text-xs text-neutral-400" th:text="${#temporals.format(msg.sentAt, 'HH:mm')}">12:00</span>
+                        </div>
+                        <p class="bubble-in inline-block w-fit max-w-full px-4 py-2.5 text-sm leading-relaxed shadow-sm whitespace-pre-wrap break-words" th:text="${msg.content}"></p>
+                        <p class="text-[10px] text-neutral-400 mt-1 px-1" th:text="${#temporals.format(msg.sentAt, 'MMM dd, yyyy HH:mm')}">Date</p>
                     </div>
                 </div>
             </th:block>

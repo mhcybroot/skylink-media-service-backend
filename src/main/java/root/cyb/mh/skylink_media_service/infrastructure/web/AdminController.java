@@ -21,6 +21,7 @@ import root.cyb.mh.skylink_media_service.domain.entities.Project;
 import root.cyb.mh.skylink_media_service.domain.entities.Contractor;
 import root.cyb.mh.skylink_media_service.domain.entities.Admin;
 import root.cyb.mh.skylink_media_service.domain.entities.ProjectMessage;
+import root.cyb.mh.skylink_media_service.domain.entities.SuperAdmin;
 import root.cyb.mh.skylink_media_service.domain.entities.User;
 import root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus;
 import root.cyb.mh.skylink_media_service.domain.valueobjects.PaymentStatus;
@@ -641,7 +642,9 @@ public class AdminController {
         adminChatReadLogRepository.save(readLog);
 
         model.addAttribute("project", project);
-        model.addAttribute("messages", chatService.getMessages(projectId));
+        model.addAttribute("messages", chatService.getMessages(projectId).stream()
+                .map(message -> toChatMessageView(message, adminUsername))
+                .toList());
         model.addAttribute("currentUsername", adminUsername);
         return "admin/project-chat";
     }
@@ -746,6 +749,54 @@ public class AdminController {
         }
         return "redirect:/admin/contractors/" + contractorId + "/edit";
     }
+
+    private ChatMessageView toChatMessageView(ProjectMessage message, String currentUsername) {
+        User sender = message.getSender();
+        String role = sender.getRole();
+        String senderName = sender.getUsername();
+        boolean ownMessage = sender.getUsername().equals(currentUsername);
+
+        if (sender instanceof Contractor contractor && contractor.getFullName() != null
+                && !contractor.getFullName().isBlank()) {
+            senderName = contractor.getFullName();
+        }
+
+        if (sender instanceof SuperAdmin) {
+            return new ChatMessageView(
+                    senderName,
+                    role,
+                    "Super Admin",
+                    "bubble-superadmin",
+                    message.getContent(),
+                    message.getSentAt());
+        }
+
+        if (sender instanceof Admin) {
+            return new ChatMessageView(
+                    senderName,
+                    role,
+                    "Admin",
+                    ownMessage ? "bubble-admin-self" : "bubble-admin-other",
+                    message.getContent(),
+                    message.getSentAt());
+        }
+
+        return new ChatMessageView(
+                senderName,
+                role,
+                "Contractor",
+                "bubble-in",
+                message.getContent(),
+                message.getSentAt());
+    }
+
+    private record ChatMessageView(
+            String senderName,
+            String senderRole,
+            String senderRoleLabel,
+            String bubbleClass,
+            String content,
+            LocalDateTime sentAt) {}
 
     private String saveContractorAvatar(MultipartFile avatar, Long contractorId) throws IOException {
         if (avatar == null || avatar.isEmpty()) return null;

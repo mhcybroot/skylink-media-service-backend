@@ -64,5 +64,36 @@ public class DatabaseMigrationRunner implements CommandLineRunner {
         } catch (Exception e) {
             logger.warn("Could not fix is_blocked column: {}", e.getMessage());
         }
+
+        // Migration 4: Update project audit log action type constraint
+        try {
+            logger.info("Updating project_audit_log_action_type_check constraint...");
+
+            jdbcTemplate.execute("ALTER TABLE project_audit_log DROP CONSTRAINT IF EXISTS project_audit_log_action_type_check;");
+            jdbcTemplate.execute("""
+                ALTER TABLE project_audit_log
+                ADD CONSTRAINT project_audit_log_action_type_check CHECK (
+                    action_type IN (
+                        'PROJECT_CREATED',
+                        'PROJECT_UPDATED',
+                        'PROJECT_VIEWED',
+                        'CONTRACTOR_ASSIGNED',
+                        'CONTRACTOR_UNASSIGNED',
+                        'STATUS_CHANGED',
+                        'PAYMENT_STATUS_CHANGED',
+                        'PROJECT_DELETED',
+                        'CHAT_MESSAGE_SENT',
+                        'PHOTOS_VIEWED',
+                        'PHOTOS_DOWNLOADED',
+                        'CONTRACTOR_UPDATED',
+                        'CONTRACTOR_PASSWORD_CHANGED'
+                    )
+                );
+                """);
+
+            logger.info("Successfully updated project_audit_log_action_type_check constraint.");
+        } catch (Exception e) {
+            logger.warn("Could not update project_audit_log_action_type_check constraint: {}", e.getMessage());
+        }
     }
 }

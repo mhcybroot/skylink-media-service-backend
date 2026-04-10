@@ -16,7 +16,9 @@ public interface ProjectMapper {
     ProjectDTO toDTO(Project project);
     
     @Mapping(target = "assignments", ignore = true)
+    @Mapping(target = "assignedContractors", ignore = true)
     @Mapping(target = "photos", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "statusUpdatedBy", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "paymentStatus", ignore = true)

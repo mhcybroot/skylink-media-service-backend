@@ -137,13 +137,13 @@
                                 </td>
                                 <td class="px-4 py-3 hidden lg:table-cell">
                                     <div class="flex -space-x-2">
-                                        <div th:each="contractor, stat : ${project.assignedContractors}" 
+                                        <div th:each="contractor, stat : ${projectContractors[project.id]}" 
                                              th:if="${stat.index < 3}"
                                              class="w-7 h-7 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 text-xs font-bold border-2 border-white"
                                              th:text="${#strings.substring(contractor.fullName != null ? contractor.fullName : contractor.username, 0, 1).toUpperCase()}">C</div>
-                                        <div th:if="${#lists.size(project.assignedContractors) > 3}" 
+                                        <div th:if="${#lists.size(projectContractors[project.id]) > 3}" 
                                              class="w-7 h-7 rounded-full bg-neutral-200 flex items-center justify-center text-neutral-600 text-xs font-bold border-2 border-white"
-                                             th:text="${'+' + (#lists.size(project.assignedContractors) - 3)}">+2</div>
+                                             th:text="${'+' + (#lists.size(projectContractors[project.id]) - 3)}">+2</div>
                                     </div>
                                 </td>
                                 <td class="px-4 py-3">

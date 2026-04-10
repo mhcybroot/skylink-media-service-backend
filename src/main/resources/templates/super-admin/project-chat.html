@@ -9,14 +9,31 @@
             background-color: #f0f2f5;
             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e5e7eb' fill-opacity='0.5'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
-        .bubble-out {
+        .bubble-admin-self {
             background: #7c3aed; color: white;
             border-radius: 18px 18px 4px 18px;
         }
-        .bubble-in {
+        .bubble-admin-other {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            color: white;
+            border-radius: 18px 18px 4px 18px;
+        }
+        .bubble-contractor {
             background: #ffffff; color: #1f2937;
             border-radius: 18px 18px 18px 4px;
             border: 1px solid #E5E7EB;
+        }
+        .bubble-superadmin-self {
+            background: linear-gradient(135deg, #f8fafc 0%, #ede9fe 100%);
+            color: #312e81;
+            border-radius: 18px;
+            border: 1px solid #ddd6fe;
+        }
+        .bubble-superadmin-other {
+            background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+            color: #4c1d95;
+            border-radius: 18px;
+            border: 1px solid #c4b5fd;
         }
         textarea:focus { outline: none; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); border-color: #8B5CF6; }
     </style>
@@ -63,23 +80,55 @@
         <div id="chat-area" class="flex-1 overflow-y-auto premium-scroll px-4 py-6">
             <div class="max-w-3xl mx-auto space-y-4">
                 <!-- Messages -->
-                <div th:each="msg : ${messages}" class="flex" th:classappend="${msg.sender.username == currentUsername} ? 'justify-end' : 'justify-start'">
-                    <div class="max-w-[75%]" th:classappend="${msg.sender.username == currentUsername} ? 'items-end' : 'items-start'">
-                        <!-- Sender info -->
-                        <div class="flex items-center gap-2 mb-1" th:classappend="${msg.sender.username == currentUsername} ? 'justify-end' : 'justify-start'">
-                            <div class="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 text-xs font-bold">
-                                <span th:text="${#strings.substring(msg.sender.username, 0, 1).toUpperCase()}">U</span>
+                <th:block th:each="msg : ${messages}">
+                    <!-- Admin message -->
+                    <div th:if="${msg.senderRole == 'ADMIN'}" class="flex justify-end items-end gap-2">
+                        <div class="max-w-xs sm:max-w-md lg:max-w-lg flex flex-col items-end">
+                            <div class="flex items-center gap-2 mb-1 justify-end">
+                                <div class="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 text-xs font-bold">
+                                    <span th:text="${#strings.substring(msg.senderName, 0, 1).toUpperCase()}">A</span>
+                                </div>
+                                <span class="text-xs font-medium text-neutral-600" th:text="${msg.senderName}">admin</span>
+                                <span class="text-[10px] uppercase tracking-wide text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full" th:text="${msg.senderRoleLabel}">ADMIN</span>
+                                <span class="text-xs text-neutral-400" th:text="${#temporals.format(msg.sentAt, 'HH:mm')}">12:00</span>
                             </div>
-                            <span class="text-xs text-neutral-500" th:text="${msg.sender.username}">Username</span>
-                            <span class="text-xs text-neutral-400" th:text="${#temporals.format(msg.timestamp, 'HH:mm')}">12:00</span>
+                            <p th:classappend="${msg.bubbleClass}" class="inline-block w-fit max-w-full px-4 py-2.5 text-sm leading-relaxed text-right shadow-sm whitespace-pre-wrap break-words" th:text="${msg.content}"></p>
+                            <p class="text-[10px] text-neutral-400 text-right mt-1 px-1" th:text="${#temporals.format(msg.sentAt, 'MMM dd, yyyy HH:mm')}">Date</p>
                         </div>
-                        <!-- Message bubble -->
-                        <div th:classappend="${msg.sender.username == currentUsername} ? 'bubble-out' : 'bubble-in'" class="px-4 py-2.5 text-sm whitespace-pre-wrap">
-                            <span th:text="${msg.content}">Message content</span>
-                        </div>
-                        <p class="text-[10px] text-neutral-400 mt-1" th:text="${#temporals.format(msg.timestamp, 'MMM dd, yyyy HH:mm')}">Date</p>
                     </div>
-                </div>
+
+                    <!-- Contractor message -->
+                    <div th:if="${msg.senderRole == 'CONTRACTOR'}" class="flex justify-start items-end gap-2">
+                        <div class="w-7 h-7 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 text-[10px] font-bold shrink-0 mb-5">
+                            <span th:text="${#strings.substring(msg.senderName, 0, 1).toUpperCase()}">C</span>
+                        </div>
+                        <div class="max-w-xs sm:max-w-md lg:max-w-lg">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-xs font-medium text-neutral-600" th:text="${msg.senderName}">contractor</span>
+                                <span class="text-[10px] uppercase tracking-wide text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full" th:text="${msg.senderRoleLabel}">CONTRACTOR</span>
+                                <span class="text-xs text-neutral-400" th:text="${#temporals.format(msg.sentAt, 'HH:mm')}">12:00</span>
+                            </div>
+                            <p th:classappend="${msg.bubbleClass}" class="inline-block w-fit max-w-full px-4 py-2.5 text-sm leading-relaxed shadow-sm whitespace-pre-wrap break-words" th:text="${msg.content}"></p>
+                            <p class="text-[10px] text-neutral-400 mt-1 px-1" th:text="${#temporals.format(msg.sentAt, 'MMM dd, yyyy HH:mm')}">Date</p>
+                        </div>
+                    </div>
+
+                    <!-- Super admin message -->
+                    <div th:if="${msg.senderRole == 'SUPER_ADMIN'}" class="flex justify-center">
+                        <div class="max-w-xs sm:max-w-md lg:max-w-lg flex flex-col items-center">
+                            <div class="flex items-center gap-2 mb-1 justify-center">
+                                <div class="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 text-xs font-bold">
+                                    <span th:text="${#strings.substring(msg.senderName, 0, 1).toUpperCase()}">S</span>
+                                </div>
+                                <span class="text-xs font-medium text-neutral-600" th:text="${msg.senderName}">superadmin</span>
+                                <span class="text-[10px] uppercase tracking-wide text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full" th:text="${msg.senderRoleLabel}">SUPER ADMIN</span>
+                                <span class="text-xs text-neutral-400" th:text="${#temporals.format(msg.sentAt, 'HH:mm')}">12:00</span>
+                            </div>
+                            <p th:classappend="${msg.bubbleClass}" class="px-4 py-2.5 text-sm leading-relaxed shadow-sm whitespace-pre-wrap break-words text-center" th:text="${msg.content}"></p>
+                            <p class="text-[10px] text-neutral-400 mt-1 text-center px-1" th:text="${#temporals.format(msg.sentAt, 'MMM dd, yyyy HH:mm')}">Date</p>
+                        </div>
+                    </div>
+                </th:block>
 
                 <!-- Empty state -->
                 <div th:if="${#lists.isEmpty(messages)}" class="text-center py-12">
@@ -91,12 +140,14 @@
                     <p class="text-neutral-500 font-medium">No messages yet</p>
                     <p class="text-sm text-neutral-400 mt-1">Send a message to start the conversation</p>
                 </div>
+
+                <div id="chat-end"></div>
             </div>
         </div>
 
         <!-- Input Area -->
         <div class="bg-white border-t border-neutral-200 px-4 py-3">
-            <form th:action="@{/admin/project/{id}/chat/send(id=${project.id})}" method="post" class="max-w-3xl mx-auto">
+            <form th:action="@{/super-admin/projects/{id}/chat/send(id=${project.id})}" method="post" class="max-w-3xl mx-auto">
                 <div class="flex items-end gap-3">
                     <textarea name="content" rows="1" placeholder="Type a message..." required
                         class="flex-1 resize-none rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm focus:border-purple-400 transition-colors"></textarea>
@@ -110,5 +161,9 @@
             </form>
         </div>
     </main>
+
+    <script>
+        document.getElementById('chat-end').scrollIntoView({ behavior: 'instant' });
+    </script>
 </body>
 </html>

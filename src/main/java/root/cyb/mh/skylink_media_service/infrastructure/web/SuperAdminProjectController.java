@@ -20,6 +20,9 @@ import root.cyb.mh.skylink_media_service.application.services.UserService;
 import root.cyb.mh.skylink_media_service.domain.entities.Project;
 import root.cyb.mh.skylink_media_service.domain.entities.User;
 import root.cyb.mh.skylink_media_service.domain.entities.Contractor;
+import root.cyb.mh.skylink_media_service.domain.entities.Admin;
+import root.cyb.mh.skylink_media_service.domain.entities.ProjectMessage;
+import root.cyb.mh.skylink_media_service.domain.entities.SuperAdmin;
 import root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus;
 import root.cyb.mh.skylink_media_service.domain.valueobjects.PaymentStatus;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.UserRepository;
@@ -127,8 +130,10 @@ public class SuperAdminProjectController {
 
         // Build project availability map
         Map<Long, Boolean> projectAvailability = new HashMap<>();
+        Map<Long, List<Contractor>> projectContractors = new HashMap<>();
         for (Project project : projects) {
             projectAvailability.put(project.getId(), projectService.isProjectAvailableForAssignment(project));
+            projectContractors.put(project.getId(), projectService.getContractorsForProject(project.getId()));
         }
 
         // Unread message counts per project
@@ -154,6 +159,7 @@ public class SuperAdminProjectController {
         model.addAttribute("contractorActiveCounts", contractorActiveCounts);
         model.addAttribute("contractorAvailability", contractorAvailability);
         model.addAttribute("projectAvailability", projectAvailability);
+        model.addAttribute("projectContractors", projectContractors);
         model.addAttribute("projectUnreadCounts", projectUnreadCounts);
         model.addAttribute("activePage", "projects");
 
@@ -171,6 +177,7 @@ public class SuperAdminProjectController {
         auditLogService.logProjectViewed(project, currentUser);
 
         model.addAttribute("project", project);
+        model.addAttribute("assignedContractors", projectService.getContractorsForProject(id));
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("auditLogs", auditLogService.getAuditLogsForProject(id));
         model.addAttribute("activePage", "projects");
@@ -198,12 +205,29 @@ public class SuperAdminProjectController {
         adminChatReadLogRepository.save(readLog);
 
         model.addAttribute("project", project);
-        model.addAttribute("messages", chatService.getMessages(projectId));
+        model.addAttribute("messages", chatService.getMessages(projectId).stream()
+                .map(message -> toChatMessageView(message, username))
+                .toList());
         model.addAttribute("currentUsername", username);
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("activePage", "projects");
 
         return "super-admin/project-chat";
+    }
+
+    @PostMapping("/projects/{projectId}/chat/send")
+    public String sendProjectChatMessage(@PathVariable Long projectId,
+            @RequestParam String content,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+        try {
+            User sender = userRepository.findByUsername(authentication.getName()).orElseThrow();
+            chatService.sendMessage(projectId, sender, content.trim());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
+        return "redirect:/super-admin/projects/" + projectId + "/chat";
     }
 
     // ==================== Project Photos ====================
@@ -303,4 +327,75 @@ public class SuperAdminProjectController {
         }
         return "redirect:/super-admin/projects";
     }
+
+    private ChatMessageView toChatMessageView(ProjectMessage message, String currentUsername) {
+        User sender = message.getSender();
+        String role = sender.getRole();
+        String senderName = sender.getUsername();
+        boolean ownMessage = sender.getUsername().equals(currentUsername);
+
+        if (sender instanceof Contractor contractor && contractor.getFullName() != null && !contractor.getFullName().isBlank()) {
+            senderName = contractor.getFullName();
+        }
+
+        if (sender instanceof SuperAdmin) {
+            return new ChatMessageView(
+                    senderName,
+                    role,
+                    ownMessage ? "SUPER_ADMIN_SELF" : "SUPER_ADMIN_OTHER",
+                    ownMessage,
+                    "Super Admin",
+                    "justify-center",
+                    "items-center text-center",
+                    "justify-center",
+                    ownMessage ? "bubble-superadmin-self" : "bubble-superadmin-other",
+                    message.getContent(),
+                    message.getSentAt()
+            );
+        }
+
+        if (sender instanceof Admin) {
+            return new ChatMessageView(
+                    senderName,
+                    role,
+                    ownMessage ? "ADMIN_SELF" : "ADMIN_OTHER",
+                    ownMessage,
+                    "Admin",
+                    "justify-end",
+                    "items-end text-right",
+                    "justify-end",
+                    ownMessage ? "bubble-admin-self" : "bubble-admin-other",
+                    message.getContent(),
+                    message.getSentAt()
+            );
+        }
+
+        return new ChatMessageView(
+                senderName,
+                role,
+                "CONTRACTOR",
+                ownMessage,
+                "Contractor",
+                "justify-start",
+                "items-start text-left",
+                "justify-start",
+                "bubble-contractor",
+                message.getContent(),
+                message.getSentAt()
+        );
+    }
+
+    private record ChatMessageView(
+            String senderName,
+            String senderRole,
+            String senderVariant,
+            boolean ownMessage,
+            String senderRoleLabel,
+            String rowAlignmentClass,
+            String contentAlignmentClass,
+            String metaAlignmentClass,
+            String bubbleClass,
+            String content,
+            LocalDateTime sentAt
+    ) {}
 }

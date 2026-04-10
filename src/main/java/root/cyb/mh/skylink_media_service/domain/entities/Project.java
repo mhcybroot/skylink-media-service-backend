@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Collections;
 
 @Entity
 @Table(name = "projects")
@@ -138,6 +139,18 @@ public class Project {
     
     public List<ProjectAssignment> getAssignments() { return assignments; }
     public void setAssignments(List<ProjectAssignment> assignments) { this.assignments = assignments; }
+
+    @Transient
+    public List<Contractor> getAssignedContractors() {
+        if (assignments == null || assignments.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return assignments.stream()
+            .map(ProjectAssignment::getContractor)
+            .filter(java.util.Objects::nonNull)
+            .toList();
+    }
     
     public List<Photo> getPhotos() { return photos; }
     public void setPhotos(List<Photo> photos) { this.photos = photos; }
