@@ -43,6 +43,9 @@ public class PhotoService {
     @Autowired
     private FileStorageService fileStorageService;
 
+    @Autowired
+    private AuditLogService auditLogService;
+
     public Photo uploadPhoto(MultipartFile file, Long projectId, Long contractorId, ImageCategory category) throws IOException {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
@@ -92,6 +95,7 @@ public class PhotoService {
         photo.setImageCategory(category != null ? category : ImageCategory.UNCATEGORIZED);
 
         Photo savedPhoto = photoRepository.save(photo);
+        auditLogService.logPhotoUploaded(project, contractor, savedPhoto);
         logger.info("Photo saved with ID: {} (optimized, category: {})", savedPhoto.getId(), savedPhoto.getImageCategory());
 
         return savedPhoto;

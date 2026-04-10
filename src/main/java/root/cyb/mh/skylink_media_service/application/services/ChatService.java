@@ -21,12 +21,17 @@ public class ChatService {
     @Autowired
     private ProjectRepository projectRepository;
 
+    @Autowired
+    private AuditLogService auditLogService;
+
     @Transactional
     public ProjectMessage sendMessage(Long projectId, User sender, String content) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found: " + projectId));
         ProjectMessage message = new ProjectMessage(project, sender, content);
-        return messageRepository.save(message);
+        ProjectMessage savedMessage = messageRepository.save(message);
+        auditLogService.logChatMessageSent(project, sender, savedMessage.getContent());
+        return savedMessage;
     }
 
     @Transactional(readOnly = true)

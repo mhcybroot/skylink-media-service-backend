@@ -56,6 +56,9 @@ public class SuperAdminController {
     @Autowired
     private UserPresenceService userPresenceService;
 
+    @Autowired
+    private UnifiedAuditFeedService unifiedAuditFeedService;
+
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
 
@@ -76,7 +79,7 @@ public class SuperAdminController {
                 .count();
 
         // Recent activities
-        List<SystemAuditLog> recentActivities = systemAuditLogRepository.findTop50ByOrderByTimestampDesc();
+        var recentActivities = unifiedAuditFeedService.getRecentAuditFeed(null, null, null, null, null, 50);
         List<LoginAuditLog> recentLogins = loginAuditLogRepository.findTop50ByOrderByLoginTimeDesc();
 
         // Active users
@@ -251,8 +254,11 @@ public class SuperAdminController {
 
     @GetMapping("/audit-logs")
     public String viewAuditLogs(
+            @RequestParam(required = false) String source,
             @RequestParam(required = false) String actionType,
             @RequestParam(required = false) String targetType,
+            @RequestParam(required = false) String actor,
+            @RequestParam(required = false) String project,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size,
             Model model,
@@ -261,22 +267,16 @@ public class SuperAdminController {
         User currentUser = userRepository.findByUsername(authentication.getName()).orElseThrow();
         model.addAttribute("currentUser", currentUser);
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("timestamp").descending());
-        Page<SystemAuditLog> logs;
-
-        SystemAuditLog.ActionType action = null;
-        if (actionType != null && !actionType.isEmpty()) {
-            try {
-                action = SystemAuditLog.ActionType.valueOf(actionType);
-            } catch (IllegalArgumentException ignored) {}
-        }
-
-        logs = systemAuditLogRepository.findByFilters(action, targetType, null, pageable);
+        Pageable pageable = PageRequest.of(page, size);
+        var logs = unifiedAuditFeedService.getAuditFeed(source, actionType, targetType, actor, project, pageable);
 
         model.addAttribute("logs", logs);
+        model.addAttribute("source", source);
         model.addAttribute("actionType", actionType);
         model.addAttribute("targetType", targetType);
-        model.addAttribute("actionTypes", SystemAuditLog.ActionType.values());
+        model.addAttribute("actor", actor);
+        model.addAttribute("project", project);
+        model.addAttribute("actionTypes", unifiedAuditFeedService.getActionOptions());
 
         return "super-admin/audit-logs";
     }
@@ -316,10 +316,12 @@ public class SuperAdminController {
 
         List<UserPresenceService.UserPresence> activeUsers = userPresenceService.getActiveUsers();
         var usersByPage = userPresenceService.getUsersByPage();
+        var recentProjectActivities = unifiedAuditFeedService.getRecentAuditFeed("PROJECT", null, null, null, null, 12);
 
         model.addAttribute("activeUsers", activeUsers);
         model.addAttribute("usersByPage", usersByPage);
         model.addAttribute("activeUserCount", activeUsers.size());
+        model.addAttribute("recentProjectActivities", recentProjectActivities);
 
         return "super-admin/live-monitor";
     }

@@ -22,9 +22,14 @@
                 <!-- Filters -->
                 <div class="saas-card p-4">
                     <form method="get" class="flex flex-wrap gap-3 items-center">
+                        <select name="source" class="saas-input !w-auto !py-2.5 !px-4 text-sm">
+                            <option value="">All Sources</option>
+                            <option value="SYSTEM" th:selected="${source == 'SYSTEM'}">System</option>
+                            <option value="PROJECT" th:selected="${source == 'PROJECT'}">Project</option>
+                        </select>
                         <select name="actionType" class="saas-input !w-auto !py-2.5 !px-4 text-sm">
                             <option value="">All Actions</option>
-                            <option th:each="type : ${actionTypes}" th:value="${type.name()}" th:selected="${actionType == type.name()}" th:text="${type.displayName}">Type</option>
+                            <option th:each="type : ${actionTypes}" th:value="${type.value}" th:selected="${actionType == type.value}" th:text="${type.label}">Type</option>
                         </select>
                         <select name="targetType" class="saas-input !w-auto !py-2.5 !px-4 text-sm">
                             <option value="">All Targets</option>
@@ -32,6 +37,10 @@
                             <option value="Contractor" th:selected="${targetType == 'Contractor'}">Contractor</option>
                             <option value="SuperAdmin" th:selected="${targetType == 'SuperAdmin'}">SuperAdmin</option>
                         </select>
+                        <input type="text" name="actor" th:value="${actor}" placeholder="Actor username"
+                               class="saas-input !w-auto min-w-[12rem] !py-2.5 !px-4 text-sm">
+                        <input type="text" name="project" th:value="${project}" placeholder="Project ID or work order"
+                               class="saas-input !w-auto min-w-[14rem] !py-2.5 !px-4 text-sm">
                         <button type="submit" class="px-4 py-2.5 bg-neutral-900 text-white text-xs font-semibold rounded-lg hover:bg-neutral-800 transition-colors">Filter</button>
                         <a href="/super-admin/audit-logs" class="px-4 py-2.5 text-neutral-600 text-xs font-medium hover:text-neutral-900 transition-colors">Clear</a>
                     </form>
@@ -43,26 +52,70 @@
                         <table class="min-w-full divide-y divide-neutral-200">
                             <thead class="bg-neutral-50">
                                 <tr>
+                                    <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Source</th>
                                     <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Timestamp</th>
                                     <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Action</th>
                                     <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider hidden sm:table-cell">Actor</th>
                                     <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider hidden md:table-cell">Target</th>
                                     <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider hidden lg:table-cell">Details</th>
                                     <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider hidden xl:table-cell">IP</th>
+                                    <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-neutral-200">
                                 <tr th:each="log : ${logs}" class="hover:bg-neutral-50">
+                                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 text-[10px] font-bold rounded-full uppercase tracking-wide"
+                                              th:classappend="${log.projectSource} ? 'bg-purple-100 text-purple-800' : 'bg-slate-100 text-slate-700'"
+                                              th:text="${log.sourceLabel}">Source</span>
+                                    </td>
                                     <td class="px-4 sm:px-6 py-4 text-sm text-neutral-500 whitespace-nowrap" th:text="${#temporals.format(log.timestamp, 'MM-dd HH:mm:ss')}">Time</td>
                                     <td class="px-4 sm:px-6 py-4">
                                         <span class="px-2 py-1 text-xs font-semibold rounded-full"
-                                              th:classappend="${log.actionType.name().contains('DELETE')} ? 'bg-red-100 text-red-800' : (${log.actionType.name().contains('BLOCK')} ? 'bg-amber-100 text-amber-800' : (${log.actionType.name().contains('LOGIN')} ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'))"
-                                              th:text="${log.actionType.displayName}">Action</span>
+                                              th:classappend="${#strings.contains(log.actionType, 'DELETE')} ? 'bg-red-100 text-red-800' :
+                                                             (${#strings.contains(log.actionType, 'BLOCK')} ? 'bg-amber-100 text-amber-800' :
+                                                             (${#strings.contains(log.actionType, 'LOGIN')} ? 'bg-blue-100 text-blue-800' :
+                                                             (${#strings.contains(log.actionType, 'CHAT')} ? 'bg-indigo-100 text-indigo-800' :
+                                                             (${#strings.contains(log.actionType, 'PHOTO')} ? 'bg-teal-100 text-teal-800' :
+                                                             'bg-green-100 text-green-800'))))"
+                                              th:text="${log.actionLabel}">Action</span>
                                     </td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-neutral-900 hidden sm:table-cell" th:text="${log.actorUsername ?: 'System'}">Actor</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-neutral-500 hidden md:table-cell" th:text="${log.targetType + ' #' + log.targetId}">Target</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-neutral-500 max-w-xs truncate hidden lg:table-cell" th:text="${log.details}">Details</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-neutral-400 hidden xl:table-cell" th:text="${log.ipAddress}">IP</td>
+                                    <td class="px-4 sm:px-6 py-4 hidden sm:table-cell">
+                                        <p class="text-sm text-neutral-900" th:text="${log.actorDisplay}">Actor</p>
+                                        <p class="text-xs text-neutral-400" th:text="${log.actorRoleLabel != null and !#strings.isEmpty(log.actorRoleLabel) ? log.actorRoleLabel : 'System'}">Role</p>
+                                    </td>
+                                    <td class="px-4 sm:px-6 py-4 text-sm text-neutral-500 hidden md:table-cell">
+                                        <a th:if="${log.projectSource and log.projectDetailUrl != null}" th:href="${log.projectDetailUrl}" class="text-purple-600 hover:text-purple-700 font-medium" th:text="${log.displayTarget}">Target</a>
+                                        <span th:unless="${log.projectSource and log.projectDetailUrl != null}" th:text="${log.displayTarget}">Target</span>
+                                    </td>
+                                    <td class="px-4 sm:px-6 py-4 text-sm text-neutral-500 max-w-sm hidden lg:table-cell">
+                                        <p class="truncate" th:text="${log.detailsPreview}">Details</p>
+                                    </td>
+                                    <td class="px-4 sm:px-6 py-4 text-sm text-neutral-400 hidden xl:table-cell" th:text="${log.ipAddress ?: '-'}">IP</td>
+                                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center gap-2">
+                                            <button type="button"
+                                                    th:if="${log.hasFullDetails()}"
+                                                    class="px-3 py-1.5 text-xs font-semibold text-neutral-700 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors"
+                                                    th:attr="data-action=${log.actionLabel},
+                                                             data-source=${log.sourceLabel},
+                                                             data-actor=${log.actorDisplay},
+                                                             data-role=${log.actorRoleLabel},
+                                                             data-target=${log.displayTarget},
+                                                             data-time=${#temporals.format(log.timestamp, 'MMM dd, yyyy HH:mm:ss')},
+                                                             data-preview=${log.detailsPreview},
+                                                             data-full=${log.detailsFull},
+                                                             data-project-url=${log.projectDetailUrl},
+                                                             data-history-url=${log.projectHistoryUrl},
+                                                             data-chat-url=${log.projectChatUrl}"
+                                                    onclick="openAuditLogModal(this)">
+                                                View
+                                            </button>
+                                            <a th:if="${log.projectDetailUrl != null}" th:href="${log.projectDetailUrl}" class="text-xs font-medium text-purple-600 hover:text-purple-700">
+                                                Project
+                                            </a>
+                                        </div>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -72,15 +125,99 @@
 
                 <!-- Pagination -->
                 <div th:if="${logs.totalPages > 1}" class="flex justify-center gap-2">
-                    <a th:if="${logs.hasPrevious()}" th:href="@{/super-admin/audit-logs(page=${logs.number - 1}, actionType=${actionType}, targetType=${targetType})}" 
+                    <a th:if="${logs.hasPrevious()}" th:href="@{/super-admin/audit-logs(page=${logs.number - 1}, source=${source}, actionType=${actionType}, targetType=${targetType}, actor=${actor}, project=${project})}" 
                        class="px-4 py-2 border border-neutral-200 rounded-lg text-sm text-neutral-600 hover:bg-neutral-50 transition-colors">Previous</a>
-                    <a th:if="${logs.hasNext()}" th:href="@{/super-admin/audit-logs(page=${logs.number + 1}, actionType=${actionType}, targetType=${targetType})}" 
+                    <a th:if="${logs.hasNext()}" th:href="@{/super-admin/audit-logs(page=${logs.number + 1}, source=${source}, actionType=${actionType}, targetType=${targetType}, actor=${actor}, project=${project})}" 
                        class="px-4 py-2 border border-neutral-200 rounded-lg text-sm text-neutral-600 hover:bg-neutral-50 transition-colors">Next</a>
                 </div>
 
             </div>
         </div>
     </main>
+
+    <div id="audit-log-modal" class="hidden fixed inset-0 z-50">
+        <div class="absolute inset-0 bg-neutral-900/50 backdrop-blur-sm" onclick="closeAuditLogModal()"></div>
+        <div class="relative max-w-3xl mx-auto mt-16 mb-8 bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden">
+            <div class="flex items-start justify-between gap-4 px-6 py-5 border-b border-neutral-200">
+                <div>
+                    <p id="audit-log-modal-source" class="text-xs font-bold uppercase tracking-wide text-purple-600">Source</p>
+                    <h2 id="audit-log-modal-action" class="text-lg font-bold text-neutral-900 mt-1">Activity</h2>
+                    <p id="audit-log-modal-time" class="text-sm text-neutral-500 mt-1">Time</p>
+                </div>
+                <button type="button" onclick="closeAuditLogModal()" class="text-neutral-400 hover:text-neutral-700 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto premium-scroll">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="p-4 rounded-xl bg-neutral-50 border border-neutral-200">
+                        <p class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Actor</p>
+                        <p id="audit-log-modal-actor" class="text-sm font-semibold text-neutral-900 mt-1">System</p>
+                        <p id="audit-log-modal-role" class="text-xs text-neutral-500 mt-1">Role</p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-neutral-50 border border-neutral-200">
+                        <p class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Target</p>
+                        <p id="audit-log-modal-target" class="text-sm font-semibold text-neutral-900 mt-1">-</p>
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-neutral-50 border border-neutral-200">
+                    <p class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Preview</p>
+                    <p id="audit-log-modal-preview" class="text-sm text-neutral-700 mt-2 whitespace-pre-wrap break-words">-</p>
+                </div>
+                <div class="p-4 rounded-xl bg-white border border-neutral-200">
+                    <div class="flex items-center justify-between gap-3">
+                        <p class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Full Details</p>
+                        <a id="audit-log-modal-chat-link" href="#" class="hidden text-xs font-semibold text-purple-600 hover:text-purple-700">Open Chat</a>
+                    </div>
+                    <p id="audit-log-modal-full" class="text-sm text-neutral-700 mt-2 whitespace-pre-wrap break-words">-</p>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-neutral-200 bg-neutral-50 flex flex-wrap items-center justify-end gap-3">
+                <a id="audit-log-modal-history-link" href="#" class="hidden px-4 py-2 text-sm font-medium text-neutral-700 border border-neutral-200 rounded-lg hover:bg-white transition-colors">View History</a>
+                <a id="audit-log-modal-project-link" href="#" class="hidden px-4 py-2 text-sm font-medium text-purple-700 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">View Project</a>
+                <button type="button" onclick="closeAuditLogModal()" class="px-4 py-2 text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openAuditLogModal(button) {
+            const data = button.dataset;
+            document.getElementById('audit-log-modal-source').textContent = data.source || 'Activity';
+            document.getElementById('audit-log-modal-action').textContent = data.action || 'Activity';
+            document.getElementById('audit-log-modal-time').textContent = data.time || '';
+            document.getElementById('audit-log-modal-actor').textContent = data.actor || 'System';
+            document.getElementById('audit-log-modal-role').textContent = data.role || 'System';
+            document.getElementById('audit-log-modal-target').textContent = data.target || '-';
+            document.getElementById('audit-log-modal-preview').textContent = data.preview || '-';
+            document.getElementById('audit-log-modal-full').textContent = data.full || data.preview || '-';
+
+            toggleAuditLink('audit-log-modal-project-link', data.projectUrl);
+            toggleAuditLink('audit-log-modal-history-link', data.historyUrl);
+            toggleAuditLink('audit-log-modal-chat-link', data.chatUrl);
+
+            document.getElementById('audit-log-modal').classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeAuditLogModal() {
+            document.getElementById('audit-log-modal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        function toggleAuditLink(id, href) {
+            const link = document.getElementById(id);
+            if (href) {
+                link.href = href;
+                link.classList.remove('hidden');
+            } else {
+                link.removeAttribute('href');
+                link.classList.add('hidden');
+            }
+        }
+    </script>
 
 </body>
 </html>

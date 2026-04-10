@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import root.cyb.mh.skylink_media_service.domain.entities.Photo;
 import root.cyb.mh.skylink_media_service.domain.entities.Project;
 import root.cyb.mh.skylink_media_service.domain.entities.ProjectAuditLog;
 import root.cyb.mh.skylink_media_service.domain.entities.User;
@@ -23,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class AuditLogService {
     
     private static final Logger logger = LoggerFactory.getLogger(AuditLogService.class);
+    private static final int CHAT_PREVIEW_LENGTH = 120;
     
     @Autowired
     private ProjectAuditLogRepository auditLogRepository;
@@ -250,27 +252,99 @@ public class AuditLogService {
             logger.error("Failed to log project view: {}", e.getMessage());
         }
     }
+
+    /**
+     * Log a project opened event.
+     */
+    public void logProjectOpened(Project project, Contractor contractor, boolean isFirstTime) {
+        try {
+            String actorName = displayName(contractor);
+            String details = isFirstTime
+                    ? "Project opened for the first time by " + actorName
+                    : "Project opened by " + actorName;
+            ProjectAuditLog auditLog = new ProjectAuditLog(
+                project,
+                ProjectAuditLog.ActionType.PROJECT_OPENED,
+                contractor,
+                null,
+                null,
+                details
+            );
+            auditLogRepository.save(auditLog);
+            logger.debug("Logged project opened for project {} by contractor {}", project.getId(), contractor.getId());
+        } catch (Exception e) {
+            logger.error("Failed to log project opened: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Log a project completed event.
+     */
+    public void logProjectCompleted(Project project, Contractor contractor) {
+        try {
+            String actorName = displayName(contractor);
+            ProjectAuditLog auditLog = new ProjectAuditLog(
+                project,
+                ProjectAuditLog.ActionType.PROJECT_COMPLETED,
+                contractor,
+                null,
+                null,
+                "Project completed by " + actorName
+            );
+            auditLogRepository.save(auditLog);
+            logger.debug("Logged project completed for project {} by contractor {}", project.getId(), contractor.getId());
+        } catch (Exception e) {
+            logger.error("Failed to log project completed: {}", e.getMessage());
+        }
+    }
     
     /**
      * Log a chat message sent event
      */
-    public void logChatMessageSent(Project project, User user, String messagePreview) {
+    public void logChatMessageSent(Project project, User user, String messageContent) {
         try {
-            String preview = messagePreview != null && messagePreview.length() > 50 
-                ? messagePreview.substring(0, 50) + "..." 
-                : messagePreview;
+            String fullMessage = normalizeText(messageContent);
+            String preview = previewText(fullMessage, CHAT_PREVIEW_LENGTH);
             ProjectAuditLog auditLog = new ProjectAuditLog(
                 project,
                 ProjectAuditLog.ActionType.CHAT_MESSAGE_SENT,
                 user,
                 null,
-                null,
-                "Message sent: " + preview
+                preview,
+                fullMessage
             );
             auditLogRepository.save(auditLog);
             logger.debug("Logged chat message sent for project {} by user {}", project.getId(), user.getId());
         } catch (Exception e) {
             logger.error("Failed to log chat message: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Log a photo uploaded event.
+     */
+    public void logPhotoUploaded(Project project, Contractor contractor, Photo photo) {
+        try {
+            String actorName = displayName(contractor);
+            String photoName = photo.getOriginalName() != null && !photo.getOriginalName().isBlank()
+                    ? photo.getOriginalName()
+                    : photo.getFileName();
+            String category = photo.getImageCategory() != null
+                    ? photo.getImageCategory().name()
+                    : "UNCATEGORIZED";
+
+            ProjectAuditLog auditLog = new ProjectAuditLog(
+                project,
+                ProjectAuditLog.ActionType.PHOTO_UPLOADED,
+                contractor,
+                null,
+                photoName,
+                "Photo uploaded by " + actorName + ": " + photoName + " (" + category + ")"
+            );
+            auditLogRepository.save(auditLog);
+            logger.debug("Logged photo upload for project {} by contractor {}", project.getId(), contractor.getId());
+        } catch (Exception e) {
+            logger.error("Failed to log photo upload: {}", e.getMessage());
         }
     }
     
@@ -312,5 +386,31 @@ public class AuditLogService {
         } catch (Exception e) {
             logger.error("Failed to log photos download: {}", e.getMessage());
         }
+    }
+
+    private String normalizeText(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.trim().replace("\r\n", "\n");
+    }
+
+    private String previewText(String value, int maxLength) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+        if (value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, maxLength - 3) + "...";
+    }
+
+    private String displayName(User user) {
+        if (user instanceof Contractor contractor
+                && contractor.getFullName() != null
+                && !contractor.getFullName().isBlank()) {
+            return contractor.getFullName();
+        }
+        return user.getUsername();
     }
 }

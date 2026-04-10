@@ -663,10 +663,7 @@ public class AdminController {
 
             // Email notification to all assigned contractors who have an email
             Project project = projectRepository.findById(projectId).orElseThrow();
-            
-            // Audit log for chat message sent
-            auditLogService.logChatMessageSent(project, sender, content.trim());
-            
+
             String chatUrl = "http://76.13.221.43:8085/contractor/project/" + projectId + "/chat";
             String senderName = sender instanceof Admin admin 
                     ? (admin.getUsername() != null ? admin.getUsername() : "Admin")

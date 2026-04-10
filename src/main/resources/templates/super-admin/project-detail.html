@@ -179,7 +179,7 @@
                                         <span class="font-medium" th:text="${log.actionType.displayName}">Action</span>
                                         <span th:if="${log.admin != null}" class="text-neutral-500">by <span th:text="${log.admin.username}">User</span></span>
                                     </p>
-                                    <p class="text-xs text-neutral-500" th:text="${log.details}">Details</p>
+                                    <p class="text-xs text-neutral-500" th:text="${log.actionType.name() == 'CHAT_MESSAGE_SENT' ? (log.newValue ?: log.details) : log.details}">Details</p>
                                     <p class="text-xs text-neutral-400 mt-1" th:text="${#temporals.format(log.timestamp, 'MMM dd, yyyy HH:mm')}">Time</p>
                                 </div>
                             </div>

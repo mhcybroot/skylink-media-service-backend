@@ -196,13 +196,29 @@
                                 </thead>
                                 <tbody class="bg-white divide-y divide-neutral-200">
                                     <tr th:each="log : ${recentActivities}" class="hover:bg-neutral-50">
-                                        <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 py-1 text-xs font-semibold rounded-full"
-                                                  th:classappend="${log.actionType.name().contains('DELETE')} ? 'bg-red-100 text-red-800' : (${log.actionType.name().contains('BLOCK')} ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800')"
-                                                  th:text="${log.actionType.displayName}">Action</span>
+                                        <td class="px-4 sm:px-6 py-4">
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <span class="px-2 py-1 text-[10px] font-bold rounded-full uppercase tracking-wide"
+                                                      th:classappend="${log.projectSource} ? 'bg-purple-100 text-purple-800' : 'bg-slate-100 text-slate-700'"
+                                                      th:text="${log.sourceLabel}">Source</span>
+                                                <span class="px-2 py-1 text-xs font-semibold rounded-full"
+                                                      th:classappend="${#strings.contains(log.actionType, 'DELETE')} ? 'bg-red-100 text-red-800' :
+                                                                     (${#strings.contains(log.actionType, 'BLOCK')} ? 'bg-amber-100 text-amber-800' :
+                                                                     (${#strings.contains(log.actionType, 'CHAT')} ? 'bg-indigo-100 text-indigo-800' :
+                                                                     (${#strings.contains(log.actionType, 'PHOTO')} ? 'bg-teal-100 text-teal-800' :
+                                                                     'bg-green-100 text-green-800')))"
+                                                      th:text="${log.actionLabel}">Action</span>
+                                            </div>
+                                            <p class="text-xs text-neutral-500 mt-2 max-w-md truncate" th:text="${log.detailsPreview}">Details</p>
                                         </td>
-                                        <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-neutral-900" th:text="${log.actorUsername ?: 'System'}">Actor</td>
-                                        <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-neutral-500 hidden sm:table-cell" th:text="${log.targetType + ' #' + log.targetId}">Target</td>
+                                        <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+                                            <p class="text-sm text-neutral-900" th:text="${log.actorDisplay}">Actor</p>
+                                            <p class="text-xs text-neutral-400" th:text="${log.actorRoleLabel != null and !#strings.isEmpty(log.actorRoleLabel) ? log.actorRoleLabel : 'System'}">Role</p>
+                                        </td>
+                                        <td class="px-4 sm:px-6 py-4 text-sm text-neutral-500 hidden sm:table-cell">
+                                            <a th:if="${log.projectSource and log.projectDetailUrl != null}" th:href="${log.projectDetailUrl}" class="text-purple-600 hover:text-purple-700 font-medium" th:text="${log.displayTarget}">Target</a>
+                                            <span th:unless="${log.projectSource and log.projectDetailUrl != null}" th:text="${log.displayTarget}">Target</span>
+                                        </td>
                                         <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-neutral-400" th:text="${#temporals.format(log.timestamp, 'MM-dd HH:mm')}">Time</td>
                                     </tr>
                                 </tbody>
