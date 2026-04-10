@@ -1,272 +1,416 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/super-admin-layout :: head('Dashboard')}"></head>
-<body class="font-sans antialiased flex h-screen overflow-hidden text-neutral-800" x-data="{ sidebarOpen: false, activeTab: 'overview' }">
+<body class="font-sans antialiased flex h-screen overflow-hidden text-neutral-800" x-data="{ sidebarOpen: false }">
 
-    <!-- Mobile Overlay -->
     <div th:replace="~{fragments/super-admin-layout :: mobile-overlay}"></div>
-
-    <!-- Sidebar -->
     <aside th:replace="~{fragments/super-admin-layout :: sidebar('dashboard')}"></aside>
 
-    <!-- Main Content Area -->
     <main class="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
-        
-        <!-- Header -->
         <header th:replace="~{fragments/super-admin-layout :: header('Dashboard', '/super-admin/dashboard')}"></header>
 
-        <!-- Scrollable Content Area -->
         <div class="flex-1 overflow-y-auto premium-scroll p-4 sm:p-8">
-            <div class="max-w-7xl mx-auto space-y-6 pb-12">
+            <div class="mx-auto max-w-[1480px] space-y-6 pb-12 sm:space-y-8">
+                <div th:replace="~{fragments/super-admin-layout :: flash-messages}"></div>
 
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                    <!-- Total Users -->
-                    <div class="saas-card p-5 sm:p-6 relative overflow-hidden">
-                        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-400 to-indigo-600"></div>
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Total Users</p>
-                                <p class="text-2xl sm:text-3xl font-bold font-heading text-neutral-900 mt-1" th:text="${totalAdmins + totalContractors + totalSuperAdmins}">0</p>
-                                <div class="flex gap-4 mt-2 text-xs text-neutral-400">
-                                    <span>Admins: <span th:text="${totalAdmins}">0</span></span>
-                                    <span>Contractors: <span th:text="${totalContractors}">0</span></span>
+                <section class="relative overflow-hidden rounded-[28px] border border-neutral-200 bg-white px-6 py-6 shadow-sm sm:px-8 sm:py-8">
+                    <div class="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-indigo-500 via-violet-500 to-emerald-500"></div>
+                    <div class="absolute -right-24 -top-24 h-56 w-56 rounded-full bg-primary-100/70 blur-3xl"></div>
+                    <div class="absolute -bottom-20 left-12 h-40 w-40 rounded-full bg-emerald-100/60 blur-3xl"></div>
+
+                    <div class="relative flex flex-col gap-8 xl:flex-row xl:items-start xl:justify-between">
+                        <div class="max-w-3xl space-y-5">
+                            <div class="inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary-700">
+                                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                                Operations Command Center
+                            </div>
+
+                            <div class="space-y-3">
+                                <h1 class="font-heading text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl">
+                                    Super Admin oversight for users, projects, and live platform activity.
+                                </h1>
+                                <p class="max-w-2xl text-sm leading-6 text-neutral-600 sm:text-base">
+                                    Monitor the platform in one place, move quickly on issues, and keep visibility on staff activity,
+                                    project operations, and login health without jumping between tabs.
+                                </p>
+                            </div>
+
+                            <div class="flex flex-wrap gap-3">
+                                <div class="inline-flex items-center gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+                                    <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                    </span>
+                                    <div>
+                                        <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-neutral-500">Online Users</p>
+                                        <p class="font-heading text-xl font-semibold text-neutral-950" th:text="${activeUsers}">0</p>
+                                    </div>
+                                </div>
+
+                                <div class="inline-flex items-center gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+                                    <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </span>
+                                    <div>
+                                        <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-neutral-500">24h Logins</p>
+                                        <p class="font-heading text-xl font-semibold text-neutral-950" th:text="${recentLogins24h}">0</p>
+                                    </div>
+                                </div>
+
+                                <div class="inline-flex items-center gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+                                    <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-primary-100 text-primary-700">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                                        </svg>
+                                    </span>
+                                    <div>
+                                        <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-neutral-500">Active Projects</p>
+                                        <p class="font-heading text-xl font-semibold text-neutral-950" th:text="${activeProjects}">0</p>
+                                    </div>
+                                </div>
+
+                                <div class="inline-flex items-center gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+                                    <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl"
+                                          th:classappend="${blockedUsers > 0} ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                                        </svg>
+                                    </span>
+                                    <div>
+                                        <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-neutral-500">Blocked Users</p>
+                                        <p class="font-heading text-xl font-semibold text-neutral-950" th:text="${blockedUsers}">0</p>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-                                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        </div>
+
+                        <div class="w-full max-w-xl rounded-[24px] border border-neutral-200 bg-neutral-50/80 p-5 sm:p-6">
+                            <div class="space-y-5">
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-[0.24em] text-neutral-500">Primary Actions</p>
+                                    <div class="mt-3 flex flex-wrap gap-3">
+                                        <a href="/super-admin/users" class="inline-flex items-center justify-center rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-700">
+                                            Manage Users
+                                        </a>
+                                        <a href="/super-admin/audit-logs" class="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-700 transition hover:border-neutral-300 hover:text-neutral-950">
+                                            Audit Logs
+                                        </a>
+                                        <a href="/super-admin/live-monitor" class="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-700 transition hover:border-neutral-300 hover:text-neutral-950">
+                                            Live Monitor
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-[0.24em] text-neutral-500">Create and Manage</p>
+                                    <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                        <a href="/super-admin/create-admin" class="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-700 transition hover:border-primary-200 hover:text-primary-700">
+                                            Create Admin
+                                        </a>
+                                        <a href="/super-admin/create-contractor" class="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-700 transition hover:border-primary-200 hover:text-primary-700">
+                                            Create Contractor
+                                        </a>
+                                        <a href="/super-admin/create-project" class="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-700 transition hover:border-primary-200 hover:text-primary-700">
+                                            Create Project
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="rounded-2xl border border-dashed border-neutral-200 bg-white px-4 py-4">
+                                    <p class="text-xs font-semibold uppercase tracking-[0.22em] text-neutral-500">Todays Focus</p>
+                                    <p class="mt-2 text-sm leading-6 text-neutral-600">
+                                        Review live activity first, then move through recent project events and login anomalies before taking management actions.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
+                    <article class="overflow-hidden rounded-[24px] border border-neutral-200 bg-white p-6 shadow-sm">
+                        <div class="mb-5 h-1.5 w-24 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500"></div>
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="space-y-3">
+                                <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-neutral-500">Total Users</p>
+                                <p class="font-heading text-4xl font-semibold text-neutral-950" th:text="${totalUsers}">0</p>
+                                <p class="text-sm text-neutral-500">Complete staff and contractor footprint across the platform.</p>
+                            </div>
+                            <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                                 </svg>
-                            </div>
+                            </span>
                         </div>
-                    </div>
+                        <div class="mt-5 flex flex-wrap gap-2">
+                            <span class="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-600">Super Admins: <span class="font-semibold text-neutral-900" th:text="${totalSuperAdmins}">0</span></span>
+                            <span class="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-600">Admins: <span class="font-semibold text-neutral-900" th:text="${totalAdmins}">0</span></span>
+                            <span class="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-600">Contractors: <span class="font-semibold text-neutral-900" th:text="${totalContractors}">0</span></span>
+                        </div>
+                    </article>
 
-                    <!-- Total Projects -->
-                    <div class="saas-card p-5 sm:p-6 relative overflow-hidden">
-                        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Total Projects</p>
-                                <p class="text-2xl sm:text-3xl font-bold font-heading text-neutral-900 mt-1" th:text="${totalProjects}">0</p>
-                                <p class="text-xs text-neutral-400 mt-2"><span th:text="${activeProjects}">0</span> active</p>
+                    <article class="overflow-hidden rounded-[24px] border border-neutral-200 bg-white p-6 shadow-sm">
+                        <div class="mb-5 h-1.5 w-24 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="space-y-3">
+                                <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-neutral-500">Total Projects</p>
+                                <p class="font-heading text-4xl font-semibold text-neutral-950" th:text="${totalProjects}">0</p>
+                                <p class="text-sm text-neutral-500">Live delivery pipeline across all project work orders.</p>
                             </div>
-                            <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
-                                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                                 </svg>
-                            </div>
+                            </span>
                         </div>
-                    </div>
+                        <div class="mt-5 flex flex-wrap gap-2">
+                            <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">Active: <span class="font-semibold" th:text="${activeProjects}">0</span></span>
+                            <span class="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-600">Inactive: <span class="font-semibold text-neutral-900" th:text="${inactiveProjects}">0</span></span>
+                        </div>
+                    </article>
 
-                    <!-- Active Now -->
-                    <div class="saas-card p-5 sm:p-6 relative overflow-hidden">
-                        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-amber-600"></div>
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Active Now</p>
-                                <p class="text-2xl sm:text-3xl font-bold font-heading text-neutral-900 mt-1" th:text="${activeUsers}">0</p>
-                                <p class="text-xs text-neutral-400 mt-2"><span th:text="${recentLogins24h}">0</span> logins (24h)</p>
+                    <article class="overflow-hidden rounded-[24px] border border-neutral-200 bg-white p-6 shadow-sm">
+                        <div class="mb-5 h-1.5 w-24 rounded-full bg-gradient-to-r from-amber-400 to-orange-500"></div>
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="space-y-3">
+                                <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-neutral-500">Active Now</p>
+                                <p class="font-heading text-4xl font-semibold text-neutral-950" th:text="${activeUsers}">0</p>
+                                <p class="text-sm text-neutral-500">Users currently visible in the live presence layer.</p>
                             </div>
-                            <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
-                                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                                 </svg>
-                            </div>
+                            </span>
                         </div>
-                    </div>
+                        <div class="mt-5 flex flex-wrap gap-2">
+                            <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">24h logins: <span class="font-semibold" th:text="${recentLogins24h}">0</span></span>
+                        </div>
+                    </article>
 
-                    <!-- Blocked Users -->
-                    <div class="saas-card p-5 sm:p-6 relative overflow-hidden">
-                        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-400 to-red-600"></div>
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Blocked Users</p>
-                                <p class="text-2xl sm:text-3xl font-bold font-heading text-neutral-900 mt-1" th:text="${blockedUsers}">0</p>
-                                <p class="text-xs text-neutral-400 mt-2">Suspended accounts</p>
+                    <article class="overflow-hidden rounded-[24px] border p-6 shadow-sm"
+                             th:classappend="${blockedUsers > 0} ? 'border-rose-200 bg-rose-50/40' : 'border-neutral-200 bg-white'">
+                        <div class="mb-5 h-1.5 w-24 rounded-full"
+                             th:classappend="${blockedUsers > 0} ? 'bg-gradient-to-r from-rose-500 to-red-500' : 'bg-gradient-to-r from-emerald-500 to-lime-500'"></div>
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="space-y-3">
+                                <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-neutral-500">Blocked Users</p>
+                                <p class="font-heading text-4xl font-semibold text-neutral-950" th:text="${blockedUsers}">0</p>
+                                <p class="text-sm text-neutral-500"
+                                   th:text="${blockedUsers > 0} ? 'Accounts currently need review or manual reactivation.' : 'No suspended accounts need attention right now.'">
+                                    No suspended accounts need attention right now.
+                                </p>
                             </div>
-                            <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
-                                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl"
+                                  th:classappend="${blockedUsers > 0} ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'">
+                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
                                 </svg>
-                            </div>
+                            </span>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="saas-card p-5 sm:p-6">
-                    <h3 class="text-sm font-bold font-heading text-neutral-900 mb-4">Quick Actions</h3>
-                    <div class="flex flex-wrap gap-2 sm:gap-3">
-                        <a href="/super-admin/users" class="px-3.5 py-2 bg-purple-600 text-white text-xs font-semibold rounded-lg hover:bg-purple-700 transition-colors">
-                            Manage Users
-                        </a>
-                        <a href="/super-admin/create-admin" class="px-3.5 py-2 bg-white border border-neutral-200 text-neutral-700 text-xs font-semibold rounded-lg hover:bg-neutral-50 transition-colors">
-                            Create Admin
-                        </a>
-                        <a href="/super-admin/create-contractor" class="px-3.5 py-2 bg-white border border-neutral-200 text-neutral-700 text-xs font-semibold rounded-lg hover:bg-neutral-50 transition-colors">
-                            Create Contractor
-                        </a>
-                        <a href="/super-admin/audit-logs" class="px-3.5 py-2 bg-white border border-neutral-200 text-neutral-700 text-xs font-semibold rounded-lg hover:bg-neutral-50 transition-colors">
-                            View Audit Logs
-                        </a>
-                        <a href="/super-admin/login-history" class="px-3.5 py-2 bg-white border border-neutral-200 text-neutral-700 text-xs font-semibold rounded-lg hover:bg-neutral-50 transition-colors">
-                            Login History
-                        </a>
-                        <a href="/super-admin/live-monitor" class="px-3.5 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-colors">
-                            Live Monitor
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Tabs -->
-                <div class="border-b border-neutral-200">
-                    <nav class="flex gap-6 sm:gap-8">
-                        <button @click="activeTab = 'overview'" 
-                                :class="activeTab === 'overview' ? 'border-purple-500 text-purple-600' : 'border-transparent text-neutral-500 hover:text-neutral-700'" 
-                                class="py-3 sm:py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap">
-                            Overview
-                        </button>
-                        <button @click="activeTab = 'activity'" 
-                                :class="activeTab === 'activity' ? 'border-purple-500 text-purple-600' : 'border-transparent text-neutral-500 hover:text-neutral-700'" 
-                                class="py-3 sm:py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap">
-                            Recent Activity
-                        </button>
-                        <button @click="activeTab = 'logins'" 
-                                :class="activeTab === 'logins' ? 'border-purple-500 text-purple-600' : 'border-transparent text-neutral-500 hover:text-neutral-700'" 
-                                class="py-3 sm:py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap">
-                            Recent Logins
-                        </button>
-                    </nav>
-                </div>
-
-                <!-- Tab Content: Overview -->
-                <div x-show="activeTab === 'overview'" x-cloak>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Users by Page -->
-                        <div class="saas-card p-5 sm:p-6">
-                            <h3 class="text-sm font-bold font-heading text-neutral-900 mb-4">Users by Page</h3>
-                            <div class="space-y-3">
-                                <div th:each="entry : ${usersByPage}" class="flex items-center justify-between py-2 border-b border-neutral-100">
-                                    <span class="text-sm text-neutral-600" th:text="${entry.key}">Page</span>
-                                    <span class="text-sm font-semibold text-neutral-900 bg-purple-50 px-2 py-0.5 rounded" th:text="${entry.value}">0</span>
-                                </div>
-                                <div th:if="${#maps.isEmpty(usersByPage)}" class="text-sm text-neutral-400 text-center py-4">
-                                    No active users
-                                </div>
+                    </article>
+                </section>
+                <section class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(360px,1fr)]">
+                    <div class="rounded-[24px] border border-neutral-200 bg-white shadow-sm">
+                        <div class="flex flex-col gap-4 border-b border-neutral-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-neutral-500">Recent Activity Feed</p>
+                                <h2 class="mt-2 font-heading text-2xl font-semibold tracking-tight text-neutral-950">Platform and project activity in one view</h2>
+                                <p class="mt-1 text-sm text-neutral-500">Newest events surface first so you can review staff actions, project changes, and operational signals without leaving the dashboard.</p>
                             </div>
+                            <a href="/super-admin/audit-logs" class="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm font-semibold text-neutral-700 transition hover:border-neutral-300 hover:bg-white hover:text-neutral-950">
+                                View Audit Logs
+                            </a>
                         </div>
 
-                        <!-- System Summary -->
-                        <div class="saas-card p-5 sm:p-6">
-                            <h3 class="text-sm font-bold font-heading text-neutral-900 mb-4">System Summary</h3>
-                            <div class="space-y-4">
-                                <div class="flex items-center justify-between py-3 border-b border-neutral-100">
-                                    <span class="text-sm text-neutral-600">Super Admins</span>
-                                    <span class="text-sm font-semibold text-neutral-900" th:text="${totalSuperAdmins}">0</span>
-                                </div>
-                                <div class="flex items-center justify-between py-3 border-b border-neutral-100">
-                                    <span class="text-sm text-neutral-600">Regular Admins</span>
-                                    <span class="text-sm font-semibold text-neutral-900" th:text="${totalAdmins}">0</span>
-                                </div>
-                                <div class="flex items-center justify-between py-3 border-b border-neutral-100">
-                                    <span class="text-sm text-neutral-600">Contractors</span>
-                                    <span class="text-sm font-semibold text-neutral-900" th:text="${totalContractors}">0</span>
-                                </div>
-                                <div class="flex items-center justify-between py-3">
-                                    <span class="text-sm text-neutral-600">Active Projects</span>
-                                    <span class="text-sm font-semibold text-neutral-900" th:text="${activeProjects}">0</span>
+                        <div th:if="${#lists.isEmpty(recentActivityPreview)}" class="px-6 py-16 text-center">
+                            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-neutral-100 text-neutral-400">
+                                <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l4.414 4.414A1 1 0 0118 8.414V19a2 2 0 01-2 2z"/>
+                                </svg>
+                            </div>
+                            <h3 class="mt-5 font-heading text-xl font-semibold text-neutral-900">No activity yet</h3>
+                            <p class="mt-2 text-sm text-neutral-500">System and project events will appear here as teams start working.</p>
+                        </div>
+
+                        <div th:unless="${#lists.isEmpty(recentActivityPreview)}" class="divide-y divide-neutral-200">
+                            <div th:each="log : ${recentActivityPreview}"
+                                 th:with="actionTone=${log.actionType == 'CHAT_MESSAGE_SENT'} ? 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200' :
+                                                          (${log.actionType == 'PHOTO_UPLOADED' or log.actionType == 'PHOTOS_VIEWED' or log.actionType == 'PHOTOS_DOWNLOADED'} ? 'bg-teal-100 text-teal-700 ring-1 ring-teal-200' :
+                                                          (${log.actionType == 'PROJECT_CREATED' or log.actionType == 'PROJECT_OPENED' or log.actionType == 'PROJECT_COMPLETED'} ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200' :
+                                                          (${log.actionType == 'USER_BLOCKED' or log.actionType == 'USER_UNBLOCKED'} ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-200' :
+                                                          (${log.actionType == 'PROJECT_DELETED'} ? 'bg-rose-100 text-rose-700 ring-1 ring-rose-200' :
+                                                          'bg-neutral-100 text-neutral-700 ring-1 ring-neutral-200')))}"
+                                 class="px-6 py-5">
+                                <div class="flex gap-4">
+                                    <div class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl"
+                                         th:classappend="${log.projectSource} ? 'bg-primary-100 text-primary-700' : 'bg-slate-100 text-slate-700'">
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l4.414 4.414A1 1 0 0118 8.414V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                    </div>
+
+                                    <div class="min-w-0 flex-1 space-y-3">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <span class="rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.22em]"
+                                                  th:classappend="${log.projectSource} ? 'bg-primary-100 text-primary-700 ring-1 ring-primary-200' : 'bg-slate-100 text-slate-700 ring-1 ring-slate-200'"
+                                                  th:text="${log.sourceLabel}">
+                                                Project
+                                            </span>
+                                            <span class="rounded-full px-2.5 py-1 text-xs font-semibold" th:classappend="${actionTone}" th:text="${log.actionLabel}">
+                                                Action
+                                            </span>
+                                            <span class="text-xs text-neutral-400" th:text="${#temporals.format(log.timestamp, 'dd MMM yyyy - HH:mm')}">11 Apr 2026 - 10:40</span>
+                                        </div>
+
+                                        <div class="space-y-2">
+                                            <p class="text-sm leading-6 text-neutral-700">
+                                                <span class="font-semibold text-neutral-950" th:text="${log.actorDisplay}">Actor</span>
+                                                <span th:if="${log.actorRoleLabel != null and !#strings.isEmpty(log.actorRoleLabel)}" class="text-neutral-500">
+                                                    (<span th:text="${log.actorRoleLabel}">Role</span>)
+                                                </span>
+                                                acted on
+                                                <span class="font-semibold text-neutral-950" th:text="${log.displayTarget}">Target</span>.
+                                            </p>
+                                            <p class="text-sm leading-6 text-neutral-500"
+                                               th:text="${!#strings.isEmpty(log.detailsPreview) ? log.detailsPreview : 'No extra details were recorded for this event.'}">
+                                                Details
+                                            </p>
+                                        </div>
+
+                                        <div class="flex flex-wrap gap-2">
+                                            <a th:if="${log.projectChatUrl != null}" th:href="${log.projectChatUrl}" class="inline-flex items-center rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:border-primary-200 hover:text-primary-700">
+                                                Open Chat
+                                            </a>
+                                            <a th:if="${log.projectHistoryUrl != null}" th:href="${log.projectHistoryUrl}" class="inline-flex items-center rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:border-primary-200 hover:text-primary-700">
+                                                Project History
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Tab Content: Recent Activity -->
-                <div x-show="activeTab === 'activity'" x-cloak>
-                    <div class="saas-card overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-neutral-200">
-                                <thead class="bg-neutral-50">
-                                    <tr>
-                                        <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Action</th>
-                                        <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Actor</th>
-                                        <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider hidden sm:table-cell">Target</th>
-                                        <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Time</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-neutral-200">
-                                    <tr th:each="log : ${recentActivities}" class="hover:bg-neutral-50">
-                                        <td class="px-4 sm:px-6 py-4">
-                                            <div class="flex flex-wrap items-center gap-2">
-                                                <span class="px-2 py-1 text-[10px] font-bold rounded-full uppercase tracking-wide"
-                                                      th:classappend="${log.projectSource} ? 'bg-purple-100 text-purple-800' : 'bg-slate-100 text-slate-700'"
-                                                      th:text="${log.sourceLabel}">Source</span>
-                                                <span class="px-2 py-1 text-xs font-semibold rounded-full"
-                                                      th:classappend="${#strings.contains(log.actionType, 'DELETE')} ? 'bg-red-100 text-red-800' :
-                                                                     (${#strings.contains(log.actionType, 'BLOCK')} ? 'bg-amber-100 text-amber-800' :
-                                                                     (${#strings.contains(log.actionType, 'CHAT')} ? 'bg-indigo-100 text-indigo-800' :
-                                                                     (${#strings.contains(log.actionType, 'PHOTO')} ? 'bg-teal-100 text-teal-800' :
-                                                                     'bg-green-100 text-green-800')))"
-                                                      th:text="${log.actionLabel}">Action</span>
-                                            </div>
-                                            <p class="text-xs text-neutral-500 mt-2 max-w-md truncate" th:text="${log.detailsPreview}">Details</p>
-                                        </td>
-                                        <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                                            <p class="text-sm text-neutral-900" th:text="${log.actorDisplay}">Actor</p>
-                                            <p class="text-xs text-neutral-400" th:text="${log.actorRoleLabel != null and !#strings.isEmpty(log.actorRoleLabel) ? log.actorRoleLabel : 'System'}">Role</p>
-                                        </td>
-                                        <td class="px-4 sm:px-6 py-4 text-sm text-neutral-500 hidden sm:table-cell">
-                                            <a th:if="${log.projectSource and log.projectDetailUrl != null}" th:href="${log.projectDetailUrl}" class="text-purple-600 hover:text-purple-700 font-medium" th:text="${log.displayTarget}">Target</a>
-                                            <span th:unless="${log.projectSource and log.projectDetailUrl != null}" th:text="${log.displayTarget}">Target</span>
-                                        </td>
-                                        <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-neutral-400" th:text="${#temporals.format(log.timestamp, 'MM-dd HH:mm')}">Time</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div th:if="${#lists.isEmpty(recentActivities)}" class="p-8 text-center text-neutral-400">
-                            No recent activity
-                        </div>
+                    <div class="space-y-6">
+                        <section class="rounded-[24px] border border-neutral-200 bg-white p-6 shadow-sm">
+                            <div class="flex items-center justify-between gap-4">
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-[0.24em] text-neutral-500">Live Presence</p>
+                                    <h2 class="mt-2 font-heading text-xl font-semibold text-neutral-950">Where active users are right now</h2>
+                                </div>
+                                <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700" th:text="${activeUsers} + ' live'">0 live</span>
+                            </div>
+
+                            <div th:if="${#lists.isEmpty(topPages)}" class="mt-6 rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 px-4 py-10 text-center text-sm text-neutral-500">
+                                No active page presence yet.
+                            </div>
+
+                            <div th:unless="${#lists.isEmpty(topPages)}" class="mt-6 space-y-4">
+                                <div th:each="page, stat : ${topPages}" class="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <p class="text-xs font-semibold uppercase tracking-[0.22em] text-neutral-400" th:text="${'Rank ' + (stat.index + 1)}">Rank 1</p>
+                                            <p class="mt-1 truncate text-sm font-semibold text-neutral-900" th:text="${page.pagePath}">/dashboard</p>
+                                        </div>
+                                        <span class="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-neutral-700 ring-1 ring-neutral-200" th:text="${page.userCount} + ' users'">1 users</span>
+                                    </div>
+                                    <div class="mt-4 h-2 rounded-full bg-neutral-200">
+                                        <div class="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500" th:style="|width:${page.sharePercent}%|"></div>
+                                    </div>
+                                    <p class="mt-2 text-xs text-neutral-500" th:text="${page.sharePercent} + '% of current live sessions'">100% of current live sessions</p>
+                                </div>
+                            </div>
+                        </section>
+                        <section class="rounded-[24px] border border-neutral-200 bg-white p-6 shadow-sm">
+                            <div class="flex items-center justify-between gap-4">
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-[0.24em] text-neutral-500">Recent Logins</p>
+                                    <h2 class="mt-2 font-heading text-xl font-semibold text-neutral-950">Latest authentication activity</h2>
+                                </div>
+                                <a href="/super-admin/login-history" class="text-sm font-semibold text-primary-700 transition hover:text-primary-800">View All</a>
+                            </div>
+
+                            <div th:if="${#lists.isEmpty(recentLoginPreview)}" class="mt-6 rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 px-4 py-10 text-center text-sm text-neutral-500">
+                                No login records to display.
+                            </div>
+
+                            <div th:unless="${#lists.isEmpty(recentLoginPreview)}" class="mt-6 space-y-3">
+                                <div th:each="log : ${recentLoginPreview}" class="flex items-start gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+                                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary-100 font-heading text-sm font-semibold text-primary-700"
+                                         th:text="${#strings.toUpperCase(#strings.substring(log.username, 0, 1))}">A</div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <p class="text-sm font-semibold text-neutral-900" th:text="${log.username}">username</p>
+                                            <span class="rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.22em]"
+                                                  th:classappend="${log.userType == 'SUPER_ADMIN'} ? 'bg-primary-100 text-primary-700' :
+                                                                  (${log.userType == 'CONTRACTOR'} ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700')"
+                                                  th:text="${log.userType == 'SUPER_ADMIN'} ? 'Super Admin' : (${log.userType == 'CONTRACTOR'} ? 'Contractor' : 'Admin')">
+                                                Admin
+                                            </span>
+                                            <span class="rounded-full px-2.5 py-1 text-[11px] font-semibold"
+                                                  th:classappend="${log.successful} ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'"
+                                                  th:text="${log.successful} ? 'Success' : 'Failed'">
+                                                Success
+                                            </span>
+                                        </div>
+                                        <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-500">
+                                            <span th:text="${#temporals.format(log.loginTime, 'dd MMM yyyy - HH:mm')}">11 Apr 2026 - 10:40</span>
+                                            <span th:text="${log.ipAddress != null and !#strings.isEmpty(log.ipAddress) ? log.ipAddress : 'Unknown IP'}">127.0.0.1</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <section class="rounded-[24px] border border-neutral-200 bg-white p-6 shadow-sm">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-neutral-500">System Composition</p>
+                                <h2 class="mt-2 font-heading text-xl font-semibold text-neutral-950">Current platform makeup</h2>
+                            </div>
+
+                            <div class="mt-6 space-y-3">
+                                <div class="flex items-center justify-between rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4">
+                                    <div>
+                                        <p class="text-sm font-semibold text-neutral-900">Super Admins</p>
+                                        <p class="text-xs text-neutral-500">Highest permission access</p>
+                                    </div>
+                                    <p class="font-heading text-2xl font-semibold text-neutral-950" th:text="${totalSuperAdmins}">0</p>
+                                </div>
+
+                                <div class="flex items-center justify-between rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4">
+                                    <div>
+                                        <p class="text-sm font-semibold text-neutral-900">Admins</p>
+                                        <p class="text-xs text-neutral-500">Internal operations and project management</p>
+                                    </div>
+                                    <p class="font-heading text-2xl font-semibold text-neutral-950" th:text="${totalAdmins}">0</p>
+                                </div>
+
+                                <div class="flex items-center justify-between rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4">
+                                    <div>
+                                        <p class="text-sm font-semibold text-neutral-900">Contractors</p>
+                                        <p class="text-xs text-neutral-500">Assigned field and delivery team members</p>
+                                    </div>
+                                    <p class="font-heading text-2xl font-semibold text-neutral-950" th:text="${totalContractors}">0</p>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4">
+                                        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-neutral-500">Active Projects</p>
+                                        <p class="mt-2 font-heading text-3xl font-semibold text-neutral-950" th:text="${activeProjects}">0</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4">
+                                        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-neutral-500">Inactive Projects</p>
+                                        <p class="mt-2 font-heading text-3xl font-semibold text-neutral-950" th:text="${inactiveProjects}">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
                     </div>
-                </div>
-
-                <!-- Tab Content: Recent Logins -->
-                <div x-show="activeTab === 'logins'" x-cloak>
-                    <div class="saas-card overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-neutral-200">
-                                <thead class="bg-neutral-50">
-                                    <tr>
-                                        <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Username</th>
-                                        <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider hidden sm:table-cell">Type</th>
-                                        <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Status</th>
-                                        <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider hidden md:table-cell">IP Address</th>
-                                        <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Time</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-neutral-200">
-                                    <tr th:each="log : ${recentLogins}" class="hover:bg-neutral-50">
-                                        <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900" th:text="${log.username}">Username</td>
-                                        <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-neutral-500 hidden sm:table-cell" th:text="${log.userType}">Type</td>
-                                        <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                                            <span th:if="${log.successful}" class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Success</span>
-                                            <span th:unless="${log.successful}" class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Failed</span>
-                                        </td>
-                                        <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-neutral-500 hidden md:table-cell" th:text="${log.ipAddress}">IP</td>
-                                        <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-neutral-400" th:text="${#temporals.format(log.loginTime, 'MM-dd HH:mm')}">Time</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div th:if="${#lists.isEmpty(recentLogins)}" class="p-8 text-center text-neutral-400">
-                            No recent logins
-                        </div>
-                    </div>
-                </div>
-
+                </section>
             </div>
         </div>
     </main>
-
 </body>
 </html>

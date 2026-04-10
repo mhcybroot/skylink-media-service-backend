@@ -22,7 +22,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Controller
@@ -77,14 +79,29 @@ public class SuperAdminController {
         long activeProjects = projectRepository.findAll().stream()
                 .filter(p -> p.getStatus() != ProjectStatus.CLOSED)
                 .count();
+        long totalUsers = totalAdmins + totalContractors + totalSuperAdmins;
+        long inactiveProjects = Math.max(0, totalProjects - activeProjects);
 
         // Recent activities
-        var recentActivities = unifiedAuditFeedService.getRecentAuditFeed(null, null, null, null, null, 50);
+        var recentActivities = unifiedAuditFeedService.getRecentAuditFeed(null, null, null, null, null, 10);
         List<LoginAuditLog> recentLogins = loginAuditLogRepository.findTop50ByOrderByLoginTimeDesc();
+        List<LoginAuditLog> recentLoginPreview = recentLogins.stream()
+                .limit(8)
+                .toList();
 
         // Active users
         int activeUsers = userPresenceService.getActiveUserCount();
-        var usersByPage = userPresenceService.getUsersByPage();
+        Map<String, Long> usersByPage = userPresenceService.getUsersByPage();
+        List<DashboardPageStat> topPages = usersByPage.entrySet().stream()
+                .sorted(Comparator.<Map.Entry<String, Long>>comparingLong(Map.Entry::getValue)
+                        .reversed()
+                        .thenComparing(Map.Entry::getKey))
+                .limit(5)
+                .map(entry -> new DashboardPageStat(
+                        entry.getKey(),
+                        entry.getValue(),
+                        activeUsers > 0 ? Math.max(1L, Math.round((entry.getValue() * 100.0) / activeUsers)) : 0L))
+                .toList();
 
         // Recent logins in last 24 hours
         long recentLogins24h = loginAuditLogRepository.countSuccessfulLoginsSince(LocalDateTime.now().minusHours(24));
@@ -96,12 +113,17 @@ public class SuperAdminController {
         model.addAttribute("totalAdmins", totalAdmins);
         model.addAttribute("totalContractors", totalContractors);
         model.addAttribute("totalSuperAdmins", totalSuperAdmins);
+        model.addAttribute("totalUsers", totalUsers);
         model.addAttribute("totalProjects", totalProjects);
         model.addAttribute("activeProjects", activeProjects);
+        model.addAttribute("inactiveProjects", inactiveProjects);
         model.addAttribute("recentActivities", recentActivities);
+        model.addAttribute("recentActivityPreview", recentActivities);
         model.addAttribute("recentLogins", recentLogins);
+        model.addAttribute("recentLoginPreview", recentLoginPreview);
         model.addAttribute("activeUsers", activeUsers);
         model.addAttribute("usersByPage", usersByPage);
+        model.addAttribute("topPages", topPages);
         model.addAttribute("recentLogins24h", recentLogins24h);
         model.addAttribute("blockedUsers", blockedUsers);
 
@@ -480,5 +502,8 @@ public class SuperAdminController {
         Files.copy(avatar.getInputStream(), dest, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
         return "avatars/" + filename;
+    }
+
+    private record DashboardPageStat(String pagePath, long userCount, long sharePercent) {
     }
 }
