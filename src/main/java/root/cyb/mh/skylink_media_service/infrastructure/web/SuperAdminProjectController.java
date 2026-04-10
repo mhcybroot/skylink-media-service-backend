@@ -23,6 +23,7 @@ import root.cyb.mh.skylink_media_service.domain.entities.Contractor;
 import root.cyb.mh.skylink_media_service.domain.entities.Admin;
 import root.cyb.mh.skylink_media_service.domain.entities.ProjectMessage;
 import root.cyb.mh.skylink_media_service.domain.entities.SuperAdmin;
+import root.cyb.mh.skylink_media_service.domain.entities.Photo;
 import root.cyb.mh.skylink_media_service.domain.valueobjects.ProjectStatus;
 import root.cyb.mh.skylink_media_service.domain.valueobjects.PaymentStatus;
 import root.cyb.mh.skylink_media_service.infrastructure.persistence.UserRepository;
@@ -33,11 +34,19 @@ import root.cyb.mh.skylink_media_service.infrastructure.persistence.AdminReposit
 import root.cyb.mh.skylink_media_service.domain.entities.AdminChatReadLog;
 
 import java.math.BigDecimal;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Controller
 @RequestMapping("/super-admin")
@@ -247,6 +256,72 @@ public class SuperAdminProjectController {
         model.addAttribute("activePage", "projects");
 
         return "super-admin/project-photos";
+    }
+
+    @PostMapping("/projects/{projectId}/photos/download")
+    public void downloadSelectedPhotos(@PathVariable Long projectId,
+            @RequestParam(required = false) List<Long> photoIds,
+            HttpServletResponse response,
+            Authentication authentication) throws IOException {
+        if (photoIds == null || photoIds.isEmpty()) {
+            response.sendRedirect("/super-admin/projects/" + projectId + "/photos?error=No+photos+selected");
+            return;
+        }
+
+        Project project = projectService.getProjectById(projectId);
+        if (project == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Project not found");
+            return;
+        }
+
+        List<Photo> selectedPhotos = photoService.getPhotosByIdsAndProjectId(photoIds, projectId);
+
+        if (selectedPhotos.isEmpty()) {
+            response.sendRedirect("/super-admin/projects/" + projectId + "/photos?error=No+valid+photos+found");
+            return;
+        }
+
+        try {
+            User currentUser = userRepository.findByUsername(authentication.getName()).orElseThrow();
+            auditLogService.logPhotosDownloaded(project, currentUser, selectedPhotos.size());
+        } catch (Exception ignored) {
+        }
+
+        response.setContentType("application/zip");
+        response.setHeader("Content-Disposition",
+                "attachment; filename=\"project_" + project.getWorkOrderNumber() + "_photos.zip\"");
+
+        try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
+            for (Photo photo : selectedPhotos) {
+                try {
+                    Path filePath = null;
+                    if (photo.getOriginalPath() != null) {
+                        filePath = Paths.get(photo.getOriginalPath());
+                    }
+                    if (filePath == null || !Files.exists(filePath)) {
+                        filePath = Paths.get("uploads", photo.getFileName());
+                    }
+                    if (!Files.exists(filePath) && photo.getWebpPath() != null) {
+                        filePath = Paths.get(photo.getWebpPath());
+                    }
+
+                    if (Files.exists(filePath)) {
+                        ZipEntry zipEntry = new ZipEntry(
+                                photo.getOriginalName() != null ? photo.getOriginalName() : photo.getFileName());
+                        zos.putNextEntry(zipEntry);
+                        try (InputStream is = Files.newInputStream(filePath)) {
+                            byte[] buffer = new byte[1024];
+                            int len;
+                            while ((len = is.read(buffer)) > 0) {
+                                zos.write(buffer, 0, len);
+                            }
+                        }
+                        zos.closeEntry();
+                    }
+                } catch (IOException ignored) {
+                }
+            }
+        }
     }
 
     // ==================== Project History ====================

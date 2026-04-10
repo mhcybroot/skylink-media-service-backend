@@ -1,54 +1,37 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-
 <head>
     <th:block th:replace="~{fragments/super-admin-layout :: head(~{::title/text()})}"></th:block>
-    <title th:text="'Photos — ' + ${project.workOrderNumber} + ' - Super Admin | Skylink'">Photos - Skylink</title>
+    <title th:text="'Photos - ' + ${project.workOrderNumber} + ' - Super Admin | Skylink'">Photos - Skylink</title>
     <style>
-        .photo-card {
-            transition: all 0.2s ease;
-        }
-        .photo-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px -4px rgba(0,0,0,0.1);
-        }
-        .photo-checkbox:checked + .photo-overlay {
-            opacity: 1;
-        }
-        .photo-overlay {
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-        .photo-card:hover .photo-overlay {
-            opacity: 1;
-        }
+        body { background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%); }
+        .glass-card { background: rgba(255,255,255,.92); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,.7); box-shadow: 0 10px 30px -10px rgba(0,0,0,.08); }
+        .photo-card-wrapper { transition: all .3s ease; }
+        .photo-card-wrapper:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0,0,0,.1); }
+        .photo-card-wrapper .checkbox-container { opacity: 0; transform: scale(.9); transition: all .2s ease; }
+        .photo-card-wrapper:hover .checkbox-container, .photo-card-wrapper.selected .checkbox-container { opacity: 1; transform: scale(1); }
+        .custom-checkbox { appearance: none; width: 1.4em; height: 1.4em; border: 2px solid #cbd5e1; border-radius: .35em; display: grid; place-content: center; background: #fff; }
+        .custom-checkbox::before { content: ""; width: .8em; height: .8em; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%); transform: scale(0); background: white; transition: transform .12s ease; }
+        .custom-checkbox:checked { background: #7c3aed; border-color: #7c3aed; }
+        .custom-checkbox:checked::before { transform: scale(1); }
+        .selected-ring { box-shadow: 0 0 0 3px rgba(124,58,237,.35); border-color: #7c3aed !important; }
+        .image-modal { display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(15,23,42,.95); backdrop-filter: blur(8px); }
+        .image-modal.active { display: flex; align-items: center; justify-content: center; }
+        .glass-btn { background: rgba(255,255,255,.15); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.2); color: white; width: 44px; height: 44px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
-
-<body class="text-neutral-800 font-sans antialiased overflow-hidden flex h-screen" x-data="{ sidebarOpen: false, selectAll: false, selectedPhotos: [] }">
-
-    <!-- Mobile Backdrop -->
+<body class="text-neutral-800 font-sans antialiased overflow-hidden flex h-screen" x-data="{ sidebarOpen: false }">
     <div x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 z-40 bg-neutral-900/40 backdrop-blur-sm lg:hidden" @click="sidebarOpen = false" x-cloak></div>
-
-    <!-- Sidebar -->
     <aside th:replace="~{fragments/super-admin-layout :: sidebar('projects')}"></aside>
-
-    <!-- Mobile Overlay -->
     <th:block th:replace="~{fragments/super-admin-layout :: mobile-overlay}"></th:block>
 
-    <!-- Main Content -->
     <div class="flex-1 flex flex-col overflow-hidden">
-        <!-- Header -->
         <header class="h-16 bg-white border-b border-neutral-200 px-4 sm:px-6 flex items-center gap-4 shrink-0 shadow-sm z-20">
             <button @click="sidebarOpen = true" class="p-1.5 -ml-2 rounded-md text-neutral-500 hover:bg-neutral-100 lg:hidden">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
             </button>
             <a href="/super-admin/projects" class="text-neutral-400 hover:text-purple-600 transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                </svg>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             </a>
             <div class="flex-1 min-w-0">
                 <h1 class="text-lg font-bold text-neutral-900 truncate font-heading" th:text="${project.workOrderNumber}">Project</h1>
@@ -56,81 +39,307 @@
             </div>
             <div class="flex items-center gap-2">
                 <span class="text-sm text-neutral-500" th:text="${#lists.size(photos) + ' photos'}">0 photos</span>
-                <a th:href="@{/super-admin/projects/{id}(id=${project.id})}" class="px-3 py-1.5 text-xs font-medium text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
-                    View Project
-                </a>
+                <a th:href="@{/super-admin/projects/{id}(id=${project.id})}" class="px-3 py-1.5 text-xs font-medium text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">View Project</a>
             </div>
         </header>
 
-        <!-- Main -->
-        <main class="flex-1 overflow-y-auto premium-scroll p-4 lg:p-6 bg-neutral-50">
-            <!-- Flash Messages -->
-            <div th:if="${success}" class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p class="text-sm text-green-700" th:text="${success}">Success message</p>
-            </div>
-            <div th:if="${error}" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p class="text-sm text-red-700" th:text="${error}">Error message</p>
-            </div>
+        <main class="flex-1 overflow-y-auto premium-scroll p-4 lg:p-6">
+            <div th:if="${success}" class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg"><p class="text-sm text-green-700" th:text="${success}">Success</p></div>
+            <div th:if="${error}" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg"><p class="text-sm text-red-700" th:text="${error}">Error</p></div>
+            <div th:if="${param.error}" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg"><p class="text-sm text-red-700" th:text="${param.error}">Error</p></div>
 
-            <!-- Action Bar -->
-            <div class="saas-card p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                    <h2 class="text-lg font-semibold text-neutral-900">Project Photos</h2>
-                    <p class="text-sm text-neutral-500">View and download project photos</p>
+            <div class="glass-card rounded-2xl p-6 sm:p-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-5 border-b border-slate-100 mb-6 gap-4">
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <h2 class="text-xl font-bold font-heading text-slate-800">Media Gallery</h2>
+                        <span class="ml-3 px-2.5 py-0.5 rounded-full bg-slate-100 text-xs font-medium text-slate-600 border border-slate-200"><span id="visibleCount" th:text="${#lists.size(photos)}"></span> / <span th:text="${#lists.size(photos)}"></span> items</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto" id="categoryFilter">
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1">Filter:</span>
+                        <label class="inline-flex items-center cursor-pointer"><input type="checkbox" value="BEFORE" class="category-filter-checkbox sr-only peer" checked /><span class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider border-2 transition-all peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-500 bg-white text-slate-600 border-slate-200">Before</span></label>
+                        <label class="inline-flex items-center cursor-pointer"><input type="checkbox" value="DURING" class="category-filter-checkbox sr-only peer" checked /><span class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider border-2 transition-all peer-checked:bg-blue-500 peer-checked:text-white peer-checked:border-blue-500 bg-white text-slate-600 border-slate-200">During</span></label>
+                        <label class="inline-flex items-center cursor-pointer"><input type="checkbox" value="AFTER" class="category-filter-checkbox sr-only peer" checked /><span class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider border-2 transition-all peer-checked:bg-green-500 peer-checked:text-white peer-checked:border-green-500 bg-white text-slate-600 border-slate-200">After</span></label>
+                        <label class="inline-flex items-center cursor-pointer"><input type="checkbox" value="UNCATEGORIZED" class="category-filter-checkbox sr-only peer" checked /><span class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider border-2 transition-all peer-checked:bg-slate-400 peer-checked:text-white peer-checked:border-slate-400 bg-white text-slate-600 border-slate-200">Other</span></label>
+                    </div>
                 </div>
-                <form th:if="${#lists.size(photos) > 0}" th:action="@{/admin/project/{id}/photos/download(id=${project.id})}" method="post">
-                    <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
-                    <div id="selectedPhotoIds" x-html="'<input type=\'hidden\' name=\'photoIds\' value=\'' + selectedPhotos.join(',') + '\'>'"></div>
-                    <button type="submit" class="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                        </svg>
-                        Download Selected
-                        <span x-show="selectedPhotos.length > 0" x-text="'(' + selectedPhotos.length + ')'" class="bg-white/20 px-1.5 py-0.5 rounded text-xs"></span>
-                    </button>
-                </form>
-            </div>
 
-            <!-- Photo Grid -->
-            <div th:if="${#lists.size(photos) > 0}" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                <div th:each="photo : ${photos}" class="photo-card saas-card overflow-hidden group">
-                    <div class="relative aspect-square">
-                        <!-- Photo Image -->
-                        <img th:if="${photo.webpPath != null}" 
-                             th:src="@{'/uploads/' + ${photo.webpPath}}" 
-                             alt="Project photo" 
-                             class="w-full h-full object-cover">
-                        <img th:unless="${photo.webpPath != null}" 
-                             th:src="@{'/uploads/' + ${photo.fileName}}" 
-                             alt="Project photo" 
-                             class="w-full h-full object-cover">
-                        
-                        <!-- Overlay -->
-                        <div class="photo-overlay absolute inset-0 bg-black/40 flex items-center justify-center">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" :value="${photo.id}" x-model="selectedPhotos" 
-                                       class="w-5 h-5 rounded border-white text-purple-600 focus:ring-purple-500">
-                            </label>
+                <div id="filterStatus" class="hidden mb-4 px-4 py-2 bg-purple-50 border border-purple-100 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-purple-700">Showing only: <span id="activeCategories" class="font-semibold"></span></span>
+                        <button type="button" id="clearFilterBtn" class="text-xs font-semibold text-purple-600 hover:text-purple-800 underline">Show All</button>
+                    </div>
+                </div>
+
+                <div th:if="${not #lists.isEmpty(photos)}" class="flex items-center space-x-3 mb-4">
+                    <button type="button" id="selectAllBtn" class="flex items-center bg-white border border-slate-300 hover:border-purple-400 hover:text-purple-600 text-slate-700 text-sm font-medium py-2 px-4 rounded-xl transition-all shadow-sm">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>Select All</span>
+                    </button>
+                    <button type="submit" form="downloadForm" id="downloadBtn" class="flex items-center text-sm font-medium bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700 shadow-md shadow-purple-500/30 text-white py-2 px-5 rounded-xl transition-all disabled:from-slate-300 disabled:to-slate-400 disabled:shadow-none disabled:cursor-not-allowed" disabled>
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Download Selected (<span id="selectedCount">0</span>)
+                    </button>
+                </div>
+
+                <form id="downloadForm" th:action="@{/super-admin/projects/{id}/photos/download(id=${project.id})}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                    <div th:if="${#lists.isEmpty(photos)}" class="py-16 flex flex-col items-center justify-center bg-slate-50 border border-dashed border-slate-300 rounded-xl">
+                        <svg class="w-16 h-16 text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <p class="text-slate-500 text-lg font-medium">No photos uploaded yet</p>
+                        <p class="text-slate-400 text-sm mt-1">Contractor uploads will appear here</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+                        <div th:each="photo : ${photos}" th:attr="data-category=${photo.imageCategory != null ? photo.imageCategory.name() : 'UNCATEGORIZED'}" class="photo-card-wrapper bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm relative group photo-card cursor-pointer flex flex-col">
+                            <div class="checkbox-container absolute top-3 left-3 z-10">
+                                <div class="bg-white/90 backdrop-blur-sm rounded-lg p-1.5 shadow-sm border border-slate-200/50">
+                                    <input type="checkbox" name="photoIds" th:value="${photo.id}" class="photo-checkbox custom-checkbox cursor-pointer" />
+                                </div>
+                            </div>
+
+                            <div class="absolute top-3 right-3 z-10" th:if="${photo.imageCategory != null and photo.imageCategory.name() != 'UNCATEGORIZED'}">
+                                <span th:switch="${photo.imageCategory.name()}" class="px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider shadow-sm">
+                                    <span th:case="'BEFORE'" class="bg-amber-500 text-white">Before</span>
+                                    <span th:case="'DURING'" class="bg-blue-500 text-white">During</span>
+                                    <span th:case="'AFTER'" class="bg-green-500 text-white">After</span>
+                                </span>
+                            </div>
+
+                            <div class="w-full aspect-[4/3] bg-slate-100 relative overflow-hidden group">
+                                <img th:src="@{'/uploads/' + ${photo.fileName}}" th:alt="${photo.originalName}" th:data-meta="${photo.metadataJson}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onclick="openImageModal(this.src, this.alt, this.getAttribute('data-meta'))" />
+                                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900/75">
+                                    <button type="button" class="bg-white/20 backdrop-blur-md rounded-full p-2 text-white shadow-lg hover:bg-white/30 transition-colors"
+                                        th:data-src="@{'/uploads/' + ${photo.fileName}}" th:data-alt="${photo.originalName}" th:data-meta="${photo.metadataJson}"
+                                        onclick="openImageModal(this.getAttribute('data-src'), this.getAttribute('data-alt'), this.getAttribute('data-meta'))">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="p-3 flex-1 flex flex-col justify-between">
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-800 mb-1 truncate" th:title="${photo.originalName}" th:text="${photo.originalName}">Photo</p>
+                                </div>
+                                <div class="mt-2 space-y-1">
+                                    <div class="flex items-center text-xs text-slate-500">
+                                        <svg class="w-3 h-3 mr-1.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                        <span class="truncate" th:if="${photo.contractor != null and photo.contractor.fullName != null and !#strings.isEmpty(photo.contractor.fullName)}" th:text="${photo.contractor.fullName}">Uploader</span>
+                                        <span class="truncate" th:if="${photo.contractor != null and (photo.contractor.fullName == null or #strings.isEmpty(photo.contractor.fullName))}" th:text="${photo.contractor.username}">Uploader</span>
+                                        <span class="truncate" th:if="${photo.contractor == null}">Unknown</span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-[11px] text-slate-400">
+                                        <span th:if="${photo.fileSize != null}"><span th:text="${#numbers.formatDecimal(photo.fileSize / 1024.0, 1, 1)}"></span> KB</span>
+                                        <span th:unless="${photo.fileSize != null}">Unknown Size</span>
+                                        <span th:if="${photo.uploadedAt != null}" th:text="${#temporals.format(photo.uploadedAt, 'MM-dd-yyyy, HH:mm')}">Date</span>
+                                        <span th:unless="${photo.uploadedAt != null}">Unknown Date</span>
+                                    </div>
+                                    <div th:if="${photo.metadataJson != null}" class="mt-2 pt-2 border-t border-slate-100 text-left meta-container" th:data-meta="${photo.metadataJson}" th:data-src="@{'/uploads/' + ${photo.fileName}}" th:data-alt="${photo.originalName}"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="p-2">
-                        <p class="text-xs text-neutral-500 truncate" th:text="${#temporals.format(photo.uploadedAt, 'MMM dd, yyyy')}">Date</p>
-                        <p th:if="${photo.uploadedBy != null}" class="text-xs text-neutral-400 truncate" th:text="${'by ' + photo.uploadedBy.username}">Uploader</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Empty State -->
-            <div th:if="${#lists.isEmpty(photos)}" class="saas-card p-12 text-center">
-                <div class="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-8 h-8 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                </div>
-                <p class="text-neutral-500 font-medium">No photos uploaded</p>
-                <p class="text-sm text-neutral-400 mt-1">Photos will appear here when contractors upload them</p>
+                </form>
             </div>
         </main>
     </div>
+
+    <div id="imageModal" class="image-modal">
+        <button class="absolute top-6 left-6 glass-btn text-3xl" onclick="closeImageModal()">&times;</button>
+        <div class="absolute top-6 right-6 flex gap-3">
+            <button class="glass-btn" onclick="zoomIn()">+</button>
+            <button class="glass-btn" onclick="resetZoom()">0</button>
+            <button class="glass-btn text-xl" onclick="zoomOut()">-</button>
+        </div>
+        <div class="relative flex flex-col md:flex-row bg-slate-900 rounded-lg w-[95%] h-[95%] overflow-hidden">
+            <div class="flex-1 flex items-center justify-center p-4 overflow-hidden">
+                <img id="modalImage" class="max-w-full max-h-full object-contain transition-transform duration-300 cursor-grab" src="" alt="" />
+            </div>
+            <div id="modalMetaPanel" class="hidden w-full md:w-80 bg-slate-800 border-t md:border-t-0 md:border-l border-slate-700 text-slate-300 p-6 overflow-y-auto shrink-0">
+                <h3 class="text-white font-bold mb-4 border-b border-slate-600 pb-2">Full Metadata</h3>
+                <div id="modalMetaContent" class="text-xs space-y-3 break-words"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentZoom = 1;
+        let isDragging = false;
+        let startX = 0, startY = 0, translateX = 0, translateY = 0;
+
+        function updateImageTransform() {
+            const modalImage = document.getElementById('modalImage');
+            if (modalImage) modalImage.style.transform = `scale(${currentZoom}) translate(${translateX}px, ${translateY}px)`;
+        }
+        function zoomIn() { currentZoom = Math.min(currentZoom * 1.2, 5); updateImageTransform(); }
+        function zoomOut() { currentZoom = Math.max(currentZoom / 1.2, 0.5); updateImageTransform(); }
+        function resetZoom() { currentZoom = 1; translateX = 0; translateY = 0; updateImageTransform(); }
+        function closeImageModal() { document.getElementById('imageModal').classList.remove('active'); resetZoom(); }
+        function openImageModal(src, alt, metaRaw) {
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            const metaPanel = document.getElementById('modalMetaPanel');
+            const metaContent = document.getElementById('modalMetaContent');
+            modalImage.src = src;
+            modalImage.alt = alt || '';
+            metaContent.innerHTML = '';
+            metaPanel.classList.add('hidden');
+            if (metaRaw) {
+                try {
+                    const meta = JSON.parse(metaRaw);
+                    let html = '';
+                    Object.keys(meta).forEach(function(key) {
+                        html += '<div><span class="font-semibold text-blue-300 block mb-0.5">' + key + '</span><span class="text-slate-300 font-mono text-[11px]">' + meta[key] + '</span></div>';
+                    });
+                    metaContent.innerHTML = html;
+                    metaPanel.classList.remove('hidden');
+                } catch (e) {
+                    console.error('Error parsing metadata for modal', e);
+                }
+            }
+            modal.classList.add('active');
+            resetZoom();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const selectAllBtn = document.getElementById('selectAllBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const selectedCountSpan = document.getElementById('selectedCount');
+            const filterCheckboxes = document.querySelectorAll('.category-filter-checkbox');
+            const photoCards = document.querySelectorAll('.photo-card-wrapper[data-category]');
+            const visibleCountSpan = document.getElementById('visibleCount');
+            const filterStatus = document.getElementById('filterStatus');
+            const activeCategoriesSpan = document.getElementById('activeCategories');
+            const clearFilterBtn = document.getElementById('clearFilterBtn');
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+
+            function visibleCheckboxes() {
+                return Array.from(document.querySelectorAll('.photo-checkbox')).filter(function(checkbox) {
+                    const card = checkbox.closest('.photo-card-wrapper');
+                    return card && card.style.display !== 'none';
+                });
+            }
+            function updateSelectionUI() {
+                const visible = visibleCheckboxes();
+                const checkedCount = visible.filter(function(cb) { return cb.checked; }).length;
+                if (selectedCountSpan) selectedCountSpan.textContent = checkedCount;
+                if (downloadBtn) downloadBtn.disabled = checkedCount === 0;
+                if (selectAllBtn) {
+                    selectAllBtn.querySelector('span').textContent = checkedCount === visible.length && visible.length > 0 ? 'Clear' : 'Select All';
+                }
+            }
+            function updateFilter() {
+                const selected = Array.from(filterCheckboxes).filter(function(cb) { return cb.checked; }).map(function(cb) { return cb.value; });
+                if (selected.length === 0) {
+                    filterCheckboxes.forEach(function(cb) { cb.checked = true; });
+                    return updateFilter();
+                }
+                let visibleCount = 0;
+                photoCards.forEach(function(card) {
+                    const visible = selected.includes(card.getAttribute('data-category'));
+                    card.style.display = visible ? '' : 'none';
+                    if (!visible) {
+                        const checkbox = card.querySelector('.photo-checkbox');
+                        if (checkbox) {
+                            checkbox.checked = false;
+                            card.classList.remove('selected', 'selected-ring');
+                            card.classList.add('border-slate-200');
+                        }
+                    } else {
+                        visibleCount++;
+                    }
+                });
+                if (visibleCountSpan) visibleCountSpan.textContent = visibleCount;
+                if (filterStatus) {
+                    if (selected.length < 4) {
+                        filterStatus.classList.remove('hidden');
+                        const labels = { BEFORE: 'Before', DURING: 'During', AFTER: 'After', UNCATEGORIZED: 'Other' };
+                        activeCategoriesSpan.textContent = selected.map(function(key) { return labels[key] || key; }).join(', ');
+                    } else {
+                        filterStatus.classList.add('hidden');
+                    }
+                }
+                updateSelectionUI();
+            }
+
+            document.querySelectorAll('.photo-checkbox').forEach(function (checkbox) {
+                checkbox.addEventListener('change', function () {
+                    const card = this.closest('.photo-card-wrapper');
+                    if (this.checked) {
+                        card.classList.add('selected', 'selected-ring');
+                        card.classList.remove('border-slate-200');
+                    } else {
+                        card.classList.remove('selected', 'selected-ring');
+                        card.classList.add('border-slate-200');
+                    }
+                    updateSelectionUI();
+                });
+            });
+
+            document.querySelectorAll('.photo-card').forEach(function(card) {
+                card.addEventListener('click', function(e) {
+                    if (e.target.tagName === 'IMG' || e.target.closest('button') || (e.target.tagName === 'INPUT' && e.target.type === 'checkbox')) return;
+                    const checkbox = this.querySelector('.photo-checkbox');
+                    if (checkbox) checkbox.click();
+                });
+            });
+
+            document.querySelectorAll('.meta-container').forEach(function(container) {
+                try {
+                    const metaRaw = container.getAttribute('data-meta');
+                    if (!metaRaw) return;
+                    const meta = JSON.parse(metaRaw);
+                    let html = '<p class="text-[10px] font-semibold text-slate-600 mb-1">Metadata</p><div class="text-[9px] text-slate-500 space-y-0.5 leading-tight break-words">';
+                    let count = 0;
+                    Object.keys(meta).forEach(function(key) {
+                        if (count++ < 3) {
+                            const parts = key.split(' - ');
+                            const shortKey = parts.length > 1 ? parts[1] : key;
+                            html += '<p><span class="font-medium text-slate-700">' + shortKey + ':</span> ' + meta[key] + '</p>';
+                        }
+                    });
+                    if (Object.keys(meta).length > 3) {
+                        const safeMetaRaw = metaRaw.replace(/'/g, '&#39;');
+                        html += '<p class="text-slate-400 italic mt-1 mb-2">+' + (Object.keys(meta).length - 3) + ' more fields</p>';
+                        html += '<button type="button" class="mt-2 w-full text-center text-[11px] font-bold text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 py-1.5 rounded-lg border border-purple-100 transition-colors shadow-sm" onclick="openImageModal(this.getAttribute(\'data-src\'), this.getAttribute(\'data-alt\'), this.getAttribute(\'data-meta\'))" data-src="' + container.getAttribute('data-src') + '" data-alt="' + container.getAttribute('data-alt') + '" data-meta=\'' + safeMetaRaw + '\'>Show All Metadata</button>';
+                    }
+                    html += '</div>';
+                    container.innerHTML = html;
+                } catch (e) {
+                    console.error('Error parsing metadata', e);
+                }
+            });
+
+            filterCheckboxes.forEach(function(cb) { cb.addEventListener('change', updateFilter); });
+            if (clearFilterBtn) clearFilterBtn.addEventListener('click', function() { filterCheckboxes.forEach(function(cb) { cb.checked = true; }); updateFilter(); });
+            if (selectAllBtn) selectAllBtn.addEventListener('click', function() {
+                const makeChecked = selectAllBtn.querySelector('span').textContent.trim() === 'Select All';
+                visibleCheckboxes().forEach(function(cb) {
+                    if (cb.checked !== makeChecked) {
+                        cb.checked = makeChecked;
+                        cb.dispatchEvent(new Event('change'));
+                    }
+                });
+            });
+            if (modal) modal.addEventListener('click', function(e) { if (e.target === modal) closeImageModal(); });
+            document.addEventListener('keydown', function(e) {
+                if (!modal || !modal.classList.contains('active')) return;
+                if (e.key === 'Escape') closeImageModal();
+                if (e.key === '+' || e.key === '=') zoomIn();
+                if (e.key === '-') zoomOut();
+                if (e.key === '0') resetZoom();
+            });
+            if (modalImage) {
+                modalImage.addEventListener('mousedown', function(e) { if (currentZoom > 1) { isDragging = true; startX = e.clientX - translateX; startY = e.clientY - translateY; } });
+                modalImage.addEventListener('wheel', function(e) { e.preventDefault(); e.deltaY < 0 ? zoomIn() : zoomOut(); });
+                modalImage.addEventListener('dblclick', resetZoom);
+            }
+            document.addEventListener('mousemove', function(e) { if (isDragging && currentZoom > 1) { translateX = e.clientX - startX; translateY = e.clientY - startY; updateImageTransform(); } });
+            document.addEventListener('mouseup', function() { isDragging = false; });
+            updateFilter();
+        });
+    </script>
 </body>
 </html>
