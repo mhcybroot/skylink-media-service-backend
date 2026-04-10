@@ -46,9 +46,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 @Controller
 @RequestMapping("/admin")
@@ -588,38 +590,39 @@ public class AdminController {
         response.setHeader("Content-Disposition",
                 "attachment; filename=\"project_" + project.getWorkOrderNumber() + "_photos.zip\"");
 
+        Set<String> usedEntryNames = new HashSet<>();
         try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
             for (root.cyb.mh.skylink_media_service.domain.entities.Photo photo : selectedPhotos) {
-                try {
-                    // Try to read the original file first for maximum quality and metadata preservation
-                    Path filePath = null;
-                    if (photo.getOriginalPath() != null) {
-                        filePath = Paths.get(photo.getOriginalPath());
-                    }
-                    // Fallbacks for older uploads where original was deleted
-                    if (filePath == null || !Files.exists(filePath)) {
-                        filePath = Paths.get("uploads", photo.getFileName());
-                    }
-                    if (!Files.exists(filePath) && photo.getWebpPath() != null) {
-                        filePath = Paths.get(photo.getWebpPath());
-                    }
+                // Try to read the original file first for maximum quality and metadata preservation
+                Path filePath = null;
+                if (photo.getOriginalPath() != null) {
+                    filePath = Paths.get(photo.getOriginalPath());
+                }
+                // Fallbacks for older uploads where original was deleted
+                if (filePath == null || !Files.exists(filePath)) {
+                    filePath = Paths.get("uploads", photo.getFileName());
+                }
+                if (!Files.exists(filePath) && photo.getWebpPath() != null) {
+                    filePath = Paths.get(photo.getWebpPath());
+                }
 
-                    if (Files.exists(filePath)) {
-                        ZipEntry zipEntry = new ZipEntry(
-                                photo.getOriginalName() != null ? photo.getOriginalName() : photo.getFileName());
-                        zos.putNextEntry(zipEntry);
-                        try (InputStream is = Files.newInputStream(filePath)) {
-                            byte[] buffer = new byte[1024];
-                            int len;
-                            while ((len = is.read(buffer)) > 0) {
-                                zos.write(buffer, 0, len);
-                            }
-                        }
-                        zos.closeEntry();
+                if (filePath == null || !Files.exists(filePath)) {
+                    continue;
+                }
+
+                String entryName = uniqueZipEntryName(
+                        photo.getOriginalName() != null ? photo.getOriginalName() : photo.getFileName(),
+                        usedEntryNames);
+                ZipEntry zipEntry = new ZipEntry(entryName);
+                zos.putNextEntry(zipEntry);
+                try (InputStream is = Files.newInputStream(filePath)) {
+                    byte[] buffer = new byte[1024];
+                    int len;
+                    while ((len = is.read(buffer)) > 0) {
+                        zos.write(buffer, 0, len);
                     }
-                } catch (IOException e) {
-                    // Log error and continue with next photo
-                    e.printStackTrace();
+                } finally {
+                    zos.closeEntry();
                 }
             }
         }
@@ -797,6 +800,24 @@ public class AdminController {
             String bubbleClass,
             String content,
             LocalDateTime sentAt) {}
+
+    private String uniqueZipEntryName(String originalName, Set<String> usedEntryNames) {
+        String safeName = (originalName == null || originalName.isBlank()) ? "photo" : originalName;
+        if (usedEntryNames.add(safeName)) {
+            return safeName;
+        }
+
+        int dotIndex = safeName.lastIndexOf('.');
+        String baseName = dotIndex > 0 ? safeName.substring(0, dotIndex) : safeName;
+        String extension = dotIndex > 0 ? safeName.substring(dotIndex) : "";
+        int counter = 2;
+        String candidate = baseName + " (" + counter + ")" + extension;
+        while (!usedEntryNames.add(candidate)) {
+            counter++;
+            candidate = baseName + " (" + counter + ")" + extension;
+        }
+        return candidate;
+    }
 
     private String saveContractorAvatar(MultipartFile avatar, Long contractorId) throws IOException {
         if (avatar == null || avatar.isEmpty()) return null;
